@@ -5,7 +5,7 @@
 /**
  * Screenshot capture modes
  */
-export type ScreenshotMode = 'manual' | 'auto' | 'none';
+export type ScreenshotMode = 'static' | 'auto' | 'none';
 
 /**
  * Video transition types
@@ -28,15 +28,18 @@ export interface TutorialSegment {
   /** Narration text to be converted to speech */
   narration: string;
 
-  /** Screenshot configuration */
+  /** Screenshot/Image configuration */
   screenshot: {
     /** Screenshot capture mode */
     mode: ScreenshotMode;
 
-    /** Instructions for capturing or identifying the screenshot */
-    instructions?: string;
+    /** Gemini prompt for static image generation (used when mode is 'static') */
+    geminiPrompt?: string;
 
-    /** Path to screenshot file (if already captured) */
+    /** Playwright instructions for auto capture (used when mode is 'auto') */
+    playwrightInstructions?: string;
+
+    /** Path to screenshot/image file (if already captured/generated) */
     filepath?: string;
   };
 
@@ -177,7 +180,7 @@ export interface NarrationOptions {
 }
 
 /**
- * Screenshot capture options
+ * Screenshot capture options (for Playwright automation)
  */
 export interface ScreenshotCaptureOptions {
   /** Output file path */
@@ -197,6 +200,26 @@ export interface ScreenshotCaptureOptions {
     width: number;
     height: number;
   };
+}
+
+/**
+ * Gemini image generation options
+ */
+export interface GeminiImageOptions {
+  /** Text prompt describing the desired image */
+  prompt: string;
+
+  /** Output file path */
+  outputPath: string;
+
+  /** Image resolution (e.g., "1920x1080") */
+  resolution?: string;
+
+  /** Optional aspect ratio override */
+  aspectRatio?: string;
+
+  /** Number of generation attempts before failing */
+  maxRetries?: number;
 }
 
 /**
