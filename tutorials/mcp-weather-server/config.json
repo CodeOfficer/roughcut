@@ -1,0 +1,16 @@
+{
+  "title": "Building Your First MCP Weather Server",
+  "description": "Learn how to create a Model Context Protocol server that provides weather information",
+  "voice": "adam",
+  "videoSettings": {
+    "resolution": "1920x1080",
+    "fps": 30,
+    "transition": "fade",
+    "transitionDuration": 0.5
+  },
+  "metadata": {
+    "created": null,
+    "lastModified": null,
+    "version": "1.0.0"
+  }
+}
