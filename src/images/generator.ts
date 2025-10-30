@@ -41,10 +41,11 @@ export class ImageGenerator {
       // Ensure output directory exists
       await ensureDir(outputDir);
 
-      // Generate image (currently creates placeholder SVG)
+      // Generate image as SVG first
+      const svgPath = outputPath + '.svg';
       await this.client.generateImage(
         segment.screenshot.geminiPrompt,
-        outputPath + '.svg',
+        svgPath,
         { resolution: this.resolution }
       );
 
@@ -52,7 +53,7 @@ export class ImageGenerator {
       const parts = this.resolution.split('x').map(Number);
       const width: number = parts[0] || 1920;
       const height: number = parts[1] || 1080;
-      await sharp(outputPath + '.svg')
+      await sharp(svgPath)
         .resize(width, height)
         .png()
         .toFile(outputPath);
@@ -69,7 +70,7 @@ export class ImageGenerator {
 
       // Clean up intermediate SVG
       const { unlink } = await import('fs/promises');
-      await unlink(outputPath + '.svg');
+      await unlink(svgPath);
 
       return {
         filePath: outputPath,

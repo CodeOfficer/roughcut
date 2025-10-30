@@ -9,7 +9,7 @@ Welcome! In this tutorial, you'll learn how to build a simple Model Context Prot
 [/NARRATION]
 
 [IMAGE_PROMPT]
-A professional tech tutorial title slide with gradient background (blue to purple). Center text "MCP Weather Server Tutorial" in large bold modern sans-serif font. Below it "Build Your First Model Context Protocol Server" in smaller text. Include a minimalist icon combining a cloud and code brackets </> symbols. Clean, modern, high contrast design suitable for a video thumbnail.
+A fun, cartoonized illustration of a happy smiling sun character wearing sunglasses and a tiny programmer hat, holding a laptop showing code brackets </> on screen. Around the sun are playful cartoon clouds (white and fluffy) with cute faces. The scene is bright and cheerful with a gradient sky background from light blue to soft purple. The text "MCP Weather Server Tutorial" appears in bold, friendly rounded font at the top. Style: vibrant, cartoon illustration, Pixar-like quality, whimsical and inviting for developers.
 [/IMAGE_PROMPT]
 
 ---
@@ -102,5 +102,5 @@ Congratulations! You've just built your first MCP server. You can now extend thi
 [/NARRATION]
 
 [IMAGE_PROMPT]
-A celebration completion slide with gradient background matching the intro. Large text "Tutorial Complete!" at the top. Below show a checklist with green checkmarks: "✓ Project Created", "✓ Dependencies Installed", "✓ Server Code Written", "✓ Server Tested". At bottom "Happy Coding!" in friendly font. Professional, clean design with positive energy.
+A cheerful cartoon celebration scene with the same friendly sun character from the intro, now jumping with joy and raising its arms in celebration. Around it are cartoon weather elements: a happy rainbow, dancing clouds with big smiles, raindrops with cute faces, and snowflakes with little grins. Confetti and stars sparkle around them. The text "Tutorial Complete!" appears at the top in bold, playful font with a gold trophy emoji. Below is a cute checklist with animated green checkmarks and the text "You're a Weather Server Pro!" at the bottom. Style: vibrant, cartoon illustration, celebratory mood, Pixar-like quality, warm and encouraging for developers.
 [/IMAGE_PROMPT]
