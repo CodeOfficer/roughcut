@@ -7,7 +7,7 @@ A TypeScript-based automation system for generating tutorial videos from markdow
 
 ```
 genai-tutorial-factory/
-├── .env.example              # Environment variable template
+├── .envrc.example            # Environment variable template
 ├── .gitignore               # Git ignore rules
 ├── package.json             # Dependencies and scripts
 ├── tsconfig.json            # TypeScript configuration
@@ -90,7 +90,7 @@ genai-tutorial-factory/
 **Features:**
 - Runtime validation on startup
 - Clear error messages for missing/invalid vars
-- Support for .env and .env.local
+- Support for .envrc and .envrc.local
 - Type inference for TypeScript
 
 ### 2. CLI Module (`src/cli/`)
@@ -428,7 +428,7 @@ import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config({ path: '.envrc.local', override: true });
 
 // Define schema with validation rules
 const envSchema = z.object({
@@ -465,8 +465,8 @@ const parseEnv = () => {
       error.errors.forEach(err => {
         console.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
-      console.error('\n💡 Check your .env file and ensure all required variables are set.');
-      console.error('   See .env.example for reference.\n');
+      console.error('\n💡 Check your .envrc file and ensure all required variables are set.');
+      console.error('   See .envrc.example for reference.\n');
     }
     process.exit(1);
   }

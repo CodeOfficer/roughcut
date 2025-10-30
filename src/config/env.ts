@@ -8,9 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '../..');
 
-// Load environment variables from .env and .env.local
-dotenv.config({ path: join(rootDir, '.env') });
-dotenv.config({ path: join(rootDir, '.env.local'), override: true });
+// Load environment variables from .envrc and .envrc.local
+dotenv.config({ path: join(rootDir, '.envrc') });
+dotenv.config({ path: join(rootDir, '.envrc.local'), override: true });
 
 /**
  * Environment variable schema with validation rules and defaults
@@ -120,9 +120,9 @@ const parseEnv = () => {
       });
 
       console.error('\n💡 To fix this:');
-      console.error('  1. Copy .env.example to .env: cp .env.example .env');
-      console.error('  2. Edit .env and add your configuration values');
-      console.error('  3. See .env.example for detailed documentation\n');
+      console.error('  1. Copy .envrc.example to .envrc: cp .envrc.example .envrc');
+      console.error('  2. Edit .envrc and add your configuration values');
+      console.error('  3. See .envrc.example for detailed documentation\n');
     } else {
       console.error('\n❌ Unexpected error parsing environment variables:', error);
     }
@@ -161,7 +161,7 @@ export const getRequired = <K extends keyof Env>(key: K): NonNullable<Env[K]> =>
   const value = env[key];
   if (value === undefined || value === null || value === '') {
     throw new Error(
-      `Configuration error: ${key} is required but not set. Check your .env file.`
+      `Configuration error: ${key} is required but not set. Check your .envrc file.`
     );
   }
   return value as NonNullable<Env[K]>;

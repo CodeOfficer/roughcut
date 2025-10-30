@@ -61,18 +61,18 @@ npx playwright install
 
 ```bash
 # Copy the example environment file
-cp .env.example .env
+cp .envrc.example .envrc
 
-# Edit .env and add your API keys
-nano .env  # or use your preferred editor
+# Edit .envrc and add your API keys
+nano .envrc  # or use your preferred editor
 ```
 
-Required configuration in `.env`:
+Required configuration in `.envrc`:
 ```bash
 ELEVENLABS_API_KEY=your_api_key_here
 ```
 
-See `.env.example` for all available configuration options.
+See `.envrc.example` for all available configuration options.
 
 ### 3. Create Your First Tutorial
 
@@ -241,7 +241,7 @@ Wait: 2s
 
 ### Environment Variables
 
-See `.env.example` for all options. Key variables:
+See `.envrc.example` for all options. Key variables:
 
 ```bash
 # Required
@@ -287,8 +287,8 @@ ELEVENLABS_API_KEY: ElevenLabs API key is required
 ```
 
 Solution:
-1. Ensure `.env` file exists: `cp .env.example .env`
-2. Add your API key to `.env`
+1. Ensure `.envrc` file exists: `cp .envrc.example .envrc`
+2. Add your API key to `.envrc`
 3. Verify no extra spaces around the `=` sign
 
 ### FFmpeg Not Found
@@ -296,7 +296,7 @@ Solution:
 If FFmpeg isn't found:
 1. Install FFmpeg (see Prerequisites)
 2. Find FFmpeg path: `which ffmpeg`
-3. Update `FFMPEG_PATH` in `.env`
+3. Update `FFMPEG_PATH` in `.envrc`
 
 ### Playwright Browsers Not Installed
 
@@ -359,7 +359,7 @@ MIT
 
 ## Next Steps
 
-1. ✅ Set up your environment (`.env` file)
+1. ✅ Set up your environment (`.envrc` file)
 2. ✅ Create your first tutorial
 3. ✅ Write a script with 2-3 segments
 4. ✅ Generate narration and screenshots
