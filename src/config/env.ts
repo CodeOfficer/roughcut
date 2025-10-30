@@ -21,6 +21,10 @@ const envSchema = z.object({
     .string()
     .min(1, 'ElevenLabs API key is required. Get one at https://elevenlabs.io/app/settings/api-keys'),
 
+  GEMINI_API_KEY: z
+    .string()
+    .min(1, 'Gemini API key is required. Get one at https://aistudio.google.com/app/apikey'),
+
   ANTHROPIC_API_KEY: z
     .string()
     .optional()
@@ -51,6 +55,18 @@ const envSchema = z.object({
     .default('0.75')
     .transform((val) => parseFloat(val))
     .pipe(z.number().min(0).max(1)),
+
+  // Gemini Configuration
+  GEMINI_MODEL: z
+    .string()
+    .default('gemini-2.0-flash-exp')
+    .describe('Model to use for image generation'),
+
+  GEMINI_IMAGE_RESOLUTION: z
+    .string()
+    .default('1920x1080')
+    .regex(/^\d+x\d+$/, 'Image resolution must be in format WIDTHxHEIGHT (e.g., 1920x1080)')
+    .describe('Default image resolution for generated images'),
 
   // Output Configuration
   OUTPUT_DIR: z
