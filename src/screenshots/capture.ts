@@ -1,6 +1,6 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { logger } from '../core/logger.js';
-import { ensureDir, getFileSize } from '../utils/fs.js';
+import { ensureDir } from '../utils/fs.js';
 import type { PlaywrightInstruction } from './types.js';
 
 /**
@@ -101,7 +101,10 @@ export class ScreenshotCapture {
     await this.page.waitForTimeout(500); // Let page render
 
     // Ensure output directory exists
-    await ensureDir(outputPath.substring(0, outputPath.lastIndexOf('/')));
+    const lastSlash = outputPath.lastIndexOf('/');
+    if (lastSlash > 0) {
+      await ensureDir(outputPath.substring(0, lastSlash));
+    }
 
     // Capture screenshot
     await this.page.screenshot({
@@ -119,7 +122,7 @@ export class ScreenshotCapture {
     const showInstructions = instructions.filter(i => i.type === 'show');
     const actionInstructions = instructions.filter(i => i.type === 'action');
 
-    const title = showInstructions.length > 0 ? showInstructions[0].content : 'Screenshot';
+    const title = showInstructions.length > 0 && showInstructions[0] ? showInstructions[0].content : 'Screenshot';
     const actions = actionInstructions.map(i => i.content).join('\n');
 
     return `<!DOCTYPE html>
@@ -208,6 +211,6 @@ export class ScreenshotCapture {
       '"': '&quot;',
       "'": '&#039;',
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return text.replace(/[&<>"']/g, m => map[m] || m);
   }
 }

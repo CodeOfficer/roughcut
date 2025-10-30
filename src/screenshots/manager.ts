@@ -10,11 +10,11 @@ import type { ScreenshotCaptureOptions, ScreenshotCaptureResult } from './types.
  * Screenshot management service for tutorial screenshots
  */
 export class ScreenshotManager {
-  private capture: ScreenshotCapture;
+  private screenshotCapture: ScreenshotCapture;
   private viewport: { width: number; height: number };
 
   constructor(resolution?: string) {
-    this.capture = new ScreenshotCapture();
+    this.screenshotCapture = new ScreenshotCapture();
     const [width, height] = this.parseResolution(resolution || '1920x1080');
     this.viewport = { width, height };
   }
@@ -23,14 +23,14 @@ export class ScreenshotManager {
    * Initialize the screenshot capture system
    */
   async initialize(): Promise<void> {
-    await this.capture.initialize(this.viewport);
+    await this.screenshotCapture.initialize(this.viewport);
   }
 
   /**
    * Cleanup resources
    */
   async cleanup(): Promise<void> {
-    await this.capture.cleanup();
+    await this.screenshotCapture.cleanup();
   }
 
   /**
@@ -54,26 +54,28 @@ export class ScreenshotManager {
 
     try {
       // Parse instructions
-      const instructions = this.capture.parseInstructions(
+      const instructions = this.screenshotCapture.parseInstructions(
         segment.screenshot.playwrightInstructions
       );
 
       // Execute and capture
-      await this.capture.captureWithInstructions(instructions, outputPath);
+      await this.screenshotCapture.captureWithInstructions(instructions, outputPath);
 
       // Get screenshot metadata
       const metadata = await sharp(outputPath).metadata();
       const sizeBytes = await getFileSize(outputPath);
+      const imgWidth = metadata.width || this.viewport.width;
+      const imgHeight = metadata.height || this.viewport.height;
 
       logger.success(
-        `Captured ${segment.id}.png (${metadata.width}x${metadata.height}, ${Math.round(sizeBytes / 1024)}KB)`
+        `Captured ${segment.id}.png (${imgWidth}x${imgHeight}, ${Math.round(sizeBytes / 1024)}KB)`
       );
 
       return {
         filePath: outputPath,
         sizeBytes,
-        width: metadata.width || this.viewport.width,
-        height: metadata.height || this.viewport.height,
+        width: imgWidth,
+        height: imgHeight,
       };
     } catch (error) {
       logger.error(`Failed to capture screenshot for ${segment.id}`, error);
@@ -126,21 +128,23 @@ export class ScreenshotManager {
   /**
    * Capture screenshot from custom options
    */
-  async capture(options: ScreenshotCaptureOptions): Promise<ScreenshotCaptureResult> {
+  async captureScreenshot(options: ScreenshotCaptureOptions): Promise<ScreenshotCaptureResult> {
     await this.initialize();
 
     try {
-      const instructions = this.capture.parseInstructions(options.instructions);
-      await this.capture.captureWithInstructions(instructions, options.outputPath);
+      const instructions = this.screenshotCapture.parseInstructions(options.instructions);
+      await this.screenshotCapture.captureWithInstructions(instructions, options.outputPath);
 
       const metadata = await sharp(options.outputPath).metadata();
       const sizeBytes = await getFileSize(options.outputPath);
+      const imgWidth = metadata.width || this.viewport.width;
+      const imgHeight = metadata.height || this.viewport.height;
 
       return {
         filePath: options.outputPath,
         sizeBytes,
-        width: metadata.width || this.viewport.width,
-        height: metadata.height || this.viewport.height,
+        width: imgWidth,
+        height: imgHeight,
       };
     } finally {
       await this.cleanup();
@@ -151,7 +155,9 @@ export class ScreenshotManager {
    * Parse resolution string
    */
   private parseResolution(resolution: string): [number, number] {
-    const [width, height] = resolution.split('x').map(Number);
+    const parts = resolution.split('x').map(Number);
+    const width = parts[0] || 1920;
+    const height = parts[1] || 1080;
     return [width, height];
   }
 }

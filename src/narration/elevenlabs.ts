@@ -91,7 +91,7 @@ export class ElevenLabsClient {
         throw new Error(`Failed to fetch voices: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { voices?: any[] };
       return data.voices || [];
     } catch (error) {
       logger.error('Failed to fetch voices', error);

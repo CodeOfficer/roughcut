@@ -25,7 +25,7 @@ export async function narrateTutorial(tutorialName: string): Promise<void> {
 
     // Generate speech for all segments
     const generator = createSpeechGenerator();
-    const results = await generator.generateAllAudio(script.segments, paths.audio);
+    await generator.generateAllAudio(script.segments, paths.audio);
 
     logger.success(`\nNarration generated successfully!`);
     logger.info(`Audio files saved to: ${paths.audio}`);

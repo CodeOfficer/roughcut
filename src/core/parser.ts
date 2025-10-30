@@ -25,7 +25,7 @@ export class TutorialParser {
   parse(content: string): TutorialScript {
     // Extract title (first # heading)
     const titleMatch = content.match(/^#\s+(.+)$/m);
-    if (!titleMatch) {
+    if (!titleMatch || !titleMatch[1]) {
       throw new Error('Tutorial script must have a title (# heading)');
     }
     const title = titleMatch[1].trim();
@@ -57,9 +57,9 @@ export class TutorialParser {
     for (const block of blocks) {
       // Check if this block contains a ## heading
       const headingMatch = block.match(/^##\s+(.+)$/m);
-      if (headingMatch) {
+      if (headingMatch && headingMatch[1] && headingMatch.index !== undefined) {
         const segmentTitle = headingMatch[1].trim();
-        const segmentContent = block.substring(headingMatch.index! + headingMatch[0].length).trim();
+        const segmentContent = block.substring(headingMatch.index + headingMatch[0].length).trim();
         segments.push(this.parseSegment(segmentTitle, segmentContent, segments.length));
       }
     }
@@ -102,7 +102,7 @@ export class TutorialParser {
    */
   private extractDuration(content: string): number {
     const match = content.match(/^>\s*Duration:\s*(\d+)s?$/m);
-    if (!match) {
+    if (!match || !match[1]) {
       throw new Error('Segment is missing duration metadata (> Duration: Xs)');
     }
     return parseInt(match[1], 10);
@@ -113,7 +113,7 @@ export class TutorialParser {
    */
   private extractScreenshotMode(content: string): ScreenshotMode {
     const match = content.match(/^>\s*Screenshot:\s*(\w+)$/m);
-    if (!match) {
+    if (!match || !match[1]) {
       throw new Error('Segment is missing screenshot mode (> Screenshot: static|auto|none)');
     }
 
@@ -163,7 +163,7 @@ export class TutorialParser {
   private extractBlock(content: string, tag: string): string | null {
     const pattern = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)\\s*\\[\\/${tag}\\]`, 'i');
     const match = content.match(pattern);
-    return match ? match[1].trim() : null;
+    return match && match[1] ? match[1].trim() : null;
   }
 }
 

@@ -98,7 +98,9 @@ export class GeminiClient {
    */
   private parseResolution(resolution?: string): [number, number] {
     const defaultResolution = resolution || env.GEMINI_IMAGE_RESOLUTION || '1920x1080';
-    const [width, height] = defaultResolution.split('x').map(Number);
+    const parts = defaultResolution.split('x').map(Number);
+    const width = parts[0] || 1920;
+    const height = parts[1] || 1080;
     return [width, height];
   }
 

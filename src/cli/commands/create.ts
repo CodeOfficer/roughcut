@@ -1,4 +1,4 @@
-import { mkdir, copyFile, readFile, writeFile } from 'fs/promises';
+import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { logger } from '../../core/logger.js';
 import { getTutorialPaths, getTemplateDir } from '../../utils/paths.js';

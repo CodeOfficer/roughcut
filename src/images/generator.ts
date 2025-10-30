@@ -49,7 +49,9 @@ export class ImageGenerator {
       );
 
       // Convert SVG to PNG
-      const [width, height] = this.resolution.split('x').map(Number);
+      const parts = this.resolution.split('x').map(Number);
+      const width: number = parts[0] || 1920;
+      const height: number = parts[1] || 1080;
       await sharp(outputPath + '.svg')
         .resize(width, height)
         .png()
@@ -58,9 +60,11 @@ export class ImageGenerator {
       // Get image metadata
       const metadata = await sharp(outputPath).metadata();
       const sizeBytes = await getFileSize(outputPath);
+      const imgWidth: number = metadata.width || width;
+      const imgHeight: number = metadata.height || height;
 
       logger.success(
-        `Generated ${segment.id}.png (${metadata.width}x${metadata.height}, ${Math.round(sizeBytes / 1024)}KB)`
+        `Generated ${segment.id}.png (${imgWidth}x${imgHeight}, ${Math.round(sizeBytes / 1024)}KB)`
       );
 
       // Clean up intermediate SVG
@@ -70,8 +74,8 @@ export class ImageGenerator {
       return {
         filePath: outputPath,
         sizeBytes,
-        width: metadata.width || width,
-        height: metadata.height || height,
+        width: imgWidth,
+        height: imgHeight,
       };
     } catch (error) {
       logger.error(`Failed to generate image for ${segment.id}`, error);
@@ -122,23 +126,26 @@ export class ImageGenerator {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
+        const imageOptions: { resolution?: string; aspectRatio?: string } = {};
+        if (options.resolution) imageOptions.resolution = options.resolution;
+        if (options.aspectRatio) imageOptions.aspectRatio = options.aspectRatio;
+
         await this.client.generateImage(
           options.prompt,
           options.outputPath,
-          {
-            resolution: options.resolution,
-            aspectRatio: options.aspectRatio,
-          }
+          imageOptions
         );
 
         const metadata = await sharp(options.outputPath).metadata();
         const sizeBytes = await getFileSize(options.outputPath);
+        const imgWidth = metadata.width || 1920;
+        const imgHeight = metadata.height || 1080;
 
         return {
           filePath: options.outputPath,
           sizeBytes,
-          width: metadata.width || 1920,
-          height: metadata.height || 1080,
+          width: imgWidth,
+          height: imgHeight,
         };
       } catch (error) {
         lastError = error as Error;

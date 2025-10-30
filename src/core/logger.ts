@@ -37,7 +37,8 @@ class Logger {
    * Format a message with timestamp and level
    */
   private formatMessage(level: LogLevel, message: string): string {
-    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+    const timePart = new Date().toISOString().split('T')[1];
+    const timestamp = timePart ? timePart.split('.')[0] : '00:00:00';
     return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
   }
 

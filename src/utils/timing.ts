@@ -18,7 +18,7 @@ export async function getAudioDuration(filePath: string): Promise<number> {
     // Parse duration from FFmpeg output: Duration: 00:00:05.12
     const match = stdout.match(/Duration:\s*(\d{2}):(\d{2}):(\d{2}\.\d{2})/);
 
-    if (!match) {
+    if (!match || !match[1] || !match[2] || !match[3]) {
       throw new Error('Could not parse duration from FFmpeg output');
     }
 
@@ -49,7 +49,7 @@ export function formatDuration(seconds: number): string {
  */
 export function parseDuration(duration: string): number {
   const match = duration.match(/^(\d+)s?$/);
-  if (!match) {
+  if (!match || !match[1]) {
     throw new Error(`Invalid duration format: ${duration}. Expected format: "10s" or "10"`);
   }
   return parseInt(match[1], 10);
