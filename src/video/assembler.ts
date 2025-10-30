@@ -100,6 +100,7 @@ export class VideoAssembler {
 
     const command = `"${this.ffmpegPath}" ${inputFiles} \
       -filter_complex "${filterComplex}" \
+      -map "[outv]" -map "[outa]" \
       -c:v libx264 -preset medium -crf 23 \
       -c:a aac -b:a 192k \
       -r ${settings.fps} \
