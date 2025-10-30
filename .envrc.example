@@ -4,17 +4,17 @@
 
 # ElevenLabs API Key (REQUIRED)
 # Get your API key from: https://elevenlabs.io/app/settings/api-keys
-ELEVENLABS_API_KEY=your_api_key_here
+export ELEVENLABS_API_KEY=your_api_key_here
 
 # Google Gemini API Key (REQUIRED)
 # Used for generating static images (title slides, conclusion screens, etc.)
 # Get your API key from: https://aistudio.google.com/app/apikey
-GEMINI_API_KEY=your_api_key_here
+export GEMINI_API_KEY=your_api_key_here
 
 # Anthropic API Key (OPTIONAL)
 # Required only if using Claude for script generation or enhancement
 # Get your API key from: https://console.anthropic.com/settings/keys
-ANTHROPIC_API_KEY=your_api_key_here
+export ANTHROPIC_API_KEY=your_api_key_here
 
 
 # ============================================
@@ -24,19 +24,19 @@ ANTHROPIC_API_KEY=your_api_key_here
 # Voice ID to use for narration
 # Available voices: adam, rachel, domi, bella, antoni, elli, josh, arnold, callum, charlie, etc.
 # Find more at: https://elevenlabs.io/app/voice-library
-ELEVENLABS_VOICE_ID=adam
+export ELEVENLABS_VOICE_ID=adam
 
 # Model to use for text-to-speech
 # Options: eleven_monolingual_v1, eleven_multilingual_v2, eleven_turbo_v2
-ELEVENLABS_MODEL=eleven_monolingual_v1
+export ELEVENLABS_MODEL=eleven_monolingual_v1
 
 # Voice stability (0.0 - 1.0)
 # Higher values = more consistent, lower = more expressive
-ELEVENLABS_STABILITY=0.75
+export ELEVENLABS_STABILITY=0.75
 
 # Voice similarity boost (0.0 - 1.0)
 # Higher values = closer to original voice, lower = more variation
-ELEVENLABS_SIMILARITY_BOOST=0.75
+export ELEVENLABS_SIMILARITY_BOOST=0.75
 
 
 # ============================================
@@ -45,11 +45,11 @@ ELEVENLABS_SIMILARITY_BOOST=0.75
 
 # Model to use for image generation
 # Options: gemini-2.0-flash-exp (recommended), gemini-1.5-pro, gemini-1.5-flash
-GEMINI_MODEL=gemini-2.0-flash-exp
+export GEMINI_MODEL=gemini-2.0-flash-exp
 
 # Default image resolution for generated images
 # Format: WIDTHxHEIGHT (e.g., 1920x1080 for Full HD)
-GEMINI_IMAGE_RESOLUTION=1920x1080
+export GEMINI_IMAGE_RESOLUTION=1920x1080
 
 
 # ============================================
@@ -57,10 +57,10 @@ GEMINI_IMAGE_RESOLUTION=1920x1080
 # ============================================
 
 # Directory where tutorial projects are stored
-OUTPUT_DIR=./tutorials
+export OUTPUT_DIR=./tutorials
 
 # Temporary directory for intermediate files
-TEMP_DIR=./tmp
+export TEMP_DIR=./tmp
 
 
 # ============================================
@@ -72,11 +72,11 @@ TEMP_DIR=./tmp
 # macOS (Homebrew): /opt/homebrew/bin/ffmpeg
 # Windows: C:/ffmpeg/bin/ffmpeg.exe
 # Linux: /usr/bin/ffmpeg
-FFMPEG_PATH=/usr/local/bin/ffmpeg
+export FFMPEG_PATH=/usr/local/bin/ffmpeg
 
 # Path where Playwright browsers are installed
 # Leave as default unless you need custom browser location
-PLAYWRIGHT_BROWSERS_PATH=./browsers
+export PLAYWRIGHT_BROWSERS_PATH=./browsers
 
 
 # ============================================
@@ -85,8 +85,8 @@ PLAYWRIGHT_BROWSERS_PATH=./browsers
 
 # Environment mode
 # Options: development, production, test
-NODE_ENV=development
+export NODE_ENV=development
 
 # Logging level
 # Options: debug, info, warn, error
-LOG_LEVEL=info
+export LOG_LEVEL=info
