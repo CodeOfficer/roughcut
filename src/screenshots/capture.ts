@@ -116,6 +116,26 @@ export class ScreenshotCapture {
   }
 
   /**
+   * Extract code blocks from instruction text
+   */
+  private extractCodeBlocks(text: string): string[] {
+    const codeBlockPattern = /```[\s\S]*?```/g;
+    const matches = text.match(codeBlockPattern);
+    return matches ? matches.map(m => m.replace(/```/g, '').trim()) : [];
+  }
+
+  /**
+   * Check if instructions contain code to display
+   */
+  private hasCodeContent(instructions: PlaywrightInstruction[]): boolean {
+    const actionText = instructions
+      .filter(i => i.type === 'action')
+      .map(i => i.content)
+      .join('\n');
+    return actionText.includes('```') || actionText.toLowerCase().includes('type the following');
+  }
+
+  /**
    * Create placeholder HTML for demonstration
    */
   private createPlaceholderHTML(instructions: PlaywrightInstruction[]): string {
@@ -123,7 +143,123 @@ export class ScreenshotCapture {
     const actionInstructions = instructions.filter(i => i.type === 'action');
 
     const title = showInstructions.length > 0 && showInstructions[0] ? showInstructions[0].content : 'Screenshot';
-    const actions = actionInstructions.map(i => i.content).join('\n');
+    const actionText = actionInstructions.map(i => i.content).join('\n');
+
+    // Check if this looks like a code editor scenario
+    const isCodeEditor = title.toLowerCase().includes('vs code') ||
+                         title.toLowerCase().includes('code editor') ||
+                         this.hasCodeContent(actionInstructions);
+
+    if (isCodeEditor) {
+      return this.createCodeEditorHTML(title, actionText);
+    }
+
+    return this.createTerminalHTML(title, actionText);
+  }
+
+  /**
+   * Create VS Code-style editor HTML
+   */
+  private createCodeEditorHTML(_title: string, actionText: string): string {
+    const codeBlocks = this.extractCodeBlocks(actionText);
+    const code: string = codeBlocks.length > 0 && codeBlocks[0] ? codeBlocks[0] : '// Code will appear here';
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #252526;
+      padding: 10px 20px;
+      border-bottom: 1px solid #3c3c3c;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-tab {
+      background: #2d2d30;
+      padding: 8px 16px;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      color: #ffffff;
+      font-size: 13px;
+    }
+    .editor {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      background: #1e1e1e;
+    }
+    .code-line {
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .line-number {
+      display: inline-block;
+      width: 40px;
+      color: #858585;
+      text-align: right;
+      margin-right: 20px;
+      user-select: none;
+    }
+    .keyword { color: #569cd6; }
+    .string { color: #ce9178; }
+    .function { color: #dcdcaa; }
+    .comment { color: #6a9955; }
+    .placeholder-note {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="file-tab">src/index.ts</div>
+  </div>
+  <div class="editor">
+    ${code.split('\n').map((line, i) =>
+      `<div class="code-line"><span class="line-number">${i + 1}</span>${this.escapeHtml(line)}</div>`
+    ).join('')}
+  </div>
+  <div class="placeholder-note">
+    Placeholder Screenshot - Playwright automation not fully implemented
+  </div>
+</body>
+</html>`;
+  }
+
+  /**
+   * Create terminal-style HTML
+   */
+  private createTerminalHTML(title: string, actionText: string): string {
+    const commands = actionText.split('\n').filter(line =>
+      line.toLowerCase().startsWith('type') ||
+      line.includes('&&') ||
+      line.includes('npm') ||
+      line.includes('mkdir')
+    );
+
+    const displayCommands: string[] = commands.map(cmd => {
+      // Extract actual command from "Type 'command'" format
+      const match = cmd.match(/type\s+["'](.+)["']/i);
+      return match && match[1] ? match[1] : cmd;
+    });
 
     return `<!DOCTYPE html>
 <html>
@@ -188,8 +324,8 @@ export class ScreenshotCapture {
   </div>
   <div class="content">
     <div class="terminal">
-      ${actions.split('\n').map(action =>
-        `<div class="command"><span class="prompt">$</span>${this.escapeHtml(action)}</div>`
+      ${displayCommands.map(cmd =>
+        `<div class="command"><span class="prompt">$</span>${this.escapeHtml(cmd)}</div>`
       ).join('')}
     </div>
   </div>
