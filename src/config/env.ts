@@ -64,8 +64,8 @@ const envSchema = z.object({
 
   GEMINI_IMAGE_RESOLUTION: z
     .string()
-    .default('1920x1080')
     .regex(/^\d+x\d+$/, 'Image resolution must be in format WIDTHxHEIGHT (e.g., 1920x1080)')
+    .default('1920x1080')
     .describe('Default image resolution for generated images'),
 
   // Output Configuration
