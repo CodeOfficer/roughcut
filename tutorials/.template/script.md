@@ -2,16 +2,15 @@
 
 ## Segment 1: Introduction
 > Duration: 5s
-> Screenshot: manual
+> Screenshot: static
 
 [NARRATION]
 Welcome to this tutorial. In this video, you'll learn...
 [/NARRATION]
 
-[SCREENSHOT_INSTRUCTIONS]
-File: screenshots/001-intro.png
-Description: Show the main topic or application
-[/SCREENSHOT_INSTRUCTIONS]
+[IMAGE_PROMPT]
+A professional tutorial title slide with your topic name in large bold text. Include relevant icons or imagery. Clean, modern design with good contrast.
+[/IMAGE_PROMPT]
 
 ---
 
@@ -23,23 +22,22 @@ Description: Show the main topic or application
 Let's start by...
 [/NARRATION]
 
-[SCREENSHOT_INSTRUCTIONS]
+[PLAYWRIGHT_INSTRUCTIONS]
 Show: Application window or terminal
 Action: Type or demonstrate the main concept
 Wait: 2s
-[/SCREENSHOT_INSTRUCTIONS]
+[/PLAYWRIGHT_INSTRUCTIONS]
 
 ---
 
 ## Segment 3: Conclusion
 > Duration: 5s
-> Screenshot: manual
+> Screenshot: static
 
 [NARRATION]
 That's it! You've now learned how to...
 [/NARRATION]
 
-[SCREENSHOT_INSTRUCTIONS]
-File: screenshots/003-conclusion.png
-Description: Final result or summary screen
-[/SCREENSHOT_INSTRUCTIONS]
+[IMAGE_PROMPT]
+A completion/success slide with "Tutorial Complete!" text and a summary of what was learned. Positive, celebratory design.
+[/IMAGE_PROMPT]
