@@ -1,7 +1,7 @@
 # GenAI Tutorial Factory - Project Plan
 
 ## Overview
-A TypeScript-based automation system for generating tutorial videos from markdown scripts. The system handles narration generation (ElevenLabs), screenshot capture (Playwright), and video assembly (FFmpeg).
+A TypeScript-based automation system for generating tutorial videos from markdown scripts. The system handles narration generation (ElevenLabs), static image generation (Gemini), screenshot capture (Playwright), and video assembly (FFmpeg).
 
 ## Directory Structure
 
@@ -33,6 +33,11 @@ genai-tutorial-factory/
 │   │   ├── elevenlabs.ts   # ElevenLabs API integration
 │   │   ├── speech.ts       # Speech generation orchestration
 │   │   └── types.ts        # Narration-specific types
+│   │
+│   ├── images/
+│   │   ├── gemini.ts       # Gemini API integration for image generation
+│   │   ├── generator.ts    # Image generation orchestration
+│   │   └── types.ts        # Image-specific types
 │   │
 │   ├── screenshots/
 │   │   ├── capture.ts      # Playwright screenshot capture
@@ -175,22 +180,48 @@ interface TutorialSegment {
 - Error handling and retries
 - Audio file caching
 
-### 5. Screenshots Module (`src/screenshots/`)
+### 5. Images Module (`src/images/`)
 
-**Purpose:** Capture and manage tutorial screenshots.
+**Purpose:** Generate static images using Google Gemini API.
 
-**Modes:**
-- **Manual:** User provides pre-captured images
-- **Auto:** Playwright automation captures screens
-- **None:** No screenshot for segment (audio only)
+**Key Components:**
+- Gemini API client with image generation
+- Prompt engineering for consistent visuals
+- Image download and storage
+- Resolution and format handling
 
 **Features:**
-- Playwright browser automation
+- Generate title slides, conclusion screens, and concept illustrations
+- Text-to-image conversion from prompts
+- Consistent styling across images
+- Automatic retry on generation failures
+- Image validation and quality checks
+
+**Use Cases:**
+- Tutorial intro/outro slides
+- Concept diagrams
+- Icon-based illustrations
+- Text overlays with backgrounds
+- Any static visual that doesn't require screen capture
+
+### 6. Screenshots Module (`src/screenshots/`)
+
+**Purpose:** Capture and manage tutorial screenshots and images.
+
+**Modes:**
+- **Static:** Generate image using Gemini API (title slides, diagrams, illustrations)
+- **Auto:** Playwright automation captures screens (terminal, code editor, browser)
+- **None:** No visual for segment (audio only)
+
+**Features:**
+- Playwright browser automation for dynamic content
+- Gemini integration for static visuals
 - Screenshot timing coordination
 - Image optimization
 - Filename convention enforcement
+- Unified management of both generated and captured images
 
-### 6. Video Module (`src/video/`)
+### 7. Video Module (`src/video/`)
 
 **Purpose:** Assemble final tutorial video from assets.
 
@@ -239,25 +270,27 @@ npm run tutorial:narrate mcp-server-setup
 5. Calculate actual duration for each segment
 6. Update config.json with audio metadata
 
-### Phase 4: Screenshot Capture
+### Phase 4: Image & Screenshot Generation
 
-**Manual Mode:**
 ```bash
-# User manually adds screenshots to /screenshots/
-npm run tutorial:screenshots mcp-server-setup --mode manual
-```
-
-**Auto Mode:**
-```bash
-npm run tutorial:screenshots mcp-server-setup --mode auto
+npm run tutorial:screenshots mcp-server-setup
 ```
 
 **Actions:**
-1. Parse screenshot instructions from script
-2. Launch Playwright browser
-3. Execute automation steps
-4. Capture and save screenshots
-5. Update config.json with screenshot metadata
+1. Parse visual instructions from script
+2. For **static** mode segments:
+   - Extract Gemini prompts
+   - Call Gemini API to generate images
+   - Download and save images
+3. For **auto** mode segments:
+   - Launch Playwright browser
+   - Execute automation steps
+   - Capture and save screenshots
+4. For **none** mode segments:
+   - Skip (audio-only)
+5. Update config.json with image/screenshot metadata
+
+**Result:** All visual assets ready in `/screenshots/` directory
 
 ### Phase 5: Video Assembly
 ```bash
@@ -461,6 +494,7 @@ Every CLI command and module imports `env` from `src/config/env.ts`, ensuring:
 
 ### API Integrations
 - **ElevenLabs API** - Text-to-speech narration
+- **Google Gemini API** - AI image generation for static visuals
 - **@11ty/eleventy-fetch** - HTTP client with caching
 
 ### Automation & Media
