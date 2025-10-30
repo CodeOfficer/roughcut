@@ -47,29 +47,74 @@ export class ScreenshotCapture {
   }
 
   /**
-   * Parse instructions from text
+   * Parse instructions from text, handling multi-line content
    */
   parseInstructions(instructionsText: string): PlaywrightInstruction[] {
-    const lines = instructionsText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const lines = instructionsText.split('\n');
     const instructions: PlaywrightInstruction[] = [];
 
-    for (const line of lines) {
-      if (line.toLowerCase().startsWith('show:')) {
-        instructions.push({
+    let currentInstruction: PlaywrightInstruction | null = null;
+    let collectingContent: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const rawLine = lines[i];
+      if (!rawLine) continue;
+      const line = rawLine.trim();
+
+      // Skip empty lines unless we're collecting multi-line content
+      if (line.length === 0 && !currentInstruction) continue;
+
+      // Check for new instruction keywords
+      const lowerLine = line.toLowerCase();
+      if (lowerLine.startsWith('show:')) {
+        // Save previous instruction if exists
+        if (currentInstruction) {
+          currentInstruction.content = collectingContent.join('\n').trim();
+          instructions.push(currentInstruction);
+        }
+
+        // Start new instruction
+        currentInstruction = {
           type: 'show',
           content: line.substring(5).trim(),
-        });
-      } else if (line.toLowerCase().startsWith('action:')) {
-        instructions.push({
+        };
+        collectingContent = [line.substring(5).trim()];
+      } else if (lowerLine.startsWith('action:')) {
+        // Save previous instruction if exists
+        if (currentInstruction) {
+          currentInstruction.content = collectingContent.join('\n').trim();
+          instructions.push(currentInstruction);
+        }
+
+        // Start new instruction
+        currentInstruction = {
           type: 'action',
           content: line.substring(7).trim(),
-        });
-      } else if (line.toLowerCase().startsWith('wait:')) {
-        instructions.push({
+        };
+        collectingContent = [line.substring(7).trim()];
+      } else if (lowerLine.startsWith('wait:')) {
+        // Save previous instruction if exists
+        if (currentInstruction) {
+          currentInstruction.content = collectingContent.join('\n').trim();
+          instructions.push(currentInstruction);
+        }
+
+        // Start new instruction
+        currentInstruction = {
           type: 'wait',
           content: line.substring(5).trim(),
-        });
+        };
+        collectingContent = [line.substring(5).trim()];
+      } else if (currentInstruction) {
+        // Continue collecting content for current instruction
+        collectingContent.push(line);
       }
+    }
+
+    // Don't forget the last instruction
+    if (currentInstruction) {
+      currentInstruction.content = collectingContent.join('\n').trim();
+      instructions.push(currentInstruction);
     }
 
     return instructions;
