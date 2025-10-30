@@ -23,14 +23,17 @@
     "video",
     "automation",
     "elevenlabs",
+    "gemini",
     "playwright",
     "ffmpeg",
-    "typescript"
+    "typescript",
+    "ai"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@11ty/eleventy-fetch": "^4.0.1",
+    "@google/generative-ai": "^0.21.0",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
     "dotenv": "^16.4.5",
