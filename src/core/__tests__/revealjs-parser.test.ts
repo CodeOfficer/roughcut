@@ -83,7 +83,7 @@ voice: adam
       expect(() => parser.parse(markdown)).toThrow('must include "theme"');
     });
 
-    it('should throw error if voice is missing', () => {
+    it('should allow voice to be optional (falls back to env var)', () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -92,7 +92,10 @@ theme: black
 # Slide 1
 `;
 
-      expect(() => parser.parse(markdown)).toThrow('must include "voice"');
+      const result = parser.parse(markdown);
+      expect(result.voice).toBeUndefined();
+      expect(result.title).toBe('Test');
+      expect(result.theme).toBe('black');
     });
   });
 

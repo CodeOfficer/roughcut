@@ -23,8 +23,8 @@ export interface RevealPresentation {
   /** Reveal.js theme (black, white, dracula, etc.) */
   theme: string;
 
-  /** ElevenLabs voice ID */
-  voice: string;
+  /** ElevenLabs voice ID (falls back to ELEVENLABS_VOICE_ID env var if not specified) */
+  voice?: string;
 
   /** Video resolution (e.g., "1920x1080") */
   resolution: string;
@@ -287,7 +287,7 @@ export interface RevealConfig {
 export interface PresentationFrontMatter {
   title: string;
   theme: string;
-  voice: string;
+  voice?: string;
   resolution?: string;
 }
 

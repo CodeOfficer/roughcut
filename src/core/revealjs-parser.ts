@@ -44,13 +44,19 @@ export class RevealMarkdownParser {
     );
 
     // 4. Build presentation
-    return {
+    const presentation: RevealPresentation = {
       title: frontMatter.title,
       theme: frontMatter.theme,
-      voice: frontMatter.voice,
       resolution: frontMatter.resolution || '1920x1080',
       slides,
     };
+
+    // Only set voice if it's defined (exactOptionalPropertyTypes requirement)
+    if (frontMatter.voice) {
+      presentation.voice = frontMatter.voice;
+    }
+
+    return presentation;
   }
 
   // ============================================================================
@@ -98,9 +104,6 @@ export class RevealMarkdownParser {
     }
     if (!frontMatter.theme) {
       throw new Error('Front matter must include "theme"');
-    }
-    if (!frontMatter.voice) {
-      throw new Error('Front matter must include "voice"');
     }
 
     return {

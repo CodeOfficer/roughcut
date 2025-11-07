@@ -9,6 +9,7 @@ import { stat } from 'fs/promises';
 import { ElevenLabsClient } from './elevenlabs.js';
 import { getAudioDuration } from '../utils/timing.js';
 import { logger } from '../core/logger.js';
+import { env } from '../config/env.js';
 import type {
   RevealPresentation,
   RevealSlide,
@@ -49,10 +50,13 @@ export class RevealSpeechGenerator {
       const outputPath = join(outputDir, `${slide.id}.mp3`);
 
       try {
+        // Use voice from presentation or fall back to environment variable
+        const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
+
         const result = await this.generateSlideAudio(
           slide,
           outputPath,
-          presentation.voice
+          voiceId
         );
 
         results.set(slide.id, result);
