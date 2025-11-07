@@ -41,13 +41,16 @@
     "inquirer": "^9.2.15",
     "ora": "^8.0.1",
     "playwright": "^1.42.1",
+    "reveal.js": "^5.2.1",
     "sharp": "^0.33.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.24",
+    "@types/reveal.js": "^5.2.1",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
