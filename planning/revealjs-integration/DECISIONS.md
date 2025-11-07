@@ -88,7 +88,53 @@ Content here...
 
 ---
 
-### 4. Terminology Standards
+### 4. Advanced Features Strategy
+**Decision**: Hybrid Approach - Simple @directives + Native Reveal.js Comments
+
+**Rationale**: Best of both worlds - simplicity for common cases, full power for advanced users
+
+**Implementation**:
+
+**Basic Features** (90% use cases):
+- Use `@directive:` syntax for common operations
+- `@duration:`, `@pause-after:`, `@audio:`, `@playwright:`
+- `@transition:`, `@background:` for basic styling
+- `@fragment` for simple step-by-step reveals
+
+**Advanced Features** (full reveal.js power):
+- Use native reveal.js HTML comments: `<!-- .slide: ... -->`
+- Use native element attributes: `<!-- .element: ... -->`
+- Parser preserves these comments in cleaned content
+- Reveal.js markdown parser handles them natively
+
+**Example - Advanced Usage**:
+```markdown
+# Advanced Slide
+@duration: 8s
+@pause-after: 2s
+
+<!-- .slide: data-auto-animate -->
+<!-- .slide: data-background-video="video.mp4" data-background-video-loop -->
+
+<div data-id="box">Content that animates</div>
+
+<!-- .element: class="fragment grow" data-fragment-index="5" -->
+Custom fragment with specific index
+
+@audio: Narration for this slide.
+```
+
+**Benefits**:
+- ✅ Future-proof: Any reveal.js feature works automatically
+- ✅ No reinventing: Users reference reveal.js docs directly
+- ✅ Keeps Option 3 simple for beginners
+- ✅ Advanced users get full control
+
+**Parser Requirement**: Preserve `<!-- -->` comments during content cleaning
+
+---
+
+### 5. Terminology Standards
 **Decision**: Always use reveal.js primitives and domain language
 
 **Correct Terms**:

@@ -537,6 +537,75 @@ const code = true;
   });
 
   // ==========================================================================
+  // ADVANCED FEATURES (REVEAL.JS COMMENTS)
+  // ==========================================================================
+
+  describe('Advanced Features - Reveal.js Comments', () => {
+    it('should preserve reveal.js slide comments in content', () => {
+      const slideMarkdown = `# Test Slide
+@duration: 5s
+
+<!-- .slide: data-auto-animate -->
+<!-- .slide: data-background="#ff0000" -->
+
+Content here
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.content).toContain('<!-- .slide: data-auto-animate -->');
+      expect(slide.content).toContain('<!-- .slide: data-background="#ff0000" -->');
+    });
+
+    it('should preserve reveal.js element comments in content', () => {
+      const slideMarkdown = `# Test
+
+<!-- .element: class="fragment grow" -->
+This element will grow
+
+<!-- .element: class="fragment fade-up" data-fragment-index="2" -->
+This fades up second
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.content).toContain('<!-- .element: class="fragment grow" -->');
+      expect(slide.content).toContain('<!-- .element: class="fragment fade-up" data-fragment-index="2" -->');
+    });
+
+    it('should allow mixing @directives with reveal.js comments', () => {
+      const slideMarkdown = `# Advanced Slide
+@duration: 8s
+@pause-after: 2s
+
+<!-- .slide: data-auto-animate -->
+
+<div data-id="box">Animated content</div>
+
+<!-- .element: class="fragment highlight-red" -->
+Highlighted text
+
+@audio: Narration with [2s] pause.
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      // Directives parsed
+      expect(slide.metadata.duration).toBe(8);
+      expect(slide.metadata.pauseAfter).toBe(2);
+      expect(slide.audio?.pauses).toHaveLength(1);
+
+      // Reveal.js comments preserved
+      expect(slide.content).toContain('<!-- .slide: data-auto-animate -->');
+      expect(slide.content).toContain('<!-- .element: class="fragment highlight-red" -->');
+
+      // Directives removed
+      expect(slide.content).not.toContain('@duration');
+      expect(slide.content).not.toContain('@audio');
+    });
+  });
+
+  // ==========================================================================
   // INTEGRATION TESTS
   // ==========================================================================
 
