@@ -317,7 +317,7 @@ ${this.indentContent(slide.notes, 10)}
       "'": '&#039;',
     };
 
-    return text.replace(/[&<>"']/g, (char) => map[char]);
+    return text.replace(/[&<>"']/g, (char) => map[char] || char);
   }
 
   /**

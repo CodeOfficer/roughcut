@@ -149,7 +149,7 @@ export class PlaywrightVideoRecorder {
         const files = await fs.readdir(videoDir);
         const videoFiles = files.filter((f) => f.endsWith('.webm') || f.endsWith('.mp4'));
 
-        if (videoFiles.length > 0) {
+        if (videoFiles.length > 0 && videoFiles[0]) {
           const videoPath = path.join(videoDir, videoFiles[0]);
 
           // Wait a bit more to ensure file is fully written
@@ -182,7 +182,7 @@ export class PlaywrightVideoRecorder {
    * Could be enhanced with ffprobe integration
    */
   private async extractResolution(
-    videoPath: string
+    _videoPath: string
   ): Promise<{ width: number; height: number }> {
     // Default to standard HD resolution
     // In production, could use ffprobe to extract actual resolution
@@ -195,7 +195,7 @@ export class PlaywrightVideoRecorder {
    * For now, returns 0 (unknown)
    * Could be enhanced with ffprobe integration
    */
-  private async extractDuration(videoPath: string): Promise<number> {
+  private async extractDuration(_videoPath: string): Promise<number> {
     // In production, could use ffprobe to extract duration
     // For now, return 0 (unknown) as this will be calculated from timeline
     return 0;
@@ -301,7 +301,7 @@ export function parseResolution(resolution: string): { width: number; height: nu
 
   // Parse "widthxheight" format
   const match = resolution.match(/^(\d+)x(\d+)$/);
-  if (match) {
+  if (match && match[1] && match[2]) {
     return {
       width: parseInt(match[1], 10),
       height: parseInt(match[2], 10),

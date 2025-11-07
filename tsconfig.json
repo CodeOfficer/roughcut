@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* Language and Environment */
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
 
@@ -45,5 +45,13 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tutorials", "tmp"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tutorials",
+    "tmp",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

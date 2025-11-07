@@ -13,7 +13,6 @@ import type {
   RevealPresentation,
   RevealSlide,
   AudioGenerationResult,
-  hasAudio,
 } from '../core/revealjs-types.js';
 
 /**

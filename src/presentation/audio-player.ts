@@ -55,10 +55,11 @@ export class BrowserAudioPlayer {
   async initialize(): Promise<void> {
     await this.page.evaluate(() => {
       // Create audio element if it doesn't exist
-      if (!(window as any).__revealAudioPlayer) {
+      const w = window as any;
+      if (!w.__revealAudioPlayer) {
         const audio = new Audio();
         audio.id = 'reveal-audio-player';
-        (window as any).__revealAudioPlayer = audio;
+        w.__revealAudioPlayer = audio;
       }
     });
   }

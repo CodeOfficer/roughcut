@@ -143,7 +143,7 @@ export class PlaywrightInstructionExecutor {
 
     // Click action: "Click button" or "Click #submit"
     const clickMatch = action.match(/^Click\s+(.+)$/i);
-    if (clickMatch) {
+    if (clickMatch && clickMatch[1]) {
       const selector = this.parseSelector(clickMatch[1]);
       await page.click(selector, { timeout });
       return;
@@ -151,7 +151,7 @@ export class PlaywrightInstructionExecutor {
 
     // Type action: "Type: \"hello world\" + Enter"
     const typeMatch = action.match(/^Type:\s*"([^"]+)"(?:\s*\+\s*(\w+))?$/i);
-    if (typeMatch) {
+    if (typeMatch && typeMatch[1]) {
       const [, text, key] = typeMatch;
       await page.keyboard.type(text);
 
@@ -163,7 +163,7 @@ export class PlaywrightInstructionExecutor {
 
     // Hover action: "Hover .menu-item"
     const hoverMatch = action.match(/^Hover\s+(.+)$/i);
-    if (hoverMatch) {
+    if (hoverMatch && hoverMatch[1]) {
       const selector = this.parseSelector(hoverMatch[1]);
       await page.hover(selector, { timeout });
       return;
@@ -171,7 +171,7 @@ export class PlaywrightInstructionExecutor {
 
     // Scroll action: "Scroll to #footer"
     const scrollMatch = action.match(/^Scroll\s+to\s+(.+)$/i);
-    if (scrollMatch) {
+    if (scrollMatch && scrollMatch[1]) {
       const selector = this.parseSelector(scrollMatch[1]);
       await page.locator(selector).scrollIntoViewIfNeeded({ timeout });
       return;
@@ -179,7 +179,7 @@ export class PlaywrightInstructionExecutor {
 
     // Fill action: "Fill #email with \"test@example.com\""
     const fillMatch = action.match(/^Fill\s+(.+?)\s+with\s+"([^"]+)"$/i);
-    if (fillMatch) {
+    if (fillMatch && fillMatch[1] && fillMatch[2]) {
       const [, selectorText, value] = fillMatch;
       const selector = this.parseSelector(selectorText);
       await page.fill(selector, value, { timeout });
@@ -188,7 +188,7 @@ export class PlaywrightInstructionExecutor {
 
     // Select action: "Select \"Option 1\" in #dropdown"
     const selectMatch = action.match(/^Select\s+"([^"]+)"\s+in\s+(.+)$/i);
-    if (selectMatch) {
+    if (selectMatch && selectMatch[1] && selectMatch[2]) {
       const [, value, selectorText] = selectMatch;
       const selector = this.parseSelector(selectorText);
       await page.selectOption(selector, value, { timeout });
@@ -197,7 +197,7 @@ export class PlaywrightInstructionExecutor {
 
     // Press key action: "Press Enter" or "Press Escape"
     const pressMatch = action.match(/^Press\s+(\w+)$/i);
-    if (pressMatch) {
+    if (pressMatch && pressMatch[1]) {
       const key = pressMatch[1];
       await page.keyboard.press(key);
       return;
@@ -205,11 +205,11 @@ export class PlaywrightInstructionExecutor {
 
     // Check/Uncheck action: "Check #agree" or "Uncheck #subscribe"
     const checkMatch = action.match(/^(Check|Uncheck)\s+(.+)$/i);
-    if (checkMatch) {
-      const [, action, selectorText] = checkMatch;
+    if (checkMatch && checkMatch[1] && checkMatch[2]) {
+      const [, actionType, selectorText] = checkMatch;
       const selector = this.parseSelector(selectorText);
 
-      if (action.toLowerCase() === 'check') {
+      if (actionType.toLowerCase() === 'check') {
         await page.check(selector, { timeout });
       } else {
         await page.uncheck(selector, { timeout });
@@ -219,7 +219,7 @@ export class PlaywrightInstructionExecutor {
 
     // Focus action: "Focus #username"
     const focusMatch = action.match(/^Focus\s+(.+)$/i);
-    if (focusMatch) {
+    if (focusMatch && focusMatch[1]) {
       const selector = this.parseSelector(focusMatch[1]);
       await page.focus(selector, { timeout });
       return;
@@ -241,7 +241,7 @@ export class PlaywrightInstructionExecutor {
    * - "500ms" -> Wait 500 milliseconds
    * - "2" -> Wait 2 seconds (default unit)
    */
-  private async executeWait(waitStr: string, context: ExecutionContext): Promise<void> {
+  private async executeWait(waitStr: string, _context: ExecutionContext): Promise<void> {
     const duration = this.parseDuration(waitStr);
     await new Promise((resolve) => setTimeout(resolve, duration));
   }
@@ -314,7 +314,7 @@ export class PlaywrightInstructionExecutor {
   private parseDuration(durationStr: string): number {
     const match = durationStr.match(/^(\d+(?:\.\d+)?)(s|ms)?$/);
 
-    if (!match) {
+    if (!match || !match[1]) {
       throw new Error(`Invalid duration format: ${durationStr}`);
     }
 

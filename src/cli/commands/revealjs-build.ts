@@ -15,6 +15,7 @@ import * as path from 'path';
 import { createRevealParser } from '../../core/revealjs-parser.js';
 import { RevealHTMLGenerator } from '../../presentation/revealjs-generator.js';
 import { RevealSpeechGenerator } from '../../narration/revealjs-speech.js';
+import { ElevenLabsClient } from '../../narration/elevenlabs.js';
 import { createRevealTimelineBuilder } from '../../video/revealjs-timeline.js';
 import { AudioSyncOrchestrator } from '../../presentation/audio-sync-orchestrator.js';
 import { createRevealVideoAssembler } from '../../video/revealjs-video-assembler.js';
@@ -262,18 +263,39 @@ export class RevealBuildCommand {
         message: 'Build complete!',
       });
 
-      return {
+      const stats: {
+        slidesProcessed: number;
+        audioFilesGenerated: number;
+        totalDuration: number;
+        videoSize?: number;
+      } = {
+        slidesProcessed: presentation.slides.length,
+        audioFilesGenerated: audioResults?.size || 0,
+        totalDuration: timeline.totalDuration,
+      };
+
+      if (videoSize !== undefined) {
+        stats.videoSize = videoSize;
+      }
+
+      const result: {
+        success: true;
+        htmlPath: string;
+        videoPath?: string;
+        durationSeconds: number;
+        stats: typeof stats;
+      } = {
         success: true,
         htmlPath,
-        videoPath,
         durationSeconds,
-        stats: {
-          slidesProcessed: presentation.slides.length,
-          audioFilesGenerated: audioResults?.size || 0,
-          totalDuration: timeline.totalDuration,
-          videoSize,
-        },
+        stats,
       };
+
+      if (videoPath) {
+        result.videoPath = videoPath;
+      }
+
+      return result;
     } catch (error) {
       return {
         success: false,
@@ -296,18 +318,14 @@ export class RevealBuildCommand {
     const audioDir = path.join(options.output, 'audio');
     await fs.mkdir(audioDir, { recursive: true });
 
-    const speechGenerator = new RevealSpeechGenerator({
-      apiKey: options.apiKey || process.env.ELEVENLABS_API_KEY || '',
-      outputDir: audioDir,
-    });
+    const apiKey = options.apiKey || process.env['ELEVENLABS_API_KEY'] || '';
+    const elevenlabsClient = new ElevenLabsClient(apiKey);
+    const speechGenerator = new RevealSpeechGenerator(elevenlabsClient);
 
-    const results = await speechGenerator.generateAllSlideAudio(presentation);
-
-    // Convert array to map
-    const audioResults = new Map();
-    for (const result of results) {
-      audioResults.set(result.slideId, result);
-    }
+    const audioResults = await speechGenerator.generateAllSlideAudio(
+      presentation,
+      audioDir
+    );
 
     return audioResults;
   }

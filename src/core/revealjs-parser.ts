@@ -10,7 +10,7 @@
  * - @fragment markers with optional +Xs timing
  */
 
-import {
+import type {
   RevealPresentation,
   RevealSlide,
   AudioBlock,
@@ -20,8 +20,8 @@ import {
   PauseMarker,
   FragmentDefinition,
   PresentationFrontMatter,
-  DEFAULT_SLIDE_METADATA,
 } from './revealjs-types.js';
+import { DEFAULT_SLIDE_METADATA } from './revealjs-types.js';
 
 // ============================================================================
 // MAIN PARSER CLASS
@@ -74,7 +74,7 @@ export class RevealMarkdownParser {
     const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
     const match = markdown.match(frontMatterRegex);
 
-    if (!match) {
+    if (!match || !match[1]) {
       throw new Error('Missing front matter. Format should start with:\n---\ntitle: "..."\n---');
     }
 
@@ -188,7 +188,7 @@ export class RevealMarkdownParser {
       const [, name, value] = match;
 
       // Skip audio and playwright (handled separately)
-      if (name !== 'audio' && name !== 'playwright') {
+      if (name && value && name !== 'audio' && name !== 'playwright') {
         directives.set(name, value.trim());
       }
     }
@@ -233,7 +233,7 @@ export class RevealMarkdownParser {
    */
   private parseDuration(durationStr: string): number {
     const match = durationStr.match(/^([\d.]+)(s|ms)$/);
-    if (!match) {
+    if (!match || !match[1] || !match[2]) {
       throw new Error(`Invalid duration format: ${durationStr}. Use "5s" or "500ms"`);
     }
 
@@ -258,7 +258,7 @@ export class RevealMarkdownParser {
     const audioRegex = /^@audio:\s*(.+)$/m;
     const match = markdown.match(audioRegex);
 
-    if (!match) {
+    if (!match || !match[1]) {
       return null;
     }
 
@@ -267,12 +267,12 @@ export class RevealMarkdownParser {
     // Extract pause markers [Xs]
     const pauses: PauseMarker[] = [];
     let cleanText = rawText;
-    let position = 0;
 
     const pauseRegex = /\[(\d+(?:\.\d+)?)s\]/g;
     let pauseMatch;
 
     while ((pauseMatch = pauseRegex.exec(rawText)) !== null) {
+      if (!pauseMatch[1]) continue;
       const durationSeconds = parseFloat(pauseMatch[1]);
 
       // Position is where the pause marker was in clean text (before removal)
@@ -313,7 +313,7 @@ export class RevealMarkdownParser {
     const playwrightRegex = /@playwright:\s*\n((?:- .+\n?)+)/m;
     const match = markdown.match(playwrightRegex);
 
-    if (!match) {
+    if (!match || !match[1]) {
       return null;
     }
 
@@ -340,7 +340,7 @@ export class RevealMarkdownParser {
   private parsePlaywrightInstruction(line: string): PlaywrightInstruction {
     // Check for "Type: Value" format
     const colonMatch = line.match(/^(Action|Screenshot):\s*(.+)$/i);
-    if (colonMatch) {
+    if (colonMatch && colonMatch[1] && colonMatch[2]) {
       const [, type, content] = colonMatch;
       return {
         type: type.toLowerCase() as 'action' | 'screenshot',
@@ -350,7 +350,7 @@ export class RevealMarkdownParser {
 
     // Check for "Wait Xs" format
     const waitMatch = line.match(/^Wait\s+(\d+(?:\.\d+)?s?)$/i);
-    if (waitMatch) {
+    if (waitMatch && waitMatch[1]) {
       return {
         type: 'wait',
         content: waitMatch[1],
@@ -384,13 +384,19 @@ export class RevealMarkdownParser {
     while ((match = fragmentRegex.exec(markdown)) !== null) {
       const [, content, timingOffset] = match;
 
-      fragments.push({
+      if (!content) continue;
+
+      const fragment: FragmentDefinition = {
         index,
         effect: 'fade', // Default effect
         content: content.trim(),
-        timingOffset: timingOffset ? parseFloat(timingOffset) : undefined,
-      });
+      };
 
+      if (timingOffset) {
+        fragment.timingOffset = parseFloat(timingOffset);
+      }
+
+      fragments.push(fragment);
       index++;
     }
 
@@ -411,7 +417,7 @@ export class RevealMarkdownParser {
     const notesRegex = /^@notes:\s*(.+)$/m;
     const match = markdown.match(notesRegex);
 
-    return match ? match[1].trim() : null;
+    return match && match[1] ? match[1].trim() : null;
   }
 
   // ============================================================================

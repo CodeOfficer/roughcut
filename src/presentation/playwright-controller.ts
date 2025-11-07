@@ -90,7 +90,7 @@ export class PlaywrightRevealController {
    */
   async launch(htmlPath: string, options: ControllerOptions = {}): Promise<void> {
     const {
-      browserType = 'chromium',
+      browserType: _browserType = 'chromium',
       headless = true,
       recordVideo,
       videoSize = { width: 1920, height: 1080 },

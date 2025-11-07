@@ -8,7 +8,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { spawn } from 'child_process';
-import type { RevealTimeline } from './revealjs-timeline.js';
+import type { RevealTimeline } from '../core/revealjs-types.js';
 
 // ============================================================================
 // TYPES
@@ -256,34 +256,41 @@ export class RevealVideoAssembler {
    */
   private async executeFFmpeg(
     command: string[],
-    config: VideoAssemblyConfig
+    _config: VideoAssemblyConfig
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const [cmd, ...args] = command;
-      const ffmpeg = spawn(cmd, args);
+      if (!cmd) {
+        reject(new Error('FFmpeg command is empty'));
+        return;
+      }
+
+      const ffmpeg = spawn(cmd, args, { shell: false });
 
       let stderr = '';
 
-      ffmpeg.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
+      if (ffmpeg.stderr) {
+        ffmpeg.stderr.on('data', (data: Buffer) => {
+          stderr += data.toString();
 
-        // Parse FFmpeg progress output
-        const progressMatch = stderr.match(/time=(\d{2}):(\d{2}):(\d{2})/);
-        if (progressMatch) {
-          const hours = parseInt(progressMatch[1], 10);
-          const minutes = parseInt(progressMatch[2], 10);
-          const seconds = parseInt(progressMatch[3], 10);
-          const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+          // Parse FFmpeg progress output
+          const progressMatch = stderr.match(/time=(\d{2}):(\d{2}):(\d{2})/);
+          if (progressMatch && progressMatch[1] && progressMatch[2] && progressMatch[3]) {
+            const hours = parseInt(progressMatch[1], 10);
+            const minutes = parseInt(progressMatch[2], 10);
+            const seconds = parseInt(progressMatch[3], 10);
+            const totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
-          // Estimate progress (assuming we know expected duration)
-          // For now, just report encoding phase with increasing percentage
-          const percentage = Math.min(90, 10 + totalSeconds * 2);
-          this.reportProgress({
-            phase: 'encoding',
-            percentage,
-          });
-        }
-      });
+            // Estimate progress (assuming we know expected duration)
+            // For now, just report encoding phase with increasing percentage
+            const percentage = Math.min(90, 10 + totalSeconds * 2);
+            this.reportProgress({
+              phase: 'encoding',
+              percentage,
+            });
+          }
+        });
+      }
 
       ffmpeg.on('close', (code) => {
         if (code === 0) {

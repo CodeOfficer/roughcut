@@ -11,11 +11,10 @@
  * 7. Repeat
  */
 
-import type { RevealTimeline } from '../video/revealjs-timeline.js';
+import type { RevealTimeline } from '../core/revealjs-types.js';
 import { PlaywrightRevealController } from './playwright-controller.js';
 import { PlaywrightInstructionExecutor } from './playwright-executor.js';
 import { BrowserAudioPlayer, createBrowserAudioPlayer } from './audio-player.js';
-import * as path from 'path';
 
 // ============================================================================
 // TYPES
@@ -131,7 +130,7 @@ export class AudioSyncOrchestrator {
     const {
       htmlPath,
       timeline,
-      audioBaseDir,
+      audioBaseDir: _audioBaseDir,
       screenshotDir,
       recordVideo,
       headless = true,
@@ -143,11 +142,20 @@ export class AudioSyncOrchestrator {
 
     try {
       // Launch browser and load presentation
-      await this.controller.launch(htmlPath, {
+      const launchOptions: {
+        headless: boolean;
+        recordVideo?: string;
+        videoSize: { width: number; height: number };
+      } = {
         headless,
-        recordVideo,
         videoSize: { width: 1920, height: 1080 },
-      });
+      };
+
+      if (recordVideo) {
+        launchOptions.recordVideo = recordVideo;
+      }
+
+      await this.controller.launch(htmlPath, launchOptions);
 
       // Initialize audio player
       const page = this.controller.getPage();
@@ -159,6 +167,9 @@ export class AudioSyncOrchestrator {
       // Process each slide in timeline
       for (let i = 0; i < timeline.slides.length; i++) {
         const entry = timeline.slides[i];
+        if (!entry) {
+          throw new Error(`Timeline entry at index ${i} is undefined`);
+        }
 
         await this.reportProgress({
           slideIndex: i,
@@ -212,12 +223,22 @@ export class AudioSyncOrchestrator {
       // Close browser
       await this.controller.close();
 
-      return {
+      const result: {
+        success: true;
+        slidesProcessed: number;
+        totalDuration: number;
+        videoPath?: string;
+      } = {
         success: true,
         slidesProcessed: timeline.slides.length,
         totalDuration: this.getElapsedTime(),
-        videoPath: videoPath || undefined,
       };
+
+      if (videoPath) {
+        result.videoPath = videoPath;
+      }
+
+      return result;
     } catch (error) {
       // Cleanup on error
       try {
@@ -320,11 +341,20 @@ export class AudioSyncOrchestrator {
 
     const page = this.controller.getPage();
 
-    await this.executor.executeAll(instructions, {
+    const context: {
+      page: any;
+      screenshotDir?: string;
+      slideId: string;
+    } = {
       page,
-      screenshotDir,
       slideId,
-    });
+    };
+
+    if (screenshotDir) {
+      context.screenshotDir = screenshotDir;
+    }
+
+    await this.executor.executeAll(instructions, context);
   }
 
   /**

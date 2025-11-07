@@ -93,6 +93,9 @@ export class RevealTimelineBuilder {
     // Verify cumulative timing
     for (let i = 0; i < timeline.slides.length; i++) {
       const entry = timeline.slides[i];
+      if (!entry) {
+        throw new Error(`Timeline entry at index ${i} is undefined`);
+      }
 
       // Verify slide index matches array position
       if (entry.slideIndex !== i) {
@@ -120,6 +123,9 @@ export class RevealTimelineBuilder {
       // Verify next slide starts where this one ends
       if (i < timeline.slides.length - 1) {
         const nextEntry = timeline.slides[i + 1];
+        if (!nextEntry) {
+          throw new Error(`Timeline entry at index ${i + 1} is undefined`);
+        }
         if (nextEntry.startTime !== entry.endTime) {
           throw new Error(
             `Timeline gap between ${entry.slideId} and ${nextEntry.slideId}: ` +
@@ -131,6 +137,9 @@ export class RevealTimelineBuilder {
 
     // Verify total duration matches last slide end time
     const lastEntry = timeline.slides[timeline.slides.length - 1];
+    if (!lastEntry) {
+      throw new Error('Timeline has no last entry');
+    }
     if (Math.abs(timeline.totalDuration - lastEntry.endTime) > 0.01) {
       throw new Error(
         `Timeline totalDuration mismatch: ` +
