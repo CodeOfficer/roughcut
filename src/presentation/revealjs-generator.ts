@@ -17,6 +17,8 @@ import type {
   RevealConfig,
 } from '../core/revealjs-types.js';
 import { DEFAULT_REVEAL_CONFIG } from '../core/revealjs-types.js';
+import type { BundledAssets } from './revealjs-assets.js';
+import { createRevealAssetBundler, getDefaultRevealJsPath } from './revealjs-assets.js';
 
 // ============================================================================
 // GENERATOR CLASS
@@ -24,33 +26,52 @@ import { DEFAULT_REVEAL_CONFIG } from '../core/revealjs-types.js';
 
 export class RevealHTMLGenerator {
   /**
-   * Generate standalone HTML presentation
+   * Generate standalone HTML presentation with optional asset bundling
    *
    * @param presentation - Parsed presentation data
    * @param outputPath - Path where HTML file will be written
-   * @param revealJsPath - Path to reveal.js node_modules (default: auto-detect)
+   * @param options - Generation options
    */
   async generate(
     presentation: RevealPresentation,
     outputPath: string,
-    revealJsPath?: string
+    options: {
+      revealJsPath?: string;
+      bundleAssets?: boolean;
+    } = {}
   ): Promise<void> {
-    // Auto-detect reveal.js path if not provided
-    const revealPath = revealJsPath || this.detectRevealJsPath();
+    const { revealJsPath, bundleAssets = false } = options;
 
-    // Generate HTML content
-    const html = this.generateHTML(presentation, revealPath);
-
-    // Ensure output directory exists
+    // Determine output directory
     const outputDir = path.dirname(outputPath);
     await fs.mkdir(outputDir, { recursive: true });
+
+    let html: string;
+
+    if (bundleAssets) {
+      // Bundle assets and use bundled paths
+      const sourcePath = revealJsPath || getDefaultRevealJsPath();
+      const bundler = createRevealAssetBundler();
+
+      const bundledAssets = await bundler.bundle({
+        revealJsSourcePath: sourcePath,
+        outputDir,
+        theme: presentation.theme,
+      });
+
+      html = this.generateHTMLWithBundledAssets(presentation, bundledAssets);
+    } else {
+      // Use direct paths to node_modules
+      const revealPath = revealJsPath || this.detectRevealJsPath();
+      html = this.generateHTML(presentation, revealPath);
+    }
 
     // Write HTML file
     await fs.writeFile(outputPath, html, 'utf-8');
   }
 
   /**
-   * Generate HTML string (useful for testing)
+   * Generate HTML string with direct paths (useful for testing)
    */
   generateHTML(presentation: RevealPresentation, revealJsPath: string): string {
     const config = DEFAULT_REVEAL_CONFIG;
@@ -97,6 +118,63 @@ ${this.generateSlides(presentation.slides)}
   <script src="${revealJsPath}/plugin/markdown/markdown.js"></script>
   <script src="${revealJsPath}/plugin/highlight/highlight.js"></script>
   <script src="${revealJsPath}/plugin/notes/notes.js"></script>
+
+  <script>
+    // Initialize reveal.js
+    Reveal.initialize(${this.generateConfig(config)});
+  </script>
+</body>
+</html>`;
+  }
+
+  /**
+   * Generate HTML string with bundled assets (standalone mode)
+   */
+  generateHTMLWithBundledAssets(presentation: RevealPresentation, assets: BundledAssets): string {
+    const config = DEFAULT_REVEAL_CONFIG;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${this.escapeHtml(presentation.title)}</title>
+
+  <!-- Reveal.js CSS -->
+  <link rel="stylesheet" href="${assets.revealCss}">
+  <link rel="stylesheet" href="${assets.themeCss}">
+
+  <!-- Syntax highlighting -->
+  <link rel="stylesheet" href="${assets.highlightCss}">
+
+  <style>
+    /* Custom styles */
+    .reveal {
+      font-size: 2em;
+    }
+    .reveal h1 {
+      font-size: 2.5em;
+    }
+    .reveal h2 {
+      font-size: 2em;
+    }
+    .reveal h3 {
+      font-size: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+${this.generateSlides(presentation.slides)}
+    </div>
+  </div>
+
+  <!-- Reveal.js and plugins -->
+  <script src="${assets.revealJs}"></script>
+  <script src="${assets.markdownPlugin}"></script>
+  <script src="${assets.highlightPlugin}"></script>
+  <script src="${assets.notesPlugin}"></script>
 
   <script>
     // Initialize reveal.js
