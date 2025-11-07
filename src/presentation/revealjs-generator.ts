@@ -232,13 +232,20 @@ ${notes}
 
     // Background
     if (slide.metadata.background) {
-      // Check if it's a color or image
+      // Check if it's a color, gradient, or image
       if (
         slide.metadata.background.startsWith('#') ||
         slide.metadata.background.startsWith('rgb')
       ) {
         attrs.push(`data-background-color="${slide.metadata.background}"`);
+      } else if (
+        slide.metadata.background.includes('linear-gradient') ||
+        slide.metadata.background.includes('radial-gradient')
+      ) {
+        // Use generic data-background for gradients
+        attrs.push(`data-background="${slide.metadata.background}"`);
       } else {
+        // Assume it's an image URL
         attrs.push(`data-background-image="${slide.metadata.background}"`);
       }
     }

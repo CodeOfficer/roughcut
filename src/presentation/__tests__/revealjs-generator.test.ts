@@ -294,6 +294,32 @@ describe('RevealHTMLGenerator', () => {
       expect(html).toContain('data-background-image="image.jpg"');
     });
 
+    it('should apply background gradient data attribute', () => {
+      const presentation: RevealPresentation = {
+        title: 'Test',
+        theme: 'dracula',
+        resolution: '1920x1080',
+        slides: [
+          {
+            id: 'slide-001',
+            index: 0,
+            content: '# Slide 1',
+            audio: null,
+            playwright: null,
+            notes: null,
+            metadata: {
+              ...DEFAULT_SLIDE_METADATA,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            },
+          },
+        ],
+      };
+
+      const html = generator.generateHTML(presentation, './node_modules/reveal.js');
+
+      expect(html).toContain('data-background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"');
+    });
+
     it('should apply auto-animate data attribute', () => {
       const presentation: RevealPresentation = {
         title: 'Test',
