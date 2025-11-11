@@ -104,7 +104,12 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 - ✅ Demo: `npm run demo` (fast), `npm run demo:full` (with AI), `npm run demo:html` (HTML only)
 
 **Next Session - Start Here:**
-1. Test the demo end-to-end: `npm run demo` (should work without API calls)
+1. **Refactor package.json scripts** - Make presentation name an argument
+   - Current: `npm run demo`, `npm run demo:full`, `npm run demo:html` (hardcoded to demo)
+   - Goal: `npm run build:fast <name>`, `npm run build:full <name>`, `npm run build:html <name>`
+   - Example: `npm run build:fast demo` or `npm run build:fast mcp-server`
+   - Keep `demo` scripts as shortcuts that pass "demo" as argument
+   - Pattern: All presentations in `tutorials/<name>/presentation.md`
 2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
 3. Add more examples to `tutorials/examples/`
 4. Explore additional RevealJS features (vertical slides, fragments, speaker view)
@@ -129,10 +134,10 @@ npm run tutorial:build -i <file> -o <output> --skip-images --skip-audio
 ```
 
 **NPM Scripts Available:**
-- `npm run demo` - Fast testing (skip images & audio)
-- `npm run demo:full` - Full build with all AI features
-- `npm run demo:html` - HTML only, no video
-- `npm run tutorial:build` - Build any presentation
+- `npm run demo` - Fast testing (skip images & audio) - **TODO: Make generic**
+- `npm run demo:full` - Full build with all AI features - **TODO: Make generic**
+- `npm run demo:html` - HTML only, no video - **TODO: Make generic**
+- `npm run tutorial:build` - Build any presentation (low-level, takes full CLI args)
 
 ---
 
