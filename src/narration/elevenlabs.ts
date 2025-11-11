@@ -1,7 +1,7 @@
 import { writeFile } from 'fs/promises';
 import { env } from '../config/env.js';
 import { logger } from '../core/logger.js';
-import type { ElevenLabsTextToSpeechRequest } from './types.js';
+import type { ElevenLabsTextToSpeechRequest, AudioWithTimestampsResponse, CharacterAlignment } from './types.js';
 
 /**
  * ElevenLabs API client for text-to-speech generation
@@ -15,7 +15,7 @@ export class ElevenLabsClient {
   }
 
   /**
-   * Generate speech from text and save to file
+   * Generate speech from text and save to file (with timestamps)
    */
   async generateSpeech(
     text: string,
@@ -26,7 +26,7 @@ export class ElevenLabsClient {
       stability?: number;
       similarityBoost?: number;
     }
-  ): Promise<void> {
+  ): Promise<{ alignment?: CharacterAlignment; durationSeconds: number }> {
     const model = options?.model || env.ELEVENLABS_MODEL;
     const stability = options?.stability ?? env.ELEVENLABS_STABILITY;
     const similarityBoost = options?.similarityBoost ?? env.ELEVENLABS_SIMILARITY_BOOST;
@@ -44,11 +44,11 @@ export class ElevenLabsClient {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/text-to-speech/${voiceId}`,
+        `${this.baseUrl}/text-to-speech/${voiceId}/with-timestamps`,
         {
           method: 'POST',
           headers: {
-            'Accept': 'audio/mpeg',
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
             'xi-api-key': this.apiKey,
           },
@@ -61,13 +61,29 @@ export class ElevenLabsClient {
         throw new Error(`ElevenLabs API error (${response.status}): ${errorText}`);
       }
 
-      // Get audio data as buffer
-      const audioBuffer = await response.arrayBuffer();
+      // Parse JSON response with timestamps
+      const data = await response.json() as AudioWithTimestampsResponse;
+
+      // Decode base64 audio
+      const audioBuffer = Buffer.from(data.audio_base64, 'base64');
 
       // Save to file
-      await writeFile(outputPath, Buffer.from(audioBuffer));
+      await writeFile(outputPath, audioBuffer);
 
-      logger.debug(`Saved audio to ${outputPath} (${audioBuffer.byteLength} bytes)`);
+      // Calculate duration from alignment data
+      const durationSeconds = data.alignment?.character_end_times_seconds?.slice(-1)[0] || 0;
+
+      logger.debug(`Saved audio to ${outputPath} (${audioBuffer.byteLength} bytes, ${durationSeconds.toFixed(2)}s)`);
+
+      const result: { alignment?: CharacterAlignment; durationSeconds: number } = {
+        durationSeconds,
+      };
+
+      if (data.alignment) {
+        result.alignment = data.alignment;
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof Error) {
         logger.error(`Failed to generate speech: ${error.message}`);

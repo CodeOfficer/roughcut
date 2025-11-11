@@ -15,12 +15,31 @@ export interface SpeechGenerationOptions {
 }
 
 /**
+ * Character-level alignment data from ElevenLabs
+ */
+export interface CharacterAlignment {
+  characters: string[];
+  character_start_times_seconds: number[];
+  character_end_times_seconds: number[];
+}
+
+/**
+ * ElevenLabs API response with timestamps
+ */
+export interface AudioWithTimestampsResponse {
+  audio_base64: string;
+  alignment?: CharacterAlignment;
+  normalized_alignment?: CharacterAlignment;
+}
+
+/**
  * Result of speech generation
  */
 export interface SpeechGenerationResult {
   filePath: string;
   durationSeconds: number;
   sizeBytes: number;
+  alignment?: CharacterAlignment;
 }
 
 /**

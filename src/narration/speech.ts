@@ -156,15 +156,24 @@ export class RevealSpeechGenerator {
     logger.debug(`Generating audio for slide ${slide.id} with voice ${voiceId}`);
     logger.debug(`Text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
 
-    // Generate speech using ElevenLabs
-    await this.elevenlabsClient.generateSpeech(text, voiceId, outputPath);
+    // Generate speech using ElevenLabs (with timestamps)
+    const { alignment, durationSeconds: apiDuration } = await this.elevenlabsClient.generateSpeech(
+      text,
+      voiceId,
+      outputPath
+    );
 
-    // Get actual duration from generated file
-    const durationSeconds = await getAudioDuration(outputPath);
+    // Use API duration if available, otherwise fallback to analyzing the file
+    const durationSeconds = apiDuration || await getAudioDuration(outputPath);
 
     // Get file size
     const stats = await stat(outputPath);
     const sizeBytes = stats.size;
+
+    // TODO: Store alignment data in manifest for future features (word highlighting, subtitles)
+    if (alignment) {
+      logger.debug(`Received ${alignment.characters.length} character timestamps for ${slide.id}`);
+    }
 
     // Update slide's audio block with actual duration and path
     slide.audio.actualDuration = durationSeconds;
