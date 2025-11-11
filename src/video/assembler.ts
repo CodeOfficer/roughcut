@@ -337,8 +337,9 @@ export class RevealVideoAssembler {
     }
 
     // Create file list for FFmpeg
+    // Use basenames only - paths are relative to the concat file location
     const fileListPath = path.join(audioBaseDir, 'concat-list.txt');
-    const fileListContent = audioFiles.map((f) => `file '${f}'`).join('\n');
+    const fileListContent = audioFiles.map((f) => `file '${path.basename(f)}'`).join('\n');
     await fs.writeFile(fileListPath, fileListContent);
 
     // Concatenate with FFmpeg
