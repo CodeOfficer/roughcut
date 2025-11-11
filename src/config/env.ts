@@ -87,7 +87,7 @@ const envSchema = z.object({
 
   PLAYWRIGHT_BROWSERS_PATH: z
     .string()
-    .default('./browsers')
+    .default(join(rootDir, 'browsers'))
     .describe('Path where Playwright browsers are installed'),
 
   // Development Settings
