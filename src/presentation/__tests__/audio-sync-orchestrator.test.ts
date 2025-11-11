@@ -5,10 +5,10 @@
 
 import { AudioSyncOrchestrator, type OrchestrationProgress } from '../audio-sync-orchestrator.js';
 import { RevealHTMLGenerator } from '../revealjs-generator.js';
-import { RevealSpeechGenerator } from '../../narration/revealjs-speech.js';
-import { createRevealTimelineBuilder } from '../../video/revealjs-timeline.js';
-import type { RevealPresentation } from '../../core/revealjs-types.js';
-import { DEFAULT_SLIDE_METADATA } from '../../core/revealjs-types.js';
+import { RevealSpeechGenerator } from '../../narration/speech.js';
+import { createRevealTimelineBuilder } from '../../video/timeline.js';
+import type { RevealPresentation } from '../../core/types.js';
+import { DEFAULT_SLIDE_METADATA } from '../../core/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

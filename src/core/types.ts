@@ -1,240 +1,405 @@
 /**
- * Core type definitions for the tutorial factory system
+ * TypeScript type definitions for Reveal.js integration
+ *
+ * These types define the contracts between components:
+ * - Parser output structure
+ * - Audio generation inputs/outputs
+ * - Timeline building
+ * - HTML generation
+ * - Playwright orchestration
  */
+
+// ============================================================================
+// PRESENTATION STRUCTURE
+// ============================================================================
 
 /**
- * Screenshot capture modes
+ * Complete reveal.js presentation parsed from markdown
  */
-export type ScreenshotMode = 'static' | 'auto' | 'none';
-
-/**
- * Video transition types
- */
-export type TransitionType = 'fade' | 'dissolve' | 'wipe' | 'none';
-
-/**
- * Tutorial segment representing a single narrated section
- */
-export interface TutorialSegment {
-  /** Unique identifier for the segment */
-  id: string;
-
-  /** Segment title */
+export interface RevealPresentation {
+  /** Presentation title */
   title: string;
 
-  /** Expected duration in seconds */
-  duration: number;
+  /** Reveal.js theme (black, white, dracula, etc.) */
+  theme: string;
 
-  /** Narration text to be converted to speech */
-  narration: string;
+  /** ElevenLabs voice ID (falls back to ELEVENLABS_VOICE_ID env var if not specified) */
+  voice?: string;
 
-  /** Screenshot/Image configuration */
-  screenshot: {
-    /** Screenshot capture mode */
-    mode: ScreenshotMode;
-
-    /** Gemini prompt for static image generation (used when mode is 'static') */
-    geminiPrompt?: string;
-
-    /** Playwright instructions for auto capture (used when mode is 'auto') */
-    playwrightInstructions?: string;
-
-    /** Path to screenshot/image file (if already captured/generated) */
-    filepath?: string;
-  };
-
-  /** Actual audio duration (set after narration generation) */
-  actualDuration?: number;
-
-  /** Path to generated audio file */
-  audioPath?: string;
-}
-
-/**
- * Complete tutorial script with all segments
- */
-export interface TutorialScript {
-  /** Tutorial title */
-  title: string;
-
-  /** Tutorial description */
-  description?: string;
-
-  /** Array of tutorial segments */
-  segments: TutorialSegment[];
-}
-
-/**
- * Tutorial configuration
- */
-export interface TutorialConfig {
-  /** Tutorial title */
-  title: string;
-
-  /** Brief description */
-  description: string;
-
-  /** Voice ID for narration */
-  voice: string;
-
-  /** Video generation settings */
-  videoSettings: {
-    /** Video resolution (e.g., "1920x1080") */
-    resolution: string;
-
-    /** Frames per second */
-    fps: number;
-
-    /** Transition effect between segments */
-    transition: TransitionType;
-
-    /** Transition duration in seconds */
-    transitionDuration: number;
-  };
-
-  /** Metadata about the tutorial */
-  metadata: {
-    /** Creation timestamp */
-    created: string | null;
-
-    /** Last modification timestamp */
-    lastModified: string | null;
-
-    /** Tutorial version */
-    version: string;
-  };
-
-  /** Generated segment metadata (populated during build) */
-  segments?: Array<{
-    id: string;
-    audioPath?: string;
-    screenshotPath?: string;
-    duration?: number;
-  }>;
-}
-
-/**
- * Video timeline entry for FFmpeg assembly
- */
-export interface TimelineEntry {
-  /** Start time in seconds */
-  startTime: number;
-
-  /** Duration in seconds */
-  duration: number;
-
-  /** Path to audio file */
-  audioPath: string;
-
-  /** Path to screenshot/image file */
-  imagePath: string;
-
-  /** Segment ID reference */
-  segmentId: string;
-}
-
-/**
- * Video assembly options
- */
-export interface VideoAssemblyOptions {
-  /** Output file path */
-  outputPath: string;
-
-  /** Video resolution */
+  /** Video resolution (e.g., "1920x1080") */
   resolution: string;
 
-  /** Frames per second */
-  fps: number;
+  /** Array of slides in presentation order */
+  slides: RevealSlide[];
 
-  /** Transition type */
-  transition: TransitionType;
-
-  /** Transition duration in seconds */
-  transitionDuration: number;
-
-  /** Timeline entries */
-  timeline: TimelineEntry[];
+  /** Total presentation duration in seconds (calculated after audio generation) */
+  totalDuration?: number;
 }
 
 /**
- * Narration generation options
+ * Single slide in the presentation
  */
-export interface NarrationOptions {
-  /** Text to convert to speech */
-  text: string;
+export interface RevealSlide {
+  /** Unique slide identifier (e.g., "slide-001") */
+  id: string;
 
-  /** Output file path */
-  outputPath: string;
+  /** Slide index in presentation (0-based) */
+  index: number;
 
-  /** Voice ID */
-  voiceId: string;
+  /** Markdown content for the slide (cleaned of directives) */
+  content: string;
 
-  /** Model ID */
-  modelId: string;
+  /** Audio narration block (null if no audio) */
+  audio: AudioBlock | null;
 
-  /** Voice stability (0-1) */
-  stability: number;
+  /** Playwright automation instructions (null if none) */
+  playwright: PlaywrightBlock | null;
 
-  /** Similarity boost (0-1) */
-  similarityBoost: number;
+  /** Speaker notes (null if none) */
+  notes: string | null;
+
+  /** Slide-specific metadata and configuration */
+  metadata: SlideMetadata;
+}
+
+// ============================================================================
+// AUDIO
+// ============================================================================
+
+/**
+ * Audio narration for a slide
+ */
+export interface AudioBlock {
+  /** Raw narration text (with [Xs] pause markers) */
+  rawText: string;
+
+  /** Cleaned text for TTS (pause markers removed) */
+  cleanText: string;
+
+  /** Expected duration in seconds (from @duration directive, optional) */
+  expectedDuration: number | null;
+
+  /** Actual duration from ElevenLabs/FFmpeg (set after generation) */
+  actualDuration?: number;
+
+  /** Path to generated audio file (set after generation) */
+  audioPath?: string;
+
+  /** Inline pause markers parsed from [Xs] syntax */
+  pauses: PauseMarker[];
 }
 
 /**
- * Screenshot capture options (for Playwright automation)
+ * Pause marker within audio narration
+ * Position is character offset in cleanText
  */
-export interface ScreenshotCaptureOptions {
-  /** Output file path */
-  outputPath: string;
+export interface PauseMarker {
+  /** Character position in clean text where pause occurs */
+  position: number;
 
-  /** Playwright automation instructions */
-  instructions: string;
-
-  /** Optional URL to navigate to */
-  url?: string;
-
-  /** Wait time before capture (milliseconds) */
-  waitTime?: number;
-
-  /** Viewport dimensions */
-  viewport?: {
-    width: number;
-    height: number;
-  };
+  /** Duration of pause in seconds */
+  durationSeconds: number;
 }
 
 /**
- * Gemini image generation options
+ * Result from audio generation
  */
-export interface GeminiImageOptions {
-  /** Text prompt describing the desired image */
-  prompt: string;
+export interface AudioGenerationResult {
+  /** Slide ID this audio belongs to */
+  slideId: string;
 
-  /** Output file path */
-  outputPath: string;
+  /** Path to generated MP3 file */
+  filePath: string;
 
-  /** Image resolution (e.g., "1920x1080") */
+  /** Actual audio duration in seconds */
+  durationSeconds: number;
+
+  /** File size in bytes */
+  sizeBytes: number;
+}
+
+// ============================================================================
+// PLAYWRIGHT AUTOMATION
+// ============================================================================
+
+/**
+ * Playwright automation block for a slide
+ */
+export interface PlaywrightBlock {
+  /** Array of instructions to execute */
+  instructions: PlaywrightInstruction[];
+}
+
+/**
+ * Single playwright instruction
+ */
+export interface PlaywrightInstruction {
+  /** Instruction type */
+  type: 'action' | 'wait' | 'screenshot';
+
+  /** Raw instruction text (e.g., "Click button", "2s", "screenshot-name") */
+  content: string;
+
+  /** Parsed parameters (populated by executor) */
+  params?: Record<string, any>;
+}
+
+// ============================================================================
+// SLIDE METADATA
+// ============================================================================
+
+/**
+ * Slide-specific metadata from @directives
+ */
+export interface SlideMetadata {
+  /** Expected slide duration in seconds (from @duration) */
+  duration: number | null;
+
+  /** Pause after audio ends in seconds (from @pause-after) */
+  pauseAfter: number;
+
+  /** Slide transition type (from @transition) */
+  transition?: string;
+
+  /** Background color or image (from @background) */
+  background?: string;
+
+  /** AI image generation prompt (from @image-prompt) */
+  imagePrompt?: string;
+
+  /** Path to generated image file (set after generation) */
+  imagePath?: string;
+
+  /** Fragment definitions for this slide */
+  fragments: FragmentDefinition[];
+
+  /** Whether auto-animate is enabled */
+  autoAnimate?: boolean;
+}
+
+/**
+ * Fragment definition (step-by-step reveal)
+ */
+export interface FragmentDefinition {
+  /** Fragment index (order of appearance) */
+  index: number;
+
+  /** Fragment effect (fade, grow, highlight-red, etc.) */
+  effect: string;
+
+  /** Content/selector for the fragment */
+  content: string;
+
+  /** Relative timing offset in seconds (from @fragment +2s) */
+  timingOffset?: number;
+}
+
+// ============================================================================
+// TIMELINE
+// ============================================================================
+
+/**
+ * Complete timeline for presentation orchestration
+ */
+export interface RevealTimeline {
+  /** Timeline entries for each slide */
+  slides: SlideTimelineEntry[];
+
+  /** Total presentation duration in seconds */
+  totalDuration: number;
+}
+
+/**
+ * Timeline entry for a single slide
+ */
+export interface SlideTimelineEntry {
+  /** Slide ID */
+  slideId: string;
+
+  /** Slide index (0-based) */
+  slideIndex: number;
+
+  /** Path to audio file (null if no audio) */
+  audioPath: string | null;
+
+  /** Audio duration in seconds */
+  audioDuration: number;
+
+  /** Pause after audio in seconds */
+  pauseAfter: number;
+
+  /** Total slide duration (audioDuration + pauseAfter) */
+  totalSlideDuration: number;
+
+  /** Cumulative start time in seconds */
+  startTime: number;
+
+  /** Cumulative end time in seconds */
+  endTime: number;
+
+  /** Whether this slide has playwright instructions */
+  hasPlaywright: boolean;
+
+  /** Playwright instructions (empty array if none) */
+  playwrightInstructions: PlaywrightInstruction[];
+
+  /** Slide metadata */
+  metadata: SlideMetadata;
+}
+
+// ============================================================================
+// REVEAL.JS CONFIG
+// ============================================================================
+
+/**
+ * Reveal.js initialization configuration
+ */
+export interface RevealConfig {
+  /** Auto-slide interval in ms (0 = disabled, Playwright controls timing) */
+  autoSlide: number;
+
+  /** Add slide number to URL hash */
+  hash: boolean;
+
+  /** Push each slide change to browser history */
+  history: boolean;
+
+  /** Enable fragments */
+  fragments: boolean;
+
+  /** Include fragment index in URL */
+  fragmentInURL: boolean;
+
+  /** Default transition style */
+  transition: string;
+
+  /** Transition speed */
+  transitionSpeed: string;
+
+  /** Auto-play media */
+  autoPlayMedia: boolean;
+
+  /** Plugin names to load */
+  plugins: string[];
+}
+
+// ============================================================================
+// PARSER CONTRACTS
+// ============================================================================
+
+/**
+ * Front matter from markdown file
+ */
+export interface PresentationFrontMatter {
+  title: string;
+  theme: string;
+  voice?: string;
   resolution?: string;
-
-  /** Optional aspect ratio override */
-  aspectRatio?: string;
-
-  /** Number of generation attempts before failing */
-  maxRetries?: number;
 }
 
 /**
- * CLI command context
+ * Raw slide data before processing
  */
-export interface CommandContext {
-  /** Tutorial name/identifier */
-  tutorialName: string;
+export interface RawSlideData {
+  /** Slide index */
+  index: number;
 
-  /** Tutorial root directory */
-  tutorialDir: string;
+  /** Raw markdown content including directives */
+  raw: string;
 
-  /** Tutorial configuration */
-  config: TutorialConfig;
+  /** Extracted directives */
+  directives: Map<string, string>;
 
-  /** Parsed tutorial script */
-  script?: TutorialScript;
+  /** Content after directive extraction */
+  content: string;
 }
+
+// ============================================================================
+// TYPE GUARDS
+// ============================================================================
+
+/**
+ * Type guard to check if slide has audio
+ */
+export function hasAudio(slide: RevealSlide): slide is RevealSlide & { audio: AudioBlock } {
+  return slide.audio !== null;
+}
+
+/**
+ * Type guard to check if slide has playwright instructions
+ */
+export function hasPlaywright(slide: RevealSlide): slide is RevealSlide & { playwright: PlaywrightBlock } {
+  return slide.playwright !== null;
+}
+
+/**
+ * Type guard to check if slide has speaker notes
+ */
+export function hasSpeakerNotes(slide: RevealSlide): slide is RevealSlide & { notes: string } {
+  return slide.notes !== null && slide.notes.length > 0;
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/**
+ * Default values for slide metadata
+ */
+export const DEFAULT_SLIDE_METADATA: SlideMetadata = {
+  duration: null,
+  pauseAfter: 1, // 1 second default pause after audio
+  fragments: [],
+};
+
+/**
+ * Default reveal.js configuration
+ */
+export const DEFAULT_REVEAL_CONFIG: RevealConfig = {
+  autoSlide: 0, // Disabled - Playwright controls timing
+  hash: true,
+  history: true,
+  fragments: true,
+  fragmentInURL: true,
+  transition: 'slide',
+  transitionSpeed: 'default',
+  autoPlayMedia: false,
+  plugins: ['RevealMarkdown', 'RevealHighlight', 'RevealNotes'],
+};
+
+/**
+ * Supported reveal.js transitions
+ */
+export const REVEAL_TRANSITIONS = [
+  'none',
+  'fade',
+  'slide',
+  'convex',
+  'concave',
+  'zoom',
+] as const;
+
+export type RevealTransition = typeof REVEAL_TRANSITIONS[number];
+
+/**
+ * Supported fragment effects
+ */
+export const FRAGMENT_EFFECTS = [
+  'fade',
+  'fade-out',
+  'fade-up',
+  'fade-down',
+  'fade-left',
+  'fade-right',
+  'grow',
+  'shrink',
+  'strike',
+  'highlight-red',
+  'highlight-green',
+  'highlight-blue',
+  'highlight-current-red',
+  'highlight-current-green',
+  'highlight-current-blue',
+] as const;
+
+export type FragmentEffect = typeof FRAGMENT_EFFECTS[number];

@@ -3,7 +3,7 @@
  * Run with: npx tsx src/presentation/__manual-test__/test-generation.ts
  */
 
-import { RevealMarkdownParser } from '../../core/revealjs-parser.js';
+import { RevealMarkdownParser } from '../../core/parser.js';
 import { RevealHTMLGenerator } from '../revealjs-generator.js';
 import * as path from 'path';
 import * as fs from 'fs/promises';

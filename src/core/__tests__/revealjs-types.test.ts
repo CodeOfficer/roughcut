@@ -16,7 +16,7 @@ import {
   hasSpeakerNotes,
   DEFAULT_SLIDE_METADATA,
   DEFAULT_REVEAL_CONFIG,
-} from '../revealjs-types';
+} from '../types';
 
 describe('RevealJS Type Definitions', () => {
   describe('Contract: RevealPresentation', () => {

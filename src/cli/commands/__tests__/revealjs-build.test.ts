@@ -8,7 +8,7 @@ import {
   createBuildCommand,
   type BuildOptions,
   type BuildProgress,
-} from '../revealjs-build.js';
+} from '../build.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

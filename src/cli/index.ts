@@ -3,12 +3,8 @@
 import { Command } from 'commander';
 import { logger } from '../core/logger.js';
 import {
-  createTutorial,
-  narrateTutorial,
-  captureScreenshots,
-  buildTutorial,
-  fullWorkflow,
-  cleanTutorial,
+  createBuildCommand,
+  type BuildOptions,
 } from './commands/index.js';
 
 /**
@@ -18,99 +14,48 @@ const program = new Command();
 
 program
   .name('genai-tutorial-factory')
-  .description('Generate tutorial videos from markdown scripts')
-  .version('1.0.0');
+  .description('Generate reveal.js presentations with video from markdown')
+  .version('2.0.0');
 
 /**
- * Create new tutorial
+ * Build reveal.js presentation
  */
 program
-  .command('create <name>')
-  .description('Create a new tutorial project')
-  .action(async (name: string) => {
+  .command('build')
+  .description('Build reveal.js presentation from markdown')
+  .requiredOption('-i, --input <path>', 'Input markdown file')
+  .requiredOption('-o, --output <path>', 'Output directory')
+  .option('--no-video', 'Skip video generation')
+  .option('--skip-audio', 'Skip audio generation')
+  .option('--bundle', 'Bundle reveal.js assets')
+  .option('--voice <id>', 'ElevenLabs voice ID')
+  .action(async (options: BuildOptions) => {
     try {
-      await createTutorial(name);
-      process.exit(0);
-    } catch (error) {
-      logger.error('Command failed', error);
-      process.exit(1);
-    }
-  });
+      const command = createBuildCommand();
 
-/**
- * Generate narration
- */
-program
-  .command('narrate <name>')
-  .description('Generate narration audio for a tutorial')
-  .action(async (name: string) => {
-    try {
-      await narrateTutorial(name);
-      process.exit(0);
-    } catch (error) {
-      logger.error('Command failed', error);
-      process.exit(1);
-    }
-  });
+      // Report progress
+      command.onProgress((progress) => {
+        logger.info(`[${progress.phase}] ${progress.message} (${progress.percentage.toFixed(0)}%)`);
+      });
 
-/**
- * Capture screenshots
- */
-program
-  .command('screenshots <name>')
-  .description('Generate images and capture screenshots for a tutorial')
-  .action(async (name: string) => {
-    try {
-      await captureScreenshots(name);
-      process.exit(0);
-    } catch (error) {
-      logger.error('Command failed', error);
-      process.exit(1);
-    }
-  });
+      // Execute build
+      const result = await command.execute(options);
 
-/**
- * Build video
- */
-program
-  .command('build <name>')
-  .description('Assemble tutorial video from generated assets')
-  .action(async (name: string) => {
-    try {
-      await buildTutorial(name);
-      process.exit(0);
-    } catch (error) {
-      logger.error('Command failed', error);
-      process.exit(1);
-    }
-  });
-
-/**
- * Full workflow
- */
-program
-  .command('full <name>')
-  .description('Run full tutorial generation workflow (narrate + screenshots + build)')
-  .action(async (name: string) => {
-    try {
-      await fullWorkflow(name);
-      process.exit(0);
-    } catch (error) {
-      logger.error('Command failed', error);
-      process.exit(1);
-    }
-  });
-
-/**
- * Clean assets
- */
-program
-  .command('clean <name>')
-  .description('Remove generated assets (preserves script and config)')
-  .action(async (name: string) => {
-    try {
-      await cleanTutorial(name);
-      process.exit(0);
+      if (result.success) {
+        logger.info('Build completed successfully!');
+        logger.info(`HTML: ${result.htmlPath}`);
+        if (result.videoPath) {
+          logger.info(`Video: ${result.videoPath}`);
+        }
+        if (result.stats) {
+          logger.info(`Slides: ${result.stats.slidesProcessed}`);
+          logger.info(`Duration: ${result.stats.totalDuration.toFixed(2)}s`);
+        }
+        process.exit(0);
+      } else {
+        logger.error('Build failed:', result.error);
+        process.exit(1);
+      }
     } catch (error) {
       logger.error('Command failed', error);
       process.exit(1);

@@ -500,6 +500,111 @@ Not implementing initially, but architecture supports:
 
 ---
 
+## Decision 6: Deprecate Original System (2025-11-11)
+
+**Context**: After completing RevealJS implementation, we had two parallel systems with ~50% code duplication.
+
+**Decision**: Deprecate original tutorial system, make RevealJS the only system.
+
+**Rationale**:
+- Reduces codebase by ~48% (~6,000 lines removed)
+- Eliminates 680 lines of duplicate code
+- Simpler architecture (one system vs two)
+- Better outputs (HTML + video vs just video)
+- Easier to maintain
+- RevealJS system provides all functionality of original plus:
+  - Interactive HTML presentations
+  - Better slide organization
+  - Modern themes and transitions
+  - More flexible timing control
+  - Built-in speaker notes
+
+**Impact**:
+- Original markdown format no longer supported
+- Old CLI commands removed: `create`, `narrate`, `screenshots`, `full`, `clean`
+- New unified command: `tutorial:build <markdown-file>`
+- Package version bumped to 2.0.0 (breaking change)
+- ~25 files removed including:
+  - `src/screenshots/` directory
+  - `src/images/` directory
+  - Original parser and video assembler
+  - Legacy CLI commands
+  - Old test files
+
+**Migration**: See `/MIGRATION.md` for comprehensive conversion guide from old format to new format.
+
+**Files Removed**:
+- Screenshots and images processing modules
+- Original segment parser
+- Original video assembler
+- Legacy CLI commands
+- Duplicate test files
+- ~6,000 lines of code total
+
+**Benefits**:
+- Single source of truth for architecture
+- Reduced maintenance burden
+- No confusion about which system to use
+- Cleaner codebase
+- Better developer experience
+
+---
+
+## Decision 7: AI Image Generation Support (2025-11-11)
+
+**Context**: After restoring the `src/images/` module (Gemini AI), we needed to integrate it into the RevealJS system to allow slides to have AI-generated backgrounds.
+
+**Decision**: Add `@image-prompt:` directive for AI-generated images via Gemini.
+
+**Implementation**:
+- Added `imagePrompt?` and `imagePath?` fields to `SlideMetadata` interface
+- Parser recognizes `@image-prompt:` directive
+- Build command generates images before HTML generation
+- Generated images automatically set as slide background if no background specified
+- Images saved to `output/images/` directory
+- Support for `--skip-images` flag to avoid expensive API calls
+
+**Usage**:
+```markdown
+# My Slide
+@image-prompt: A futuristic data center with glowing servers
+@duration: 8s
+
+Content here...
+```
+
+**Benefits**:
+- Rapid prototyping with AI-generated visuals
+- No need for external image assets
+- Consistent visual style across presentations
+- Images generated at correct resolution automatically
+
+**NPM Scripts**:
+```bash
+npm run demo            # Skip images and audio (fast testing)
+npm run demo:full       # Full build with images and audio (uses API credits)
+npm run demo:html       # HTML only, no video
+```
+
+**Added to Demo**: Added 2 new slides to `tutorials/demo/presentation.md` demonstrating:
+- `@image-prompt:` for AI-generated backgrounds
+- `@playwright:` for interactive demonstrations
+
+**Demo as Canonical Example**: The demo presentation now showcases ALL system features:
+- Front matter (title, theme, resolution)
+- Audio narration with `@audio:`
+- Inline pauses with `[Xs]` syntax
+- Fragment animations with `@fragment`
+- Timing with `@duration:` and `@pause-after:`
+- Backgrounds (colors, gradients, images)
+- Transitions
+- AI-generated images with `@image-prompt:`
+- Playwright automation with `@playwright:`
+
+**Tests**: Added 2 new parser tests for `@image-prompt:` directive (now 226 tests passing).
+
+---
+
 ## References
 
 - Reveal.js docs: https://revealjs.com/
@@ -507,6 +612,7 @@ Not implementing initially, but architecture supports:
 - Project plan: `/planning/revealjs-integration/IMPLEMENTATION_PLAN.md`
 - Format spec: `/planning/revealjs-integration/format-option-3-minimalist.md`
 - Research: `/planning/revealjs-integration/revealjs-research.md`
+- Migration guide: `/MIGRATION.md`
 
 ---
 
@@ -521,6 +627,9 @@ Not implementing initially, but architecture supports:
 6. Remember: Both HTML + MP4 outputs required
 7. Remember: Audio drives slides (not vice versa)
 8. Remember: Test before committing each step
+9. **NEW**: Original system deprecated - RevealJS is THE system (not "new" system)
+10. **NEW**: Refer users to MIGRATION.md for format conversion
 
 **Current working directory**: `/Users/rjones/auditboard/genai-tutorial-factory`
 **Planning folder**: `/planning/revealjs-integration/`
+**Current version**: 2.0.0 (post-deprecation)

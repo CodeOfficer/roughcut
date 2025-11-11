@@ -4,8 +4,8 @@
  */
 
 import { RevealHTMLGenerator } from '../revealjs-generator.js';
-import type { RevealPresentation } from '../../core/revealjs-types.js';
-import { DEFAULT_SLIDE_METADATA } from '../../core/revealjs-types.js';
+import type { RevealPresentation } from '../../core/types.js';
+import { DEFAULT_SLIDE_METADATA } from '../../core/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

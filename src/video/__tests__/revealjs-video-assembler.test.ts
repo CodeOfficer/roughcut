@@ -8,8 +8,8 @@ import {
   createRevealVideoAssembler,
   type VideoAssemblyConfig,
   type AssemblyProgress,
-} from '../revealjs-video-assembler.js';
-import type { RevealTimeline } from '../revealjs-timeline.js';
+} from '../assembler.js';
+import type { RevealTimeline } from '../timeline.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

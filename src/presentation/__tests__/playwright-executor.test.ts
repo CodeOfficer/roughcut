@@ -4,7 +4,7 @@
  */
 
 import { PlaywrightInstructionExecutor } from '../playwright-executor.js';
-import type { PlaywrightInstruction } from '../../core/revealjs-types.js';
+import type { PlaywrightInstruction } from '../../core/types.js';
 import type { ExecutionContext } from '../playwright-executor.js';
 import { chromium } from '@playwright/test';
 import type { Browser, Page } from '@playwright/test';

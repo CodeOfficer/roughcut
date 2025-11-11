@@ -15,8 +15,8 @@ import type {
   RevealPresentation,
   RevealSlide,
   RevealConfig,
-} from '../core/revealjs-types.js';
-import { DEFAULT_REVEAL_CONFIG } from '../core/revealjs-types.js';
+} from '../core/types.js';
+import { DEFAULT_REVEAL_CONFIG } from '../core/types.js';
 import type { BundledAssets } from './revealjs-assets.js';
 import { createRevealAssetBundler, getDefaultRevealJsPath } from './revealjs-assets.js';
 

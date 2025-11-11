@@ -1,176 +1,471 @@
-import { readFile } from 'fs/promises';
-import type { TutorialScript, TutorialSegment, ScreenshotMode } from './types.js';
-import { logger } from './logger.js';
-
 /**
- * Parse tutorial markdown script into structured data
+ * Markdown parser for Option 3 format (Minimalist @directive: syntax)
+ *
+ * Parses markdown files with:
+ * - Front matter (---\ntitle: ...\n---)
+ * - Slide delimiter (---)
+ * - @directive: syntax for metadata
+ * - @audio: narration with [Xs] pauses
+ * - @playwright: automation instructions
+ * - @fragment markers with optional +Xs timing
  */
-export class TutorialParser {
+
+import type {
+  RevealPresentation,
+  RevealSlide,
+  AudioBlock,
+  PlaywrightBlock,
+  PlaywrightInstruction,
+  SlideMetadata,
+  PauseMarker,
+  FragmentDefinition,
+  PresentationFrontMatter,
+} from './types.js';
+import { DEFAULT_SLIDE_METADATA } from './types.js';
+
+// ============================================================================
+// MAIN PARSER CLASS
+// ============================================================================
+
+export class RevealMarkdownParser {
   /**
-   * Parse a tutorial script from a file path
+   * Parse a markdown file into a RevealPresentation structure
    */
-  async parseFile(filePath: string): Promise<TutorialScript> {
-    try {
-      const content = await readFile(filePath, 'utf-8');
-      return this.parse(content);
-    } catch (error) {
-      logger.error('Failed to read tutorial script', error);
-      throw new Error(`Failed to read tutorial script at ${filePath}`);
-    }
-  }
+  parse(markdown: string): RevealPresentation {
+    // 1. Extract front matter
+    const { frontMatter, content } = this.extractFrontMatter(markdown);
 
-  /**
-   * Parse tutorial script content
-   */
-  parse(content: string): TutorialScript {
-    // Extract title (first # heading)
-    const titleMatch = content.match(/^#\s+(.+)$/m);
-    if (!titleMatch || !titleMatch[1]) {
-      throw new Error('Tutorial script must have a title (# heading)');
-    }
-    const title = titleMatch[1].trim();
+    // 2. Split into slides
+    const slideStrings = this.splitIntoSlides(content);
 
-    // Split content into segments by ## headings
-    const segments = this.extractSegments(content);
+    // 3. Parse each slide
+    const slides: RevealSlide[] = slideStrings.map((slideMarkdown, index) =>
+      this.parseSlide(slideMarkdown, index)
+    );
 
-    if (segments.length === 0) {
-      throw new Error('Tutorial script must have at least one segment (## heading)');
-    }
-
-    logger.debug(`Parsed tutorial: ${title} with ${segments.length} segments`);
-
-    return {
-      title,
-      segments,
+    // 4. Build presentation
+    const presentation: RevealPresentation = {
+      title: frontMatter.title,
+      theme: frontMatter.theme,
+      resolution: frontMatter.resolution || '1920x1080',
+      slides,
     };
+
+    // Only set voice if it's defined (exactOptionalPropertyTypes requirement)
+    if (frontMatter.voice) {
+      presentation.voice = frontMatter.voice;
+    }
+
+    return presentation;
   }
 
+  // ============================================================================
+  // FRONT MATTER EXTRACTION
+  // ============================================================================
+
   /**
-   * Extract all segments from the content
+   * Extract YAML front matter from markdown
+   * Format:
+   * ---
+   * title: "Presentation Title"
+   * theme: dracula
+   * voice: adam
+   * resolution: 1920x1080
+   * ---
    */
-  private extractSegments(content: string): TutorialSegment[] {
-    // First, split by --- to get individual segment blocks
-    const blocks = content.split(/\n---\n/).filter(block => block.trim());
+  private extractFrontMatter(markdown: string): {
+    frontMatter: PresentationFrontMatter;
+    content: string;
+  } {
+    const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+    const match = markdown.match(frontMatterRegex);
 
-    const segments: TutorialSegment[] = [];
+    if (!match || !match[1]) {
+      throw new Error('Missing front matter. Format should start with:\n---\ntitle: "..."\n---');
+    }
 
-    for (const block of blocks) {
-      // Check if this block contains a ## heading
-      const headingMatch = block.match(/^##\s+(.+)$/m);
-      if (headingMatch && headingMatch[1] && headingMatch.index !== undefined) {
-        const segmentTitle = headingMatch[1].trim();
-        const segmentContent = block.substring(headingMatch.index + headingMatch[0].length).trim();
-        segments.push(this.parseSegment(segmentTitle, segmentContent, segments.length));
+    const frontMatterText = match[1];
+    const content = markdown.slice(match[0].length);
+
+    // Parse front matter lines
+    const lines = frontMatterText.split('\n');
+    const frontMatter: Partial<PresentationFrontMatter> = {};
+
+    for (const line of lines) {
+      const [key, ...valueParts] = line.split(':');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+        frontMatter[key.trim() as keyof PresentationFrontMatter] = value;
       }
     }
 
-    return segments;
-  }
-
-  /**
-   * Parse a single segment
-   */
-  private parseSegment(title: string, content: string, index: number): TutorialSegment {
-    const id = `segment-${String(index + 1).padStart(3, '0')}`;
-
-    // Extract metadata
-    const duration = this.extractDuration(content);
-    const screenshotMode = this.extractScreenshotMode(content);
-
-    // Extract narration
-    const narration = this.extractBlock(content, 'NARRATION');
-    if (!narration) {
-      throw new Error(`Segment "${title}" is missing [NARRATION] block`);
+    if (!frontMatter.title) {
+      throw new Error('Front matter must include "title"');
+    }
+    if (!frontMatter.theme) {
+      throw new Error('Front matter must include "theme"');
     }
 
-    // Extract screenshot instructions based on mode
-    const screenshot = this.extractScreenshotData(content, screenshotMode);
+    return {
+      frontMatter: frontMatter as PresentationFrontMatter,
+      content,
+    };
+  }
 
-    logger.debug(`Parsed segment ${id}: ${title} (${duration}s, ${screenshotMode} mode)`);
+  // ============================================================================
+  // SLIDE SPLITTING
+  // ============================================================================
+
+  /**
+   * Split markdown into slides using --- delimiter
+   * Must be on own line: \n---\n
+   */
+  private splitIntoSlides(content: string): string[] {
+    // Split on --- with newlines before/after
+    const slides = content.split(/\n---\n/);
+
+    // Filter out empty slides
+    return slides.filter((slide) => slide.trim().length > 0);
+  }
+
+  // ============================================================================
+  // SLIDE PARSING
+  // ============================================================================
+
+  /**
+   * Parse a single slide markdown into RevealSlide structure
+   */
+  parseSlide(slideMarkdown: string, index: number): RevealSlide {
+    const id = `slide-${String(index + 1).padStart(3, '0')}`;
+
+    // Extract directives
+    const directives = this.extractDirectives(slideMarkdown);
+
+    // Extract audio block
+    const audio = this.extractAudioBlock(slideMarkdown);
+
+    // Extract playwright block
+    const playwright = this.extractPlaywrightBlock(slideMarkdown);
+
+    // Extract speaker notes (Note: sections in markdown)
+    const notes = this.extractNotes(slideMarkdown);
+
+    // Parse metadata from directives
+    const metadata = this.parseMetadata(directives);
+
+    // Parse fragments from content
+    const fragments = this.extractFragments(slideMarkdown);
+    metadata.fragments = fragments;
+
+    // Clean content of all directives
+    const content = this.cleanContent(slideMarkdown);
 
     return {
       id,
-      title,
-      duration,
-      narration: narration.trim(),
-      screenshot,
+      index,
+      content,
+      audio,
+      playwright,
+      notes,
+      metadata,
     };
   }
 
+  // ============================================================================
+  // DIRECTIVE EXTRACTION
+  // ============================================================================
+
   /**
-   * Extract duration from metadata
+   * Extract all @directive: value pairs from slide
+   * Returns Map of directive name to value
    */
-  private extractDuration(content: string): number {
-    const match = content.match(/^>\s*Duration:\s*(\d+)s?$/m);
-    if (!match || !match[1]) {
-      throw new Error('Segment is missing duration metadata (> Duration: Xs)');
+  private extractDirectives(markdown: string): Map<string, string> {
+    const directives = new Map<string, string>();
+
+    // Match @directive: value (single line only, not multi-line blocks)
+    // Excludes @audio: and @playwright: which are multi-line
+    const directiveRegex = /^@([\w-]+):\s*(.+)$/gm;
+
+    let match;
+    while ((match = directiveRegex.exec(markdown)) !== null) {
+      const [, name, value] = match;
+
+      // Skip audio and playwright (handled separately)
+      if (name && value && name !== 'audio' && name !== 'playwright') {
+        directives.set(name, value.trim());
+      }
     }
-    return parseInt(match[1], 10);
+
+    return directives;
   }
 
   /**
-   * Extract screenshot mode from metadata
+   * Parse metadata from extracted directives
    */
-  private extractScreenshotMode(content: string): ScreenshotMode {
-    const match = content.match(/^>\s*Screenshot:\s*(\w+)$/m);
-    if (!match || !match[1]) {
-      throw new Error('Segment is missing screenshot mode (> Screenshot: static|auto|none)');
+  private parseMetadata(directives: Map<string, string>): SlideMetadata {
+    const metadata: SlideMetadata = { ...DEFAULT_SLIDE_METADATA };
+
+    // @duration: 8s
+    if (directives.has('duration')) {
+      const duration = directives.get('duration')!;
+      metadata.duration = this.parseDuration(duration);
     }
 
-    const mode = match[1].toLowerCase();
-    if (!['static', 'auto', 'none'].includes(mode)) {
-      throw new Error(`Invalid screenshot mode: ${mode}. Must be static, auto, or none`);
+    // @pause-after: 2s
+    if (directives.has('pause-after')) {
+      const pauseAfter = directives.get('pause-after')!;
+      metadata.pauseAfter = this.parseDuration(pauseAfter);
     }
 
-    return mode as ScreenshotMode;
+    // @transition: zoom
+    if (directives.has('transition')) {
+      metadata.transition = directives.get('transition')!;
+    }
+
+    // @background: #1e1e1e
+    if (directives.has('background')) {
+      metadata.background = directives.get('background')!;
+    }
+
+    // @image-prompt: A futuristic data center
+    if (directives.has('image-prompt')) {
+      metadata.imagePrompt = directives.get('image-prompt')!;
+    }
+
+    return metadata;
   }
 
   /**
-   * Extract screenshot data based on mode
+   * Parse duration string to seconds
+   * Supports: "5s", "1.5s", "500ms"
    */
-  private extractScreenshotData(content: string, mode: ScreenshotMode) {
-    if (mode === 'static') {
-      const prompt = this.extractBlock(content, 'IMAGE_PROMPT');
-      if (!prompt) {
-        throw new Error('Static screenshot mode requires [IMAGE_PROMPT] block');
-      }
-      return {
-        mode: 'static' as const,
-        geminiPrompt: prompt.trim(),
-      };
+  private parseDuration(durationStr: string): number {
+    const match = durationStr.match(/^([\d.]+)(s|ms)$/);
+    if (!match || !match[1] || !match[2]) {
+      throw new Error(`Invalid duration format: ${durationStr}. Use "5s" or "500ms"`);
     }
 
-    if (mode === 'auto') {
-      const instructions = this.extractBlock(content, 'PLAYWRIGHT_INSTRUCTIONS');
-      if (!instructions) {
-        throw new Error('Auto screenshot mode requires [PLAYWRIGHT_INSTRUCTIONS] block');
-      }
-      return {
-        mode: 'auto' as const,
-        playwrightInstructions: instructions.trim(),
-      };
+    const [, value, unit] = match;
+    const num = parseFloat(value);
+
+    return unit === 's' ? num : num / 1000;
+  }
+
+  // ============================================================================
+  // AUDIO BLOCK EXTRACTION
+  // ============================================================================
+
+  /**
+   * Extract @audio: block
+   * Format:
+   * @audio: Text here [2s] more text [3s] end.
+   *
+   * Single line after @audio: directive
+   */
+  private extractAudioBlock(markdown: string): AudioBlock | null {
+    const audioRegex = /^@audio:\s*(.+)$/m;
+    const match = markdown.match(audioRegex);
+
+    if (!match || !match[1]) {
+      return null;
     }
 
-    // mode === 'none'
+    const rawText = match[1].trim();
+
+    // Extract pause markers [Xs]
+    const pauses: PauseMarker[] = [];
+    let cleanText = rawText;
+
+    const pauseRegex = /\[(\d+(?:\.\d+)?)s\]/g;
+    let pauseMatch;
+
+    while ((pauseMatch = pauseRegex.exec(rawText)) !== null) {
+      if (!pauseMatch[1]) continue;
+      const durationSeconds = parseFloat(pauseMatch[1]);
+
+      // Position is where the pause marker was in clean text (before removal)
+      // We need to track cumulative removals
+      const markerStart = pauseMatch.index;
+      const markerLength = pauseMatch[0].length;
+
+      pauses.push({
+        position: markerStart - (pauses.length * markerLength), // Adjust for previous removals
+        durationSeconds,
+      });
+    }
+
+    // Remove all pause markers from text
+    cleanText = rawText.replace(/\[\d+(?:\.\d+)?s\]/g, '');
+
     return {
-      mode: 'none' as const,
+      rawText,
+      cleanText: cleanText.trim(),
+      expectedDuration: null,
+      pauses,
+    };
+  }
+
+  // ============================================================================
+  // PLAYWRIGHT BLOCK EXTRACTION
+  // ============================================================================
+
+  /**
+   * Extract @playwright: block
+   * Format:
+   * @playwright:
+   * - Action: Click button
+   * - Wait 2s
+   * - Type: "text" + Enter
+   */
+  private extractPlaywrightBlock(markdown: string): PlaywrightBlock | null {
+    const playwrightRegex = /@playwright:\s*\n((?:- .+\n?)+)/m;
+    const match = markdown.match(playwrightRegex);
+
+    if (!match || !match[1]) {
+      return null;
+    }
+
+    const blockText = match[1];
+    const lines = blockText.split('\n').filter((line) => line.trim().startsWith('-'));
+
+    const instructions: PlaywrightInstruction[] = lines.map((line) => {
+      const content = line.trim().replace(/^-\s*/, '');
+      return this.parsePlaywrightInstruction(content);
+    });
+
+    return {
+      instructions,
     };
   }
 
   /**
-   * Extract content between [TAG] and [/TAG] blocks
+   * Parse a single playwright instruction
+   * Examples:
+   * - "Action: Click button" -> { type: 'action', content: 'Click button' }
+   * - "Wait 2s" -> { type: 'wait', content: '2s' }
+   * - "Screenshot: name" -> { type: 'screenshot', content: 'name' }
    */
-  private extractBlock(content: string, tag: string): string | null {
-    const pattern = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)\\s*\\[\\/${tag}\\]`, 'i');
-    const match = content.match(pattern);
+  private parsePlaywrightInstruction(line: string): PlaywrightInstruction {
+    // Check for "Type: Value" format
+    const colonMatch = line.match(/^(Action|Screenshot):\s*(.+)$/i);
+    if (colonMatch && colonMatch[1] && colonMatch[2]) {
+      const [, type, content] = colonMatch;
+      return {
+        type: type.toLowerCase() as 'action' | 'screenshot',
+        content: content.trim(),
+      };
+    }
+
+    // Check for "Wait Xs" format
+    const waitMatch = line.match(/^Wait\s+(\d+(?:\.\d+)?s?)$/i);
+    if (waitMatch && waitMatch[1]) {
+      return {
+        type: 'wait',
+        content: waitMatch[1],
+      };
+    }
+
+    // Default to action
+    return {
+      type: 'action',
+      content: line,
+    };
+  }
+
+  // ============================================================================
+  // FRAGMENT EXTRACTION
+  // ============================================================================
+
+  /**
+   * Extract @fragment markers from content
+   * Format:
+   * - Item 1 @fragment
+   * - Item 2 @fragment +2s
+   */
+  private extractFragments(markdown: string): FragmentDefinition[] {
+    const fragments: FragmentDefinition[] = [];
+    const fragmentRegex = /(.+?)\s+@fragment(?:\s+\+(\d+(?:\.\d+)?)s)?/g;
+
+    let match;
+    let index = 0;
+
+    while ((match = fragmentRegex.exec(markdown)) !== null) {
+      const [, content, timingOffset] = match;
+
+      if (!content) continue;
+
+      const fragment: FragmentDefinition = {
+        index,
+        effect: 'fade', // Default effect
+        content: content.trim(),
+      };
+
+      if (timingOffset) {
+        fragment.timingOffset = parseFloat(timingOffset);
+      }
+
+      fragments.push(fragment);
+      index++;
+    }
+
+    return fragments;
+  }
+
+  // ============================================================================
+  // SPEAKER NOTES EXTRACTION
+  // ============================================================================
+
+  /**
+   * Extract speaker notes (not implemented in Option 3 format yet)
+   * Could be added as @notes: directive if needed
+   */
+  private extractNotes(markdown: string): string | null {
+    // Option 3 format doesn't have explicit notes syntax yet
+    // Could add: @notes: Speaker notes here
+    const notesRegex = /^@notes:\s*(.+)$/m;
+    const match = markdown.match(notesRegex);
+
     return match && match[1] ? match[1].trim() : null;
+  }
+
+  // ============================================================================
+  // CONTENT CLEANING
+  // ============================================================================
+
+  /**
+   * Clean content by removing all @directive lines
+   * Preserves markdown content for reveal.js
+   */
+  private cleanContent(markdown: string): string {
+    let cleaned = markdown;
+
+    // Remove all @directive: lines (single line directives)
+    cleaned = cleaned.replace(/^@[\w-]+:.+$/gm, '');
+
+    // Remove @audio: block
+    cleaned = cleaned.replace(/^@audio:.+$/gm, '');
+
+    // Remove @playwright: block (multi-line)
+    cleaned = cleaned.replace(/@playwright:\s*\n(?:- .+\n?)+/gm, '');
+
+    // Remove @fragment markers from content
+    cleaned = cleaned.replace(/\s+@fragment(?:\s+\+\d+(?:\.\d+)?s)?/g, '');
+
+    // Remove extra blank lines (more than 2 consecutive)
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+    // Trim whitespace
+    return cleaned.trim();
   }
 }
 
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
 /**
- * Parse a tutorial script file
+ * Create a new parser instance
  */
-export async function parseTutorialScript(filePath: string): Promise<TutorialScript> {
-  const parser = new TutorialParser();
-  return parser.parseFile(filePath);
+export function createRevealParser(): RevealMarkdownParser {
+  return new RevealMarkdownParser();
 }

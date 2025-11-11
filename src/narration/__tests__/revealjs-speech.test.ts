@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RevealSpeechGenerator } from '../revealjs-speech.js';
-import type { RevealPresentation, RevealSlide } from '../../core/revealjs-types.js';
+import { RevealSpeechGenerator } from '../speech.js';
+import type { RevealPresentation, RevealSlide } from '../../core/types.js';
 
 // Mock dependencies
 vi.mock('../elevenlabs.js');

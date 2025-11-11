@@ -8,7 +8,7 @@
  */
 
 import type { Page } from '@playwright/test';
-import type { PlaywrightInstruction } from '../core/revealjs-types.js';
+import type { PlaywrightInstruction } from '../core/types.js';
 import * as path from 'path';
 
 // ============================================================================

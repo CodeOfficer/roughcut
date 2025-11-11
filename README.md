@@ -1,13 +1,14 @@
 # GenAI Tutorial Factory
 
-An automated TypeScript-based system for generating tutorial videos from markdown scripts. Combines AI-powered narration (ElevenLabs), browser automation (Playwright), and video assembly (FFmpeg) into a streamlined workflow.
+An automated TypeScript-based system for generating interactive RevealJS presentations and tutorial videos from markdown scripts. Combines AI-powered narration (ElevenLabs), browser automation (Playwright), and video assembly (FFmpeg) into a streamlined workflow.
 
 ## Features
 
-- **Markdown-Based Scripts**: Write tutorial content in simple markdown format
+- **Markdown-Based Scripts**: Write tutorial content in simple markdown format with RevealJS syntax
 - **AI Narration**: Generate natural-sounding voiceovers with ElevenLabs
-- **Automated Screenshots**: Capture screens using Playwright browser automation
-- **Video Assembly**: Combine audio and images into polished tutorial videos
+- **Interactive HTML**: Creates standalone RevealJS presentations with navigation and speaker notes
+- **Video Output**: Records synchronized video with high-quality audio narration
+- **Dual Outputs**: Every build produces BOTH interactive HTML AND MP4 video
 - **Type-Safe Configuration**: Strict TypeScript with runtime validation
 - **CLI Workflow**: Simple commands to manage the entire tutorial lifecycle
 
@@ -74,170 +75,163 @@ ELEVENLABS_API_KEY=your_api_key_here
 
 See `.envrc.example` for all available configuration options.
 
-### 3. Create Your First Tutorial
+### 3. Write Your Tutorial Script
 
-```bash
-# Create a new tutorial project
-npm run tutorial:create my-first-tutorial
-```
-
-This creates a new directory structure:
-```
-tutorials/my-first-tutorial/
-├── config.json    # Tutorial configuration
-├── script.md      # Your tutorial script (edit this!)
-├── audio/         # Generated narration (auto-created)
-├── screenshots/   # Captured images (auto-created)
-└── output/        # Final video (auto-created)
-```
-
-### 4. Write Your Tutorial Script
-
-Edit `tutorials/my-first-tutorial/script.md`:
+Create a markdown file (e.g., `my-tutorial.md`) using RevealJS format:
 
 ```markdown
-# My First Tutorial
+---
+title: My First Tutorial
+description: Learn something amazing
+---
 
-## Introduction
-> Duration: 5s
-> Screenshot: manual
-
-[NARRATION]
-Welcome to my first tutorial! Today we'll learn something amazing.
-[/NARRATION]
-
-[SCREENSHOT_INSTRUCTIONS]
-File: screenshots/001-intro.png
-Description: Title screen with tutorial topic
-[/SCREENSHOT_INSTRUCTIONS]
+# Introduction
+@audio: Welcome to my first tutorial! Today we'll learn something amazing.
+@duration: 5s
+@pause-after: 2s
 
 ---
 
-## Step 1: Setup
-> Duration: 10s
-> Screenshot: auto
+# Step 1: Setup
+@audio: Let's start by opening the terminal and running our setup command.
+@duration: 8s
+@pause-after: 2s
 
-[NARRATION]
-Let's start by opening the terminal and running our setup command.
-[/NARRATION]
+- Install dependencies
+- Configure settings
+- Verify installation
 
-[SCREENSHOT_INSTRUCTIONS]
-Show: VS Code with integrated terminal
-Action: Type "npm install"
-Wait: 2s
-[/SCREENSHOT_INSTRUCTIONS]
+@playwright:
+- Action: Open terminal
+- Type: "npm install"
+- Wait 2s
 ```
 
-### 5. Generate Assets
+See `demo-presentation.md` for a complete example with all supported features.
+
+### 4. Build Your Tutorial
 
 ```bash
-# Generate narration from script
-npm run tutorial:narrate my-first-tutorial
+# Build presentation and video
+npm run tutorial:build my-tutorial.md
 
-# Capture screenshots (for auto mode)
-npm run tutorial:screenshots my-first-tutorial
-
-# Or for manual mode, add your images to screenshots/ directory first
+# Options:
+npm run tutorial:build my-tutorial.md --skip-audio    # Reuse existing audio
+npm run tutorial:build my-tutorial.md --skip-video    # HTML only (no MP4)
 ```
 
-### 6. Build the Video
+### 5. View Your Outputs
 
-```bash
-# Assemble the final video
-npm run tutorial:build my-first-tutorial
-```
+Every build produces TWO outputs:
 
-Your finished video will be at:
-```
-tutorials/my-first-tutorial/output/tutorial.mp4
-```
+1. **Interactive HTML**: `output/presentation/index.html`
+   - Open in browser for manual navigation
+   - Press 'S' for speaker notes
+   - Navigate with arrow keys or space
+
+2. **Video File**: `output/tutorial.mp4`
+   - Recorded video with synchronized narration
+   - Ready to upload to video platforms
 
 ## CLI Commands
 
-### Full Workflow (All Steps)
+### Build Tutorial
 ```bash
-npm run tutorial:full {tutorial-name}
+npm run tutorial:build <markdown-file>
+
+# Options:
+npm run tutorial:build demo.md --skip-audio    # Reuse existing audio files
+npm run tutorial:build demo.md --skip-video    # Generate HTML only, skip video recording
 ```
-Runs narrate → screenshots → build in sequence.
 
-### Individual Steps
-
-```bash
-# Create new tutorial project
-npm run tutorial:create {tutorial-name}
-
-# Generate narration audio
-npm run tutorial:narrate {tutorial-name}
-
-# Capture screenshots
-npm run tutorial:screenshots {tutorial-name}
-
-# Assemble final video
-npm run tutorial:build {tutorial-name}
-
-# Clean generated assets (keeps script and config)
-npm run tutorial:clean {tutorial-name}
-```
+**Outputs**:
+- Interactive HTML: `output/presentation/index.html`
+- Video file: `output/tutorial.mp4` (unless --skip-video)
 
 ## Tutorial Script Format
 
-### Segment Structure
-
-Each tutorial segment has:
-
-1. **Header**: Title with ##
-2. **Metadata**: Duration and screenshot mode
-3. **Narration Block**: Text to be spoken
-4. **Screenshot Instructions**: How to capture/identify the image
-
-### Metadata Options
+### Basic Structure
 
 ```markdown
-> Duration: 10s          # Expected segment length
-> Screenshot: manual     # Options: manual | auto | none
+---
+title: Tutorial Title
+description: Brief description
+---
+
+# Slide Title
+@audio: Your narration text here
+@duration: 5s
+@pause-after: 2s
+
+Content for the slide...
+
+---
+
+# Next Slide
+@audio: More narration
+@duration: 8s
+
+- Bullet point
+- Another point @fragment
 ```
 
-### Screenshot Modes
+### Available Directives
 
-**Manual**: You provide pre-captured images
+**Front Matter** (at top of file):
 ```markdown
-[SCREENSHOT_INSTRUCTIONS]
-File: screenshots/001-intro.png
-Description: What the image shows
-[/SCREENSHOT_INSTRUCTIONS]
+---
+title: Tutorial Title
+description: Brief description
+theme: black
+transition: slide
+---
 ```
 
-**Auto**: Playwright captures automatically
+**Slide Directives**:
+- `@audio:` - Narration text (sent to ElevenLabs)
+- `@duration:` - Expected slide duration
+- `@pause-after:` - Pause after audio before advancing
+- `@background:` - Background color or gradient
+- `@transition:` - Slide transition effect
+- `@playwright:` - Browser automation instructions
+
+**Content Annotations**:
+- `@fragment` - Step-by-step reveal
+- `[2s]` - Inline pause in audio narration
+
+### Example with Playwright
+
 ```markdown
-[SCREENSHOT_INSTRUCTIONS]
-Show: VS Code window
-Action: Type "console.log('Hello')"
-Wait: 2s
-[/SCREENSHOT_INSTRUCTIONS]
+# Interactive Demo
+@audio: Let's see this feature in action
+@duration: 10s
+@pause-after: 2s
+
+@playwright:
+- Action: Click button
+- Wait 2s
+- Type: "Hello World"
+- Press: Enter
 ```
 
-**None**: Audio only, no image
-```markdown
-> Screenshot: none
-```
+See `demo-presentation.md` for complete examples.
 
 ## Configuration
 
-### Tutorial Config (`config.json`)
+### Tutorial Configuration
 
-```json
-{
-  "title": "Your Tutorial Title",
-  "description": "What your tutorial teaches",
-  "voice": "adam",
-  "videoSettings": {
-    "resolution": "1920x1080",
-    "fps": 30,
-    "transition": "fade",
-    "transitionDuration": 0.5
-  }
-}
+Configuration is specified in the markdown front matter:
+
+```markdown
+---
+title: Your Tutorial Title
+description: What your tutorial teaches
+theme: black
+transition: slide
+---
 ```
+
+Available themes: black, white, league, beige, sky, night, serif, simple, solarized, moon
 
 ### Environment Variables
 
@@ -247,13 +241,12 @@ See `.envrc.example` for all options. Key variables:
 # Required
 ELEVENLABS_API_KEY=your_key
 
-# Voice settings
-ELEVENLABS_VOICE_ID=adam
+# Optional voice settings
+ELEVENLABS_VOICE_ID=adam          # Default voice (optional)
 ELEVENLABS_STABILITY=0.75
 ELEVENLABS_SIMILARITY_BOOST=0.75
 
 # Paths
-OUTPUT_DIR=./tutorials
 FFMPEG_PATH=/usr/local/bin/ffmpeg
 ```
 
@@ -264,17 +257,24 @@ genai-tutorial-factory/
 ├── src/                    # Core TypeScript modules
 │   ├── cli/               # CLI commands
 │   ├── config/            # Environment configuration
-│   ├── core/              # Shared types and utilities
+│   ├── core/              # Parser and types
+│   ├── presentation/      # RevealJS generation and control
 │   ├── narration/         # ElevenLabs integration
-│   ├── screenshots/       # Playwright automation
-│   ├── video/             # FFmpeg assembly
+│   ├── video/             # Video recording and assembly
 │   └── utils/             # Helper functions
-├── tutorials/             # Tutorial projects
-│   └── {name}/           # Individual tutorial
-└── tmp/                  # Temporary files
+├── output/                # Generated files
+│   ├── presentation/      # Interactive HTML
+│   ├── audio/            # Generated narration
+│   ├── video/            # Recorded video frames
+│   └── tutorial.mp4      # Final video
+└── docs/                 # Documentation
 ```
 
-See `PROJECT_PLAN.md` for detailed architecture documentation.
+## Documentation
+
+- **Architecture & Decisions**: `docs/architecture/revealjs/`
+- **Migration Guide**: `docs/MIGRATION.md` (v1 → v2 format)
+- **Project Context**: `CLAUDE.md` (for Claude Code sessions)
 
 ## Troubleshooting
 
@@ -328,15 +328,17 @@ npm run format
 
 ## Architecture
 
-The system follows a modular architecture:
+The system follows a unified pipeline architecture:
 
-1. **Parser** - Converts markdown scripts to structured data
-2. **Narration** - Generates audio via ElevenLabs API
-3. **Screenshots** - Captures images via Playwright
-4. **Video** - Assembles final video via FFmpeg
-5. **CLI** - Orchestrates the workflow
+1. **Parser** - Converts markdown to RevealJS slide definitions
+2. **Narration** - Generates audio per slide via ElevenLabs API
+3. **Presentation** - Builds interactive RevealJS HTML with bundled assets
+4. **Timeline** - Creates synchronized timing map for slides and audio
+5. **Recording** - Uses Playwright to record browser during automated playback
+6. **Assembly** - Combines video frames with high-quality audio via FFmpeg
+7. **CLI** - Orchestrates the complete workflow
 
-Each module is independent and can be used programmatically.
+**Key Innovation**: Single markdown source produces BOTH interactive HTML and video output.
 
 ## Contributing
 
@@ -350,20 +352,23 @@ Contributions welcome! The codebase uses:
 
 MIT
 
+## Migration from Original System
+
+If you have tutorials in the original format (pre-v2.0.0), see `MIGRATION.md` for a complete guide on converting to the new RevealJS format.
+
 ## Resources
 
+- [RevealJS Documentation](https://revealjs.com/)
 - [ElevenLabs API Documentation](https://elevenlabs.io/docs)
 - [Playwright Documentation](https://playwright.dev)
 - [FFmpeg Documentation](https://ffmpeg.org/documentation.html)
-- [Project Plan](./PROJECT_PLAN.md) - Detailed architecture
+- [Planning Documentation](./planning/revealjs-integration/) - Architecture decisions
 
 ## Next Steps
 
-1. ✅ Set up your environment (`.envrc` file)
-2. ✅ Create your first tutorial
-3. ✅ Write a script with 2-3 segments
-4. ✅ Generate narration and screenshots
-5. ✅ Build your first video
-6. 🎉 Share your tutorial!
-
-For detailed implementation guides, see `PROJECT_PLAN.md`.
+1. Set up your environment (`.envrc` file)
+2. Write a markdown tutorial (see `demo-presentation.md`)
+3. Run `npm run tutorial:build your-file.md`
+4. View HTML at `output/presentation/index.html`
+5. Watch video at `output/tutorial.mp4`
+6. Share your tutorial!

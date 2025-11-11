@@ -1,96 +1,221 @@
-import { join } from 'path';
-import { exists } from '../utils/fs.js';
+/**
+ * Timeline builder for reveal.js presentations
+ * Maps slides to audio segments with cumulative timing
+ */
+
 import { logger } from '../core/logger.js';
-import type { TutorialSegment } from '../core/types.js';
-import type { VideoTimeline, TimelineEntry } from './types.js';
+import type {
+  RevealPresentation,
+  RevealTimeline,
+  SlideTimelineEntry,
+  AudioGenerationResult,
+} from '../core/types.js';
 
 /**
- * Create video timeline from tutorial segments and generated assets
+ * Build timeline for reveal.js presentation orchestration
  */
-export class TimelineBuilder {
+export class RevealTimelineBuilder {
   /**
-   * Build timeline from segments and asset directories
+   * Build timeline from presentation and audio generation results
+   * Calculates cumulative timing for each slide
    */
-  async build(
-    segments: TutorialSegment[],
-    audioDir: string,
-    imageDir: string,
-    audioDurations: Map<string, number>
-  ): Promise<VideoTimeline> {
-    logger.debug('Building video timeline');
+  build(
+    presentation: RevealPresentation,
+    audioResults: Map<string, AudioGenerationResult>
+  ): RevealTimeline {
+    const entries: SlideTimelineEntry[] = [];
+    let cumulativeTime = 0;
 
-    const entries: TimelineEntry[] = [];
-    let currentTime = 0;
+    for (const slide of presentation.slides) {
+      const audioResult = audioResults.get(slide.id);
 
-    for (const segment of segments) {
-      const audioPath = join(audioDir, `${segment.id}.mp3`);
-      const imagePath = join(imageDir, `${segment.id}.png`);
+      // Determine audio duration
+      let audioDuration = 0;
+      let audioPath: string | null = null;
 
-      // Verify assets exist
-      const audioExists = await exists(audioPath);
-      const imageExists = await exists(imagePath);
-
-      if (!audioExists) {
-        throw new Error(`Missing audio file for segment ${segment.id}: ${audioPath}`);
+      if (audioResult) {
+        audioDuration = audioResult.durationSeconds;
+        audioPath = audioResult.filePath;
+      } else if (slide.metadata.duration !== null) {
+        // Use metadata duration if no audio was generated
+        audioDuration = slide.metadata.duration;
       }
 
-      if (segment.screenshot.mode !== 'none' && !imageExists) {
-        throw new Error(`Missing image file for segment ${segment.id}: ${imagePath}`);
-      }
+      // Get pause-after duration
+      const pauseAfter = slide.metadata.pauseAfter;
 
-      // Get actual audio duration
-      const duration = audioDurations.get(segment.id) || segment.duration;
+      // Calculate total slide duration
+      const totalSlideDuration = audioDuration + pauseAfter;
 
-      entries.push({
-        segmentId: segment.id,
+      // Build timeline entry
+      const entry: SlideTimelineEntry = {
+        slideId: slide.id,
+        slideIndex: slide.index,
         audioPath,
-        imagePath: imageExists ? imagePath : '',
-        duration,
-        startTime: currentTime,
-      });
+        audioDuration,
+        pauseAfter,
+        totalSlideDuration,
+        startTime: cumulativeTime,
+        endTime: cumulativeTime + totalSlideDuration,
+        hasPlaywright: slide.playwright !== null,
+        playwrightInstructions: slide.playwright?.instructions || [],
+        metadata: slide.metadata,
+      };
 
-      currentTime += duration;
+      entries.push(entry);
+
+      // Update cumulative time
+      cumulativeTime += totalSlideDuration;
+
+      logger.debug(
+        `Timeline entry for ${slide.id}: ${entry.startTime.toFixed(2)}s - ${entry.endTime.toFixed(2)}s (audio: ${audioDuration.toFixed(2)}s, pause: ${pauseAfter.toFixed(2)}s)`
+      );
     }
 
-    const timeline: VideoTimeline = {
-      entries,
-      totalDuration: currentTime,
+    const totalDuration = cumulativeTime;
+
+    logger.info(`Built timeline: ${entries.length} slides, ${totalDuration.toFixed(2)}s total`);
+
+    return {
+      slides: entries,
+      totalDuration,
     };
-
-    logger.debug(
-      `Timeline built: ${entries.length} segments, ${timeline.totalDuration.toFixed(2)}s total`
-    );
-
-    return timeline;
   }
 
   /**
-   * Validate that all required assets exist for timeline
+   * Validate timeline is correctly constructed
    */
-  async validate(timeline: VideoTimeline): Promise<boolean> {
-    for (const entry of timeline.entries) {
-      const audioExists = await exists(entry.audioPath);
-      if (!audioExists) {
-        logger.error(`Missing audio: ${entry.audioPath}`);
-        return false;
+  validateTimeline(timeline: RevealTimeline): void {
+    if (timeline.slides.length === 0) {
+      throw new Error('Timeline has no slides');
+    }
+
+    // Verify cumulative timing
+    for (let i = 0; i < timeline.slides.length; i++) {
+      const entry = timeline.slides[i];
+      if (!entry) {
+        throw new Error(`Timeline entry at index ${i} is undefined`);
       }
 
-      if (entry.imagePath) {
-        const imageExists = await exists(entry.imagePath);
-        if (!imageExists) {
-          logger.error(`Missing image: ${entry.imagePath}`);
-          return false;
+      // Verify slide index matches array position
+      if (entry.slideIndex !== i) {
+        throw new Error(`Timeline entry ${i} has incorrect slide index: ${entry.slideIndex}`);
+      }
+
+      // Verify timing consistency
+      if (entry.endTime !== entry.startTime + entry.totalSlideDuration) {
+        throw new Error(
+          `Timeline entry ${entry.slideId} has inconsistent timing: ` +
+            `startTime=${entry.startTime}, endTime=${entry.endTime}, ` +
+            `totalDuration=${entry.totalSlideDuration}`
+        );
+      }
+
+      // Verify totalSlideDuration calculation
+      if (entry.totalSlideDuration !== entry.audioDuration + entry.pauseAfter) {
+        throw new Error(
+          `Timeline entry ${entry.slideId} has incorrect totalSlideDuration: ` +
+            `expected ${entry.audioDuration + entry.pauseAfter}, ` +
+            `got ${entry.totalSlideDuration}`
+        );
+      }
+
+      // Verify next slide starts where this one ends
+      if (i < timeline.slides.length - 1) {
+        const nextEntry = timeline.slides[i + 1];
+        if (!nextEntry) {
+          throw new Error(`Timeline entry at index ${i + 1} is undefined`);
+        }
+        if (nextEntry.startTime !== entry.endTime) {
+          throw new Error(
+            `Timeline gap between ${entry.slideId} and ${nextEntry.slideId}: ` +
+              `${entry.endTime} !== ${nextEntry.startTime}`
+          );
         }
       }
     }
 
-    return true;
+    // Verify total duration matches last slide end time
+    const lastEntry = timeline.slides[timeline.slides.length - 1];
+    if (!lastEntry) {
+      throw new Error('Timeline has no last entry');
+    }
+    if (Math.abs(timeline.totalDuration - lastEntry.endTime) > 0.01) {
+      throw new Error(
+        `Timeline totalDuration mismatch: ` +
+          `expected ${lastEntry.endTime}, got ${timeline.totalDuration}`
+      );
+    }
+
+    logger.info('✓ Timeline validation passed');
+  }
+
+  /**
+   * Get timeline entry for a specific slide
+   */
+  getSlideEntry(timeline: RevealTimeline, slideId: string): SlideTimelineEntry | null {
+    return timeline.slides.find((entry) => entry.slideId === slideId) || null;
+  }
+
+  /**
+   * Get timeline entries with audio
+   */
+  getSlidesWithAudio(timeline: RevealTimeline): SlideTimelineEntry[] {
+    return timeline.slides.filter((entry) => entry.audioPath !== null);
+  }
+
+  /**
+   * Get timeline entries with playwright instructions
+   */
+  getSlidesWithPlaywright(timeline: RevealTimeline): SlideTimelineEntry[] {
+    return timeline.slides.filter((entry) => entry.hasPlaywright);
+  }
+
+  /**
+   * Get presentation timing summary
+   */
+  getTimingSummary(timeline: RevealTimeline): {
+    totalSlides: number;
+    slidesWithAudio: number;
+    slidesWithPlaywright: number;
+    totalDuration: number;
+    averageSlideDuration: number;
+    audioOnlyDuration: number;
+    pauseDuration: number;
+  } {
+    const totalSlides = timeline.slides.length;
+    const slidesWithAudio = this.getSlidesWithAudio(timeline).length;
+    const slidesWithPlaywright = this.getSlidesWithPlaywright(timeline).length;
+    const totalDuration = timeline.totalDuration;
+
+    const averageSlideDuration =
+      totalSlides > 0 ? totalDuration / totalSlides : 0;
+
+    const audioOnlyDuration = timeline.slides.reduce(
+      (sum, entry) => sum + entry.audioDuration,
+      0
+    );
+
+    const pauseDuration = timeline.slides.reduce(
+      (sum, entry) => sum + entry.pauseAfter,
+      0
+    );
+
+    return {
+      totalSlides,
+      slidesWithAudio,
+      slidesWithPlaywright,
+      totalDuration,
+      averageSlideDuration,
+      audioOnlyDuration,
+      pauseDuration,
+    };
   }
 }
 
 /**
- * Create a timeline builder instance
+ * Factory function to create timeline builder
  */
-export function createTimelineBuilder(): TimelineBuilder {
-  return new TimelineBuilder();
+export function createRevealTimelineBuilder(): RevealTimelineBuilder {
+  return new RevealTimelineBuilder();
 }

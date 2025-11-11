@@ -3,8 +3,8 @@
  * Verifies parsing of @directive: syntax, audio blocks, playwright blocks, etc.
  */
 
-import { RevealMarkdownParser } from '../revealjs-parser.js';
-import { RevealPresentation, RevealSlide } from '../revealjs-types.js';
+import { RevealMarkdownParser } from '../parser.js';
+import { RevealPresentation, RevealSlide } from '../types.js';
 
 describe('RevealMarkdownParser', () => {
   let parser: RevealMarkdownParser;
@@ -226,12 +226,22 @@ Content here
       expect(slide.metadata.background).toBe('#ff0000');
     });
 
+    it('should parse @image-prompt directive', () => {
+      const slideMarkdown = `@image-prompt: A futuristic data center with glowing servers\n# Test`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.metadata.imagePrompt).toBe('A futuristic data center with glowing servers');
+      expect(slide.metadata.imagePath).toBeUndefined(); // Set later by generator
+    });
+
     it('should parse multiple directives together', () => {
       const slideMarkdown = `# Test Slide
 @duration: 10s
 @pause-after: 2s
 @transition: fade
 @background: #1e1e1e
+@image-prompt: Modern office workspace
 
 Content
 `;
@@ -242,6 +252,7 @@ Content
       expect(slide.metadata.pauseAfter).toBe(2);
       expect(slide.metadata.transition).toBe('fade');
       expect(slide.metadata.background).toBe('#1e1e1e');
+      expect(slide.metadata.imagePrompt).toBe('Modern office workspace');
     });
 
     it('should use default values when directives are missing', () => {

@@ -11,7 +11,7 @@
  * 7. Repeat
  */
 
-import type { RevealTimeline } from '../core/revealjs-types.js';
+import type { RevealTimeline } from '../core/types.js';
 import { PlaywrightRevealController } from './playwright-controller.js';
 import { PlaywrightInstructionExecutor } from './playwright-executor.js';
 import { BrowserAudioPlayer, createBrowserAudioPlayer } from './audio-player.js';

@@ -1,156 +1,493 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { writeFile } from 'fs/promises';
-import { env } from '../config/env.js';
-import { logger } from '../core/logger.js';
-import { ensureParentDir, getFileSize } from '../utils/fs.js';
-import { getAudioDuration } from '../utils/timing.js';
-import type { VideoTimeline, VideoSettings, VideoAssemblyOptions, VideoAssemblyResult } from './types.js';
+/**
+ * Video assembler for reveal.js presentations
+ *
+ * Combines recorded video with generated audio using FFmpeg
+ * Produces final MP4 video with ElevenLabs narration
+ */
 
-const execAsync = promisify(exec);
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { spawn } from 'child_process';
+import type { RevealTimeline } from '../core/types.js';
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 /**
- * Video assembler using FFmpeg
+ * Video assembly configuration
  */
-export class VideoAssembler {
-  private ffmpegPath: string;
+export interface VideoAssemblyConfig {
+  /** Path to input video file (from Playwright) */
+  inputVideoPath: string;
 
-  constructor(ffmpegPath?: string) {
-    this.ffmpegPath = ffmpegPath || env.FFMPEG_PATH;
-  }
+  /** Path to audio file to overlay */
+  audioPath: string;
 
-  /**
-   * Assemble video from timeline and settings
-   */
-  async assemble(options: VideoAssemblyOptions): Promise<VideoAssemblyResult> {
-    logger.section('Assembling Video');
+  /** Path to output video file */
+  outputPath: string;
 
-    const { timeline, outputPath, settings } = options;
+  /** Video codec (default: libx264) */
+  videoCodec?: string;
 
-    // Ensure output directory exists
-    await ensureParentDir(outputPath);
+  /** Audio codec (default: aac) */
+  audioCodec?: string;
 
-    // Create FFmpeg command
-    const command = await this.buildFFmpegCommand(timeline, outputPath, settings);
+  /** Video quality preset (default: medium) */
+  preset?: 'ultrafast' | 'fast' | 'medium' | 'slow' | 'veryslow';
 
-    // Save command to file for debugging
-    const commandFile = outputPath.replace('.mp4', '.ffmpeg.txt');
-    await writeFile(commandFile, command);
-    logger.debug(`FFmpeg command saved to ${commandFile}`);
+  /** Constant Rate Factor for video quality (default: 23, lower = better) */
+  crf?: number;
 
-    try {
-      logger.step('Running FFmpeg...');
-
-      // Execute FFmpeg
-      const { stderr } = await execAsync(command, {
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      });
-
-      if (stderr) {
-        logger.debug('FFmpeg stderr:', stderr);
-      }
-
-      // Get output file metadata
-      const durationSeconds = await getAudioDuration(outputPath);
-      const sizeBytes = await getFileSize(outputPath);
-
-      const result: VideoAssemblyResult = {
-        filePath: outputPath,
-        durationSeconds,
-        sizeBytes,
-        resolution: settings.resolution,
-      };
-
-      logger.success(
-        `Video assembled: ${outputPath}\n` +
-        `  Duration: ${durationSeconds.toFixed(2)}s\n` +
-        `  Size: ${Math.round(sizeBytes / (1024 * 1024))}MB\n` +
-        `  Resolution: ${settings.resolution}`
-      );
-
-      return result;
-    } catch (error) {
-      logger.error('FFmpeg failed', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Build FFmpeg command for video assembly
-   *
-   * This creates a video by:
-   * 1. Using images as video frames (looped for audio duration)
-   * 2. Combining with audio tracks
-   * 3. Concatenating all segments
-   */
-  private async buildFFmpegCommand(
-    timeline: VideoTimeline,
-    outputPath: string,
-    settings: VideoSettings
-  ): Promise<string> {
-    // Build FFmpeg command
-    // For simplicity, we'll use a basic approach:
-    // Create individual segment videos, then concat them
-
-    const inputFiles = timeline.entries
-      .map((_entry) => `-loop 1 -t ${_entry.duration} -i "${_entry.imagePath}" -i "${_entry.audioPath}"`)
-      .join(' ');
-
-    const filterComplex = this.buildFilterComplex(timeline, settings);
-
-    const command = `"${this.ffmpegPath}" ${inputFiles} \
-      -filter_complex "${filterComplex}" \
-      -map "[outv]" -map "[outa]" \
-      -c:v libx264 -preset medium -crf 23 \
-      -c:a aac -b:a 192k \
-      -r ${settings.fps} \
-      -s ${settings.resolution} \
-      -y "${outputPath}"`;
-
-    return command.replace(/\s+/g, ' ').trim();
-  }
-
-  /**
-   * Build filter complex for FFmpeg
-   */
-  private buildFilterComplex(timeline: VideoTimeline, settings: VideoSettings): string {
-    const filters: string[] = [];
-
-    // Scale and format each video input
-    timeline.entries.forEach((_entry, i) => {
-      const videoIdx = i * 2;
-      filters.push(`[${videoIdx}:v]scale=${settings.resolution},setsar=1,fps=${settings.fps}[v${i}]`);
-    });
-
-    // Concatenate videos
-    const videoInputs = timeline.entries.map((_, i) => `[v${i}]`).join('');
-    const audioInputs = timeline.entries.map((_, i) => `[${i * 2 + 1}:a]`).join('');
-
-    filters.push(`${videoInputs}concat=n=${timeline.entries.length}:v=1:a=0[outv]`);
-    filters.push(`${audioInputs}concat=n=${timeline.entries.length}:v=0:a=1[outa]`);
-
-    return filters.join(';');
-  }
-
-
-  /**
-   * Validate FFmpeg installation
-   */
-  async validateFFmpeg(): Promise<boolean> {
-    try {
-      const { stdout } = await execAsync(`"${this.ffmpegPath}" -version`);
-      logger.debug(`FFmpeg version: ${stdout.split('\n')[0]}`);
-      return true;
-    } catch (error) {
-      logger.error('FFmpeg not found or not working', error);
-      return false;
-    }
-  }
+  /** Audio bitrate (default: 192k) */
+  audioBitrate?: string;
 }
 
 /**
- * Create a video assembler instance
+ * Video assembly result
  */
-export function createVideoAssembler(ffmpegPath?: string): VideoAssembler {
-  return new VideoAssembler(ffmpegPath);
+export interface VideoAssemblyResult {
+  /** Path to assembled video file */
+  outputPath: string;
+
+  /** File size in bytes */
+  sizeBytes: number;
+
+  /** Whether assembly was successful */
+  success: boolean;
+
+  /** Error message if failed */
+  error?: string;
+
+  /** Duration in seconds */
+  durationSeconds?: number;
+}
+
+/**
+ * Assembly progress update
+ */
+export interface AssemblyProgress {
+  /** Current phase */
+  phase: 'preparing' | 'encoding' | 'finalizing' | 'complete';
+
+  /** Progress percentage (0-100) */
+  percentage: number;
+
+  /** Current frame being processed */
+  frame?: number;
+
+  /** Encoding speed (e.g., "1.5x") */
+  speed?: string;
+
+  /** Estimated time remaining in seconds */
+  timeRemaining?: number;
+}
+
+// ============================================================================
+// ASSEMBLER CLASS
+// ============================================================================
+
+export class RevealVideoAssembler {
+  private progressCallback?: (progress: AssemblyProgress) => void;
+
+  /**
+   * Register progress callback
+   */
+  onProgress(callback: (progress: AssemblyProgress) => void): void {
+    this.progressCallback = callback;
+  }
+
+  /**
+   * Assemble video by replacing audio track
+   *
+   * Uses FFmpeg to replace the video's audio with generated narration
+   */
+  async assemble(config: VideoAssemblyConfig): Promise<VideoAssemblyResult> {
+    try {
+      // Validate inputs
+      await this.validateInputs(config);
+
+      // Report preparing phase
+      this.reportProgress({
+        phase: 'preparing',
+        percentage: 0,
+      });
+
+      // Ensure output directory exists
+      const outputDir = path.dirname(config.outputPath);
+      await fs.mkdir(outputDir, { recursive: true });
+
+      // Build FFmpeg command
+      const command = this.buildFFmpegCommand(config);
+
+      // Report encoding phase
+      this.reportProgress({
+        phase: 'encoding',
+        percentage: 10,
+      });
+
+      // Execute FFmpeg
+      await this.executeFFmpeg(command, config);
+
+      // Report finalizing phase
+      this.reportProgress({
+        phase: 'finalizing',
+        percentage: 95,
+      });
+
+      // Get output file stats
+      const stats = await fs.stat(config.outputPath);
+
+      // Report complete
+      this.reportProgress({
+        phase: 'complete',
+        percentage: 100,
+      });
+
+      return {
+        outputPath: config.outputPath,
+        sizeBytes: stats.size,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        outputPath: config.outputPath,
+        sizeBytes: 0,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Assemble multiple videos with audio (one per slide)
+   *
+   * Creates individual video segments per slide, then concatenates them
+   */
+  async assembleFromTimeline(
+    inputVideoPath: string,
+    timeline: RevealTimeline,
+    audioBaseDir: string,
+    outputPath: string
+  ): Promise<VideoAssemblyResult> {
+    try {
+      // For now, use simple audio replacement approach
+      // Future enhancement: could split video by timeline and use per-slide audio
+
+      // Find combined audio file or create it
+      const audioPath = path.join(audioBaseDir, 'combined-audio.mp3');
+      const audioExists = await fs
+        .access(audioPath)
+        .then(() => true)
+        .catch(() => false);
+
+      if (!audioExists) {
+        // If no combined audio, try to concatenate individual slide audio files
+        await this.concatenateSlideAudio(timeline, audioBaseDir, audioPath);
+      }
+
+      // Assemble video with audio
+      return await this.assemble({
+        inputVideoPath,
+        audioPath,
+        outputPath,
+      });
+    } catch (error) {
+      return {
+        outputPath,
+        sizeBytes: 0,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  // ============================================================================
+  // FFMPEG COMMAND BUILDING
+  // ============================================================================
+
+  /**
+   * Build FFmpeg command for audio replacement
+   */
+  private buildFFmpegCommand(config: VideoAssemblyConfig): string[] {
+    const {
+      inputVideoPath,
+      audioPath,
+      outputPath,
+      videoCodec = 'libx264',
+      audioCodec = 'aac',
+      preset = 'medium',
+      crf = 23,
+      audioBitrate = '192k',
+    } = config;
+
+    return [
+      'ffmpeg',
+      '-y', // Overwrite output file
+      '-i',
+      inputVideoPath, // Input video
+      '-i',
+      audioPath, // Input audio
+      '-c:v',
+      videoCodec, // Video codec
+      '-preset',
+      preset, // Encoding preset
+      '-crf',
+      String(crf), // Quality
+      '-c:a',
+      audioCodec, // Audio codec
+      '-b:a',
+      audioBitrate, // Audio bitrate
+      '-map',
+      '0:v:0', // Take video from first input
+      '-map',
+      '1:a:0', // Take audio from second input
+      '-shortest', // Match shortest stream duration
+      outputPath,
+    ];
+  }
+
+  // ============================================================================
+  // FFMPEG EXECUTION
+  // ============================================================================
+
+  /**
+   * Execute FFmpeg command
+   */
+  private async executeFFmpeg(
+    command: string[],
+    _config: VideoAssemblyConfig
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const [cmd, ...args] = command;
+      if (!cmd) {
+        reject(new Error('FFmpeg command is empty'));
+        return;
+      }
+
+      const ffmpeg = spawn(cmd, args, { shell: false });
+
+      let stderr = '';
+
+      if (ffmpeg.stderr) {
+        ffmpeg.stderr.on('data', (data: Buffer) => {
+          stderr += data.toString();
+
+          // Parse FFmpeg progress output
+          const progressMatch = stderr.match(/time=(\d{2}):(\d{2}):(\d{2})/);
+          if (progressMatch && progressMatch[1] && progressMatch[2] && progressMatch[3]) {
+            const hours = parseInt(progressMatch[1], 10);
+            const minutes = parseInt(progressMatch[2], 10);
+            const seconds = parseInt(progressMatch[3], 10);
+            const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+            // Estimate progress (assuming we know expected duration)
+            // For now, just report encoding phase with increasing percentage
+            const percentage = Math.min(90, 10 + totalSeconds * 2);
+            this.reportProgress({
+              phase: 'encoding',
+              percentage,
+            });
+          }
+        });
+      }
+
+      ffmpeg.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`FFmpeg failed with code ${code}: ${stderr}`));
+        }
+      });
+
+      ffmpeg.on('error', (error) => {
+        reject(new Error(`FFmpeg error: ${error.message}`));
+      });
+    });
+  }
+
+  // ============================================================================
+  // AUDIO CONCATENATION
+  // ============================================================================
+
+  /**
+   * Concatenate individual slide audio files into one
+   */
+  private async concatenateSlideAudio(
+    timeline: RevealTimeline,
+    audioBaseDir: string,
+    outputPath: string
+  ): Promise<void> {
+    // Collect audio files in order
+    const audioFiles: string[] = [];
+
+    for (const slide of timeline.slides) {
+      if (slide.audioPath) {
+        const audioPath = path.join(audioBaseDir, path.basename(slide.audioPath));
+        const exists = await fs.access(audioPath).then(() => true).catch(() => false);
+
+        if (exists) {
+          audioFiles.push(audioPath);
+        }
+      }
+    }
+
+    if (audioFiles.length === 0) {
+      throw new Error('No audio files found for concatenation');
+    }
+
+    // Create file list for FFmpeg
+    const fileListPath = path.join(audioBaseDir, 'concat-list.txt');
+    const fileListContent = audioFiles.map((f) => `file '${f}'`).join('\n');
+    await fs.writeFile(fileListPath, fileListContent);
+
+    // Concatenate with FFmpeg
+    const command = [
+      'ffmpeg',
+      '-y',
+      '-f',
+      'concat',
+      '-safe',
+      '0',
+      '-i',
+      fileListPath,
+      '-c',
+      'copy',
+      outputPath,
+    ];
+
+    await this.executeFFmpeg(command, {
+      inputVideoPath: '',
+      audioPath: '',
+      outputPath,
+    });
+
+    // Cleanup file list
+    await fs.unlink(fileListPath).catch(() => {});
+  }
+
+  // ============================================================================
+  // VALIDATION
+  // ============================================================================
+
+  /**
+   * Validate input files exist
+   */
+  private async validateInputs(config: VideoAssemblyConfig): Promise<void> {
+    const videoExists = await fs
+      .access(config.inputVideoPath)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!videoExists) {
+      throw new Error(`Input video not found: ${config.inputVideoPath}`);
+    }
+
+    const audioExists = await fs
+      .access(config.audioPath)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!audioExists) {
+      throw new Error(`Audio file not found: ${config.audioPath}`);
+    }
+  }
+
+  // ============================================================================
+  // UTILITIES
+  // ============================================================================
+
+  /**
+   * Report progress update
+   */
+  private reportProgress(progress: AssemblyProgress): void {
+    if (this.progressCallback) {
+      this.progressCallback(progress);
+    }
+  }
+
+  /**
+   * Check if FFmpeg is available
+   */
+  async checkFFmpegAvailable(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const ffmpeg = spawn('ffmpeg', ['-version']);
+
+      ffmpeg.on('close', (code) => {
+        resolve(code === 0);
+      });
+
+      ffmpeg.on('error', () => {
+        resolve(false);
+      });
+    });
+  }
+
+  /**
+   * Get video metadata using FFprobe
+   */
+  async getVideoMetadata(videoPath: string): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+    format: string;
+  }> {
+    return new Promise((resolve, reject) => {
+      const ffprobe = spawn('ffprobe', [
+        '-v',
+        'quiet',
+        '-print_format',
+        'json',
+        '-show_format',
+        '-show_streams',
+        videoPath,
+      ]);
+
+      let stdout = '';
+      let stderr = '';
+
+      ffprobe.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
+
+      ffprobe.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString();
+      });
+
+      ffprobe.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const data = JSON.parse(stdout);
+            const videoStream = data.streams.find((s: any) => s.codec_type === 'video');
+
+            resolve({
+              duration: parseFloat(data.format.duration) || 0,
+              width: videoStream?.width || 0,
+              height: videoStream?.height || 0,
+              format: data.format.format_name || 'unknown',
+            });
+          } catch (error) {
+            reject(new Error(`Failed to parse FFprobe output: ${error}`));
+          }
+        } else {
+          reject(new Error(`FFprobe failed with code ${code}: ${stderr}`));
+        }
+      });
+
+      ffprobe.on('error', (error) => {
+        reject(new Error(`FFprobe error: ${error.message}`));
+      });
+    });
+  }
+}
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create a new video assembler instance
+ */
+export function createRevealVideoAssembler(): RevealVideoAssembler {
+  return new RevealVideoAssembler();
 }

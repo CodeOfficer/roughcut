@@ -1,123 +1,148 @@
+/**
+ * Speech generation for reveal.js presentations
+ * Generates audio per slide using ElevenLabs API
+ */
+
+import { mkdir } from 'fs/promises';
 import { join } from 'path';
+import { stat } from 'fs/promises';
 import { ElevenLabsClient } from './elevenlabs.js';
-import { env } from '../config/env.js';
-import { logger } from '../core/logger.js';
 import { getAudioDuration } from '../utils/timing.js';
-import { ensureDir, getFileSize } from '../utils/fs.js';
-import type { TutorialSegment } from '../core/types.js';
-import type { SpeechGenerationOptions, SpeechGenerationResult } from './types.js';
+import { logger } from '../core/logger.js';
+import { env } from '../config/env.js';
+import type {
+  RevealPresentation,
+  RevealSlide,
+  AudioGenerationResult,
+} from '../core/types.js';
 
 /**
- * Speech generation service for tutorial narration
+ * Generate audio narration for reveal.js presentations
  */
-export class SpeechGenerator {
-  private client: ElevenLabsClient;
-  private voiceId: string;
+export class RevealSpeechGenerator {
+  private elevenlabsClient: ElevenLabsClient;
 
-  constructor(voiceId?: string) {
-    this.client = new ElevenLabsClient();
-    this.voiceId = voiceId || env.ELEVENLABS_VOICE_ID;
+  constructor(elevenlabsClient?: ElevenLabsClient) {
+    this.elevenlabsClient = elevenlabsClient || new ElevenLabsClient();
   }
 
   /**
-   * Generate narration audio for a single segment
+   * Generate audio for all slides in a presentation
+   * Returns map of slideId to audio generation result
    */
-  async generateSegmentAudio(
-    segment: TutorialSegment,
+  async generateAllSlideAudio(
+    presentation: RevealPresentation,
     outputDir: string
-  ): Promise<SpeechGenerationResult> {
-    const outputPath = join(outputDir, `${segment.id}.mp3`);
+  ): Promise<Map<string, AudioGenerationResult>> {
+    // Create output directory if it doesn't exist
+    await mkdir(outputDir, { recursive: true });
 
-    logger.step(`Generating audio for ${segment.id}: "${segment.title}"`);
+    const results = new Map<string, AudioGenerationResult>();
 
-    try {
-      // Ensure output directory exists
-      await ensureDir(outputDir);
+    // Process each slide
+    for (const slide of presentation.slides) {
+      // Skip slides without audio
+      if (!slide.audio) {
+        logger.debug(`Skipping slide ${slide.id} - no audio block`);
+        continue;
+      }
 
-      // Generate speech
-      await this.client.generateSpeech(
-        segment.narration,
-        this.voiceId,
-        outputPath
-      );
+      const outputPath = join(outputDir, `${slide.id}.mp3`);
 
-      // Get audio metadata
-      const durationSeconds = await getAudioDuration(outputPath);
-      const sizeBytes = await getFileSize(outputPath);
+      try {
+        // Use voice from presentation or fall back to environment variable
+        const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
 
-      logger.success(
-        `Generated ${segment.id}.mp3 (${durationSeconds.toFixed(2)}s, ${Math.round(sizeBytes / 1024)}KB)`
-      );
+        const result = await this.generateSlideAudio(
+          slide,
+          outputPath,
+          voiceId
+        );
 
-      return {
-        filePath: outputPath,
-        durationSeconds,
-        sizeBytes,
-      };
-    } catch (error) {
-      logger.error(`Failed to generate audio for ${segment.id}`, error);
-      throw error;
-    }
-  }
+        results.set(slide.id, result);
 
-  /**
-   * Generate narration audio for all segments in a tutorial
-   */
-  async generateAllAudio(
-    segments: TutorialSegment[],
-    outputDir: string
-  ): Promise<Map<string, SpeechGenerationResult>> {
-    logger.section(`Generating Narration Audio (${segments.length} segments)`);
-
-    const results = new Map<string, SpeechGenerationResult>();
-
-    for (const segment of segments) {
-      const result = await this.generateSegmentAudio(segment, outputDir);
-      results.set(segment.id, result);
+        logger.info(
+          `Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`
+        );
+      } catch (error) {
+        logger.error(`Failed to generate audio for ${slide.id}`, error);
+        throw error;
+      }
     }
 
-    // Calculate totals
-    const totalDuration = Array.from(results.values())
-      .reduce((sum, r) => sum + r.durationSeconds, 0);
-    const totalSize = Array.from(results.values())
-      .reduce((sum, r) => sum + r.sizeBytes, 0);
-
-    logger.success(
-      `Generated ${results.size} audio files (${totalDuration.toFixed(2)}s total, ${Math.round(totalSize / 1024)}KB)`
-    );
+    logger.info(`Generated audio for ${results.size} slides`);
 
     return results;
   }
 
   /**
-   * Generate audio from custom options
+   * Generate audio for a single slide
    */
-  async generate(options: SpeechGenerationOptions): Promise<SpeechGenerationResult> {
-    await this.client.generateSpeech(
-      options.text,
-      options.voiceId,
-      options.outputPath,
-      {
-        model: options.model,
-        stability: options.stability,
-        similarityBoost: options.similarityBoost,
-      }
-    );
+  async generateSlideAudio(
+    slide: RevealSlide,
+    outputPath: string,
+    voiceId: string
+  ): Promise<AudioGenerationResult> {
+    if (!slide.audio) {
+      throw new Error(`Slide ${slide.id} has no audio block`);
+    }
 
-    const durationSeconds = await getAudioDuration(options.outputPath);
-    const sizeBytes = await getFileSize(options.outputPath);
+    // Use clean text (pause markers already removed by parser)
+    const text = slide.audio.cleanText;
+
+    if (text.trim().length === 0) {
+      throw new Error(`Slide ${slide.id} has empty audio text`);
+    }
+
+    logger.debug(`Generating audio for slide ${slide.id} with voice ${voiceId}`);
+    logger.debug(`Text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+
+    // Generate speech using ElevenLabs
+    await this.elevenlabsClient.generateSpeech(text, voiceId, outputPath);
+
+    // Get actual duration from generated file
+    const durationSeconds = await getAudioDuration(outputPath);
+
+    // Get file size
+    const stats = await stat(outputPath);
+    const sizeBytes = stats.size;
+
+    // Update slide's audio block with actual duration and path
+    slide.audio.actualDuration = durationSeconds;
+    slide.audio.audioPath = outputPath;
 
     return {
-      filePath: options.outputPath,
+      slideId: slide.id,
+      filePath: outputPath,
       durationSeconds,
       sizeBytes,
     };
   }
+
+  /**
+   * Validate that all slides with audio have been generated
+   */
+  validateAudioGeneration(
+    presentation: RevealPresentation,
+    results: Map<string, AudioGenerationResult>
+  ): void {
+    const slidesWithAudio = presentation.slides.filter((s) => s.audio !== null);
+    const missingAudio = slidesWithAudio.filter((s) => !results.has(s.id));
+
+    if (missingAudio.length > 0) {
+      const ids = missingAudio.map((s) => s.id).join(', ');
+      throw new Error(`Missing audio for slides: ${ids}`);
+    }
+
+    logger.info(`✓ Validated audio for ${slidesWithAudio.length} slides`);
+  }
 }
 
 /**
- * Create a speech generator instance
+ * Factory function to create a speech generator
  */
-export function createSpeechGenerator(voiceId?: string): SpeechGenerator {
-  return new SpeechGenerator(voiceId);
+export function createRevealSpeechGenerator(
+  elevenlabsClient?: ElevenLabsClient
+): RevealSpeechGenerator {
+  return new RevealSpeechGenerator(elevenlabsClient);
 }

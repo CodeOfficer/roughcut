@@ -51,6 +51,23 @@ The modern development process:
 
 ---
 
+# AI-Generated Visuals
+
+@duration: 8s
+@pause-after: 2s
+@image-prompt: A futuristic workspace with holographic displays showing code and data visualizations
+@transition: fade
+
+Modern tools enable rapid prototyping:
+
+- AI-powered design tools @fragment
+- Automated image generation @fragment
+- Smart mockup creation @fragment
+
+@audio: Modern development leverages AI for rapid prototyping. [2s] AI-powered design tools streamline the creative process. [2s] Automated image generation provides quick visual assets. [2s] These technologies allow developers to focus on building features.
+
+---
+
 # Frontend Frameworks
 
 @duration: 8s
@@ -117,6 +134,28 @@ Building robust APIs:
 - API versioning @fragment
 
 @audio: Good API design is fundamental to modern applications. [2s] RESTful endpoints provide a standard approach. [1s] GraphQL offers flexible data fetching. [1s] WebSockets enable real-time communication. [1s] And proper versioning ensures backward compatibility.
+
+---
+
+# Interactive Demonstrations
+
+@duration: 10s
+@pause-after: 2s
+@background: #1e1e1e
+@transition: slide
+@image-prompt: A modern developer working on a laptop with multiple terminal windows and code editors
+
+Browser automation enables:
+
+- Live code demonstrations @fragment
+- Interactive tutorials @fragment
+- Automated testing workflows @fragment
+
+@playwright:
+- Wait 1s
+- Action: Highlight code editor
+
+@audio: Browser automation has revolutionized how we create demonstrations. [2s] We can show live code in action. [2s] Create interactive tutorials that respond to user input. [2s] And build automated testing workflows that catch bugs before users see them.
 
 ---
 

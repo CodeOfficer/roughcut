@@ -8,7 +8,7 @@ import {
   RevealPresentation,
   RevealSlide,
   DEFAULT_SLIDE_METADATA,
-} from '../../core/revealjs-types.js';
+} from '../../core/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

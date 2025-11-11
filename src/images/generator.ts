@@ -3,7 +3,6 @@ import sharp from 'sharp';
 import { GeminiClient } from './gemini.js';
 import { logger } from '../core/logger.js';
 import { ensureDir, getFileSize } from '../utils/fs.js';
-import type { TutorialSegment } from '../core/types.js';
 import type { ImageGenerationOptions, ImageGenerationResult } from './types.js';
 
 /**
@@ -19,23 +18,16 @@ export class ImageGenerator {
   }
 
   /**
-   * Generate image for a single segment
+   * Generate image from prompt with automatic file naming
    */
-  async generateSegmentImage(
-    segment: TutorialSegment,
-    outputDir: string
+  async generateImage(
+    prompt: string,
+    outputDir: string,
+    filename: string
   ): Promise<ImageGenerationResult> {
-    if (segment.screenshot.mode !== 'static') {
-      throw new Error(`Segment ${segment.id} is not in static mode`);
-    }
+    const outputPath = join(outputDir, filename.endsWith('.png') ? filename : `${filename}.png`);
 
-    if (!segment.screenshot.geminiPrompt) {
-      throw new Error(`Segment ${segment.id} is missing geminiPrompt`);
-    }
-
-    const outputPath = join(outputDir, `${segment.id}.png`);
-
-    logger.step(`Generating image for ${segment.id}: "${segment.title}"`);
+    logger.step(`Generating image: "${filename}"`);
 
     try {
       // Ensure output directory exists
@@ -44,7 +36,7 @@ export class ImageGenerator {
       // Generate image as SVG first
       const svgPath = outputPath + '.svg';
       await this.client.generateImage(
-        segment.screenshot.geminiPrompt,
+        prompt,
         svgPath,
         { resolution: this.resolution }
       );
@@ -65,7 +57,7 @@ export class ImageGenerator {
       const imgHeight: number = metadata.height || height;
 
       logger.success(
-        `Generated ${segment.id}.png (${imgWidth}x${imgHeight}, ${Math.round(sizeBytes / 1024)}KB)`
+        `Generated ${filename} (${imgWidth}x${imgHeight}, ${Math.round(sizeBytes / 1024)}KB)`
       );
 
       // Clean up intermediate SVG
@@ -79,32 +71,30 @@ export class ImageGenerator {
         height: imgHeight,
       };
     } catch (error) {
-      logger.error(`Failed to generate image for ${segment.id}`, error);
+      logger.error(`Failed to generate image: ${filename}`, error);
       throw error;
     }
   }
 
   /**
-   * Generate images for all static segments in a tutorial
+   * Generate multiple images from prompts
    */
-  async generateAllImages(
-    segments: TutorialSegment[],
+  async generateBatch(
+    prompts: Array<{ prompt: string; filename: string }>,
     outputDir: string
   ): Promise<Map<string, ImageGenerationResult>> {
-    const staticSegments = segments.filter(s => s.screenshot.mode === 'static');
-
-    if (staticSegments.length === 0) {
-      logger.info('No static image segments to generate');
+    if (prompts.length === 0) {
+      logger.info('No images to generate');
       return new Map();
     }
 
-    logger.section(`Generating Static Images (${staticSegments.length} segments)`);
+    logger.section(`Generating Images (${prompts.length} images)`);
 
     const results = new Map<string, ImageGenerationResult>();
 
-    for (const segment of staticSegments) {
-      const result = await this.generateSegmentImage(segment, outputDir);
-      results.set(segment.id, result);
+    for (const item of prompts) {
+      const result = await this.generateImage(item.prompt, outputDir, item.filename);
+      results.set(item.filename, result);
     }
 
     // Calculate totals

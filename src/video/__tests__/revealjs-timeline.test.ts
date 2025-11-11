@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RevealTimelineBuilder } from '../revealjs-timeline.js';
+import { RevealTimelineBuilder } from '../timeline.js';
 import type {
   RevealPresentation,
   AudioGenerationResult,
   RevealTimeline,
-} from '../../core/revealjs-types.js';
+} from '../../core/types.js';
 
 describe('RevealTimelineBuilder', () => {
   let builder: RevealTimelineBuilder;
