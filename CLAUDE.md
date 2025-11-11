@@ -94,14 +94,16 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 3. **Demo Presentation** - Comprehensive example showing ALL features
 4. **NPM Scripts** - Clean interface (removed run-demo.mjs)
 5. **Documentation** - All planning docs updated in `docs/architecture/revealjs/DECISIONS.md`
+6. **Multi-line Audio & TTS Caching** - Readable format with intelligent caching (2025-11-11)
 
 **What's Working:**
 - ✅ Build: `npm run build` (zero errors)
-- ✅ Tests: 226 passing, 8 skipped (13 test files)
-- ✅ Pipeline: Parse → Images → Audio → HTML → Timeline → Record → Assemble
+- ✅ Tests: 231 passing (45 parser tests including multi-line audio)
+- ✅ Pipeline: Parse → Images → Audio (cached) → HTML → Timeline → Record → Assemble
 - ✅ Outputs: Interactive HTML + MP4 video (both, always)
-- ✅ AI Features: Image generation, TTS narration, browser automation
+- ✅ AI Features: Image generation, TTS narration (with caching), browser automation
 - ✅ Demo: `npm run demo` (fast), `npm run demo:full` (with AI), `npm run demo:html` (HTML only)
+- ✅ Audio: Multi-line format with SHA256 fingerprinting for incremental TTS
 
 **Next Session - Start Here:**
 1. ✅ **DONE: NPM Scripts Refactored** - Generic build scripts now available!
@@ -109,9 +111,15 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Example: `TUTORIAL=mcp-server npm run build:fast`
    - Shortcuts: `npm run demo`, `npm run demo:full`, `npm run demo:html`
    - Helper script: `scripts/build-tutorial.sh`
-2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-3. Add more examples to `tutorials/examples/`
-4. Explore additional RevealJS features (vertical slides, fragments, speaker view)
+2. ✅ **DONE: Multi-line Audio Format & TTS Caching** - Incremental TTS regeneration!
+   - Multi-line: `@audio: One sentence per line.`
+   - Auto 1s pauses between lines
+   - SHA256 fingerprinting tracks changes
+   - Cache manifest: `tutorials/<name>/output/audio/manifest.json`
+   - Only regenerates TTS for changed audio
+3. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+4. Add more examples to `tutorials/examples/`
+5. Explore additional RevealJS features (vertical slides, fragments, speaker view)
 
 ---
 

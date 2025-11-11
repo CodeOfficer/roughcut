@@ -220,16 +220,41 @@ transition: slide
 ```
 
 **Slide Directives**:
-- `@audio:` - Narration text (sent to ElevenLabs)
+- `@audio:` - Narration text (sent to ElevenLabs) - supports multi-line format
 - `@duration:` - Expected slide duration
 - `@pause-after:` - Pause after audio before advancing
 - `@background:` - Background color or gradient
 - `@transition:` - Slide transition effect
 - `@playwright:` - Browser automation instructions
+- `@image-prompt:` - AI image generation prompt (Gemini)
 
 **Content Annotations**:
 - `@fragment` - Step-by-step reveal
 - `[2s]` - Inline pause in audio narration
+
+### Audio Format (Multi-line - Recommended)
+
+The **multi-line format** is more readable and Git-friendly:
+
+```markdown
+@audio: Let's start with the foundation.
+@audio: Modern web applications are built on three essential pillars.
+@audio: First, HTML provides the structure.
+@audio: Second, CSS handles the styling.
+@audio: And third, JavaScript adds interactivity.
+```
+
+**Benefits:**
+- ✅ One sentence per line (easier to read and edit)
+- ✅ Better git diffs (changes tracked per sentence)
+- ✅ Automatic 1s pauses between lines
+- ✅ Intelligent caching (only regenerate TTS for changed lines)
+- ✅ Still supports inline `[2s]` pause markers
+
+**Single-line format** (still supported):
+```markdown
+@audio: All text in one line [1s] with manual pauses.
+```
 
 ### Example with Playwright
 

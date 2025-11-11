@@ -1,15 +1,23 @@
 /**
  * Speech generation for reveal.js presentations
- * Generates audio per slide using ElevenLabs API
+ * Generates audio per slide using ElevenLabs API with intelligent caching
  */
 
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import { stat } from 'fs/promises';
+import { existsSync } from 'fs';
 import { ElevenLabsClient } from './elevenlabs.js';
 import { getAudioDuration } from '../utils/timing.js';
 import { logger } from '../core/logger.js';
 import { env } from '../config/env.js';
+import {
+  loadCacheManifest,
+  saveCacheManifest,
+  hashAudioText,
+  findCachedAudio,
+  updateCacheEntry,
+} from './audio-cache.js';
 import type {
   RevealPresentation,
   RevealSlide,
@@ -28,6 +36,7 @@ export class RevealSpeechGenerator {
 
   /**
    * Generate audio for all slides in a presentation
+   * Uses intelligent caching to only regenerate changed audio
    * Returns map of slideId to audio generation result
    */
   async generateAllSlideAudio(
@@ -36,6 +45,11 @@ export class RevealSpeechGenerator {
   ): Promise<Map<string, AudioGenerationResult>> {
     // Create output directory if it doesn't exist
     await mkdir(outputDir, { recursive: true });
+
+    // Load cache manifest
+    const manifest = await loadCacheManifest(outputDir);
+    let cacheHits = 0;
+    let cacheMisses = 0;
 
     const results = new Map<string, AudioGenerationResult>();
 
@@ -50,6 +64,38 @@ export class RevealSpeechGenerator {
       const outputPath = join(outputDir, `${slide.id}.mp3`);
 
       try {
+        // Compute hash of audio content
+        const audioHash = hashAudioText(slide.audio.cleanText);
+
+        // Check cache
+        const cached = findCachedAudio(manifest, slide.id, audioHash);
+
+        if (cached && existsSync(join(outputDir, cached.file))) {
+          // Cache hit! Reuse existing audio
+          cacheHits++;
+          const cachedPath = join(outputDir, cached.file);
+
+          // Get file size
+          const stats = await stat(cachedPath);
+
+          results.set(slide.id, {
+            slideId: slide.id,
+            filePath: cachedPath,
+            durationSeconds: cached.duration,
+            sizeBytes: stats.size,
+          });
+
+          // Update slide's audio block
+          slide.audio.actualDuration = cached.duration;
+          slide.audio.audioPath = cachedPath;
+
+          logger.info(`[CACHE] Reusing audio for ${slide.id} (${cached.duration.toFixed(2)}s)`);
+          continue;
+        }
+
+        // Cache miss - generate new audio
+        cacheMisses++;
+
         // Use voice from presentation or fall back to environment variable
         const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
 
@@ -61,8 +107,16 @@ export class RevealSpeechGenerator {
 
         results.set(slide.id, result);
 
+        // Update cache manifest
+        updateCacheEntry(manifest, slide.id, {
+          hash: audioHash,
+          text: slide.audio.cleanText,
+          file: `${slide.id}.mp3`,
+          duration: result.durationSeconds,
+        });
+
         logger.info(
-          `Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`
+          `[TTS] Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`
         );
       } catch (error) {
         logger.error(`Failed to generate audio for ${slide.id}`, error);
@@ -70,7 +124,12 @@ export class RevealSpeechGenerator {
       }
     }
 
-    logger.info(`Generated audio for ${results.size} slides`);
+    // Save updated manifest
+    await saveCacheManifest(outputDir, manifest);
+
+    logger.info(
+      `Audio generation complete: ${results.size} slides (${cacheHits} cached, ${cacheMisses} generated)`
+    );
 
     return results;
   }

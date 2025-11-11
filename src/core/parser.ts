@@ -14,6 +14,7 @@ import type {
   RevealPresentation,
   RevealSlide,
   AudioBlock,
+  AudioLine,
   PlaywrightBlock,
   PlaywrightInstruction,
   SlideMetadata,
@@ -257,20 +258,37 @@ export class RevealMarkdownParser {
 
   /**
    * Extract @audio: block
-   * Format:
-   * @audio: Text here [2s] more text [3s] end.
+   * Supports both single-line and multi-line formats:
    *
-   * Single line after @audio: directive
+   * Single-line:
+   *   @audio: Text here [2s] more text [3s] end.
+   *
+   * Multi-line (recommended):
+   *   @audio: First sentence here.
+   *   @audio: Second sentence here.
+   *   @audio: Third sentence here.
+   *
+   * Multi-line format automatically inserts 1s pauses between lines.
+   * You can still use [Xs] markers for custom pauses within lines.
    */
   private extractAudioBlock(markdown: string): AudioBlock | null {
-    const audioRegex = /^@audio:\s*(.+)$/m;
-    const match = markdown.match(audioRegex);
+    // Try to match multiple consecutive @audio: lines
+    const multiLineRegex = /^@audio:\s*(.+)$/gm;
+    const matches = Array.from(markdown.matchAll(multiLineRegex));
 
-    if (!match || !match[1]) {
+    if (matches.length === 0) {
       return null;
     }
 
-    const rawText = match[1].trim();
+    // Extract individual lines for fingerprinting
+    const lines: AudioLine[] = matches
+      .filter(match => match[1]) // Filter out undefined matches
+      .map(match => ({
+        text: match[1]!.trim(), // Non-null assertion since we filtered
+      }));
+
+    // Join lines with automatic 1s pauses
+    const rawText = lines.map(line => line.text).join(' [1s] ');
 
     // Extract pause markers [Xs]
     const pauses: PauseMarker[] = [];
@@ -302,6 +320,7 @@ export class RevealMarkdownParser {
       cleanText: cleanText.trim(),
       expectedDuration: null,
       pauses,
+      lines,
     };
   }
 

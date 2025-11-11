@@ -29,7 +29,11 @@ Modern web apps are built on three pillars:
 - CSS for styling @fragment
 - JavaScript for interactivity @fragment
 
-@audio: Let's start with the foundation. [1s] Modern web applications are built on three essential pillars. [1s] First, HTML provides the structure. [1s] Second, CSS handles the styling. [1s] And third, JavaScript adds interactivity.
+@audio: Let's start with the foundation.
+@audio: Modern web applications are built on three essential pillars.
+@audio: First, HTML provides the structure.
+@audio: Second, CSS handles the styling.
+@audio: And third, JavaScript adds interactivity.
 
 ---
 
@@ -47,7 +51,11 @@ The modern development process:
 3. **Test** - Ensure quality and reliability @fragment
 4. **Deploy** - Ship to production @fragment
 
-@audio: The modern development workflow consists of four key stages. [1s] First, we design using wireframes and mockups. [2s] Then we develop, writing clean and maintainable code. [2s] Next, we test to ensure quality. [2s] Finally, we deploy to production.
+@audio: The modern development workflow consists of four key stages.
+@audio: First, we design using wireframes and mockups. [1s]
+@audio: Then we develop, writing clean and maintainable code. [1s]
+@audio: Next, we test to ensure quality. [1s]
+@audio: Finally, we deploy to production.
 
 ---
 
@@ -64,7 +72,10 @@ Modern tools enable rapid prototyping:
 - Automated image generation @fragment
 - Smart mockup creation @fragment
 
-@audio: Modern development leverages AI for rapid prototyping. [2s] AI-powered design tools streamline the creative process. [2s] Automated image generation provides quick visual assets. [2s] These technologies allow developers to focus on building features.
+@audio: Modern development leverages AI for rapid prototyping.
+@audio: AI-powered design tools streamline the creative process. [1s]
+@audio: Automated image generation provides quick visual assets. [1s]
+@audio: These technologies allow developers to focus on building features.
 
 ---
 

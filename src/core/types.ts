@@ -87,6 +87,27 @@ export interface AudioBlock {
 
   /** Inline pause markers parsed from [Xs] syntax */
   pauses: PauseMarker[];
+
+  /** Individual audio lines for fingerprinting and incremental TTS */
+  lines?: AudioLine[];
+}
+
+/**
+ * Individual audio line for multi-line @audio: format
+ * Enables fingerprinting and incremental TTS regeneration
+ */
+export interface AudioLine {
+  /** Original text of this line */
+  text: string;
+
+  /** SHA256 hash for change detection */
+  hash?: string;
+
+  /** Path to generated audio file for this specific line */
+  audioPath?: string;
+
+  /** Duration of this audio segment in seconds */
+  duration?: number;
 }
 
 /**

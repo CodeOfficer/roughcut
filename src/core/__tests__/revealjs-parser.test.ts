@@ -329,6 +329,60 @@ Content
 
       expect(slide.audio!.expectedDuration).toBeNull();
     });
+
+    it('should parse multi-line audio format', () => {
+      const slideMarkdown = `# Test
+@audio: First sentence here.
+@audio: Second sentence here.
+@audio: Third sentence here.
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.audio).not.toBeNull();
+      expect(slide.audio!.lines).toHaveLength(3);
+      expect(slide.audio!.lines![0].text).toBe('First sentence here.');
+      expect(slide.audio!.lines![1].text).toBe('Second sentence here.');
+      expect(slide.audio!.lines![2].text).toBe('Third sentence here.');
+    });
+
+    it('should join multi-line audio with automatic 1s pauses', () => {
+      const slideMarkdown = `@audio: First line.
+@audio: Second line.
+@audio: Third line.
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.audio).not.toBeNull();
+      expect(slide.audio!.rawText).toBe('First line. [1s] Second line. [1s] Third line.');
+      expect(slide.audio!.cleanText).toBe('First line.  Second line.  Third line.');
+    });
+
+    it('should support inline pauses in multi-line format', () => {
+      const slideMarkdown = `@audio: First line [2s] with pause.
+@audio: Second line.
+`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.audio).not.toBeNull();
+      expect(slide.audio!.rawText).toBe('First line [2s] with pause. [1s] Second line.');
+      expect(slide.audio!.pauses).toHaveLength(2);
+      expect(slide.audio!.pauses[0].durationSeconds).toBe(2);
+      expect(slide.audio!.pauses[1].durationSeconds).toBe(1); // Automatic pause
+    });
+
+    it('should maintain backwards compatibility with single-line format', () => {
+      const slideMarkdown = `@audio: Single line audio with [2s] pause marker.`;
+
+      const slide = parser.parseSlide(slideMarkdown, 0);
+
+      expect(slide.audio).not.toBeNull();
+      expect(slide.audio!.lines).toHaveLength(1);
+      expect(slide.audio!.lines![0].text).toBe('Single line audio with [2s] pause marker.');
+      expect(slide.audio!.rawText).toBe('Single line audio with [2s] pause marker.');
+    });
   });
 
   // ==========================================================================
