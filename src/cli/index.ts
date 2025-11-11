@@ -26,7 +26,8 @@ program
   .requiredOption('-i, --input <path>', 'Input markdown file')
   .requiredOption('-o, --output <path>', 'Output directory')
   .option('--no-video', 'Skip video generation')
-  .option('--skip-audio', 'Skip audio generation')
+  .option('--skip-audio', 'Skip audio generation (reuse existing audio files)')
+  .option('--skip-images', 'Skip image generation (reuse existing images)')
   .option('--bundle', 'Bundle reveal.js assets')
   .option('--voice <id>', 'ElevenLabs voice ID')
   .action(async (options: BuildOptions) => {
