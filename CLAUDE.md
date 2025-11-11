@@ -104,12 +104,11 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 - ✅ Demo: `npm run demo` (fast), `npm run demo:full` (with AI), `npm run demo:html` (HTML only)
 
 **Next Session - Start Here:**
-1. **Refactor package.json scripts** - Make presentation name an argument
-   - Current: `npm run demo`, `npm run demo:full`, `npm run demo:html` (hardcoded to demo)
-   - Goal: `npm run build:fast <name>`, `npm run build:full <name>`, `npm run build:html <name>`
-   - Example: `npm run build:fast demo` or `npm run build:fast mcp-server`
-   - Keep `demo` scripts as shortcuts that pass "demo" as argument
-   - Pattern: All presentations in `tutorials/<name>/presentation.md`
+1. ✅ **DONE: NPM Scripts Refactored** - Generic build scripts now available!
+   - Generic: `TUTORIAL=<name> npm run build:fast|full|html`
+   - Example: `TUTORIAL=mcp-server npm run build:fast`
+   - Shortcuts: `npm run demo`, `npm run demo:full`, `npm run demo:html`
+   - Helper script: `scripts/build-tutorial.sh`
 2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
 3. Add more examples to `tutorials/examples/`
 4. Explore additional RevealJS features (vertical slides, fragments, speaker view)
@@ -118,26 +117,37 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 ## 🧪 Testing Strategy
 
-**To avoid expensive API calls:**
-```bash
-# Fast demo (no images, no audio, uses existing files)
-npm run demo
+**NPM Scripts Available:**
 
-# HTML only (no video recording)
-npm run demo:html
+**Generic Scripts** (use with any tutorial):
+```bash
+# Fast build (skip images & audio) - saves API costs!
+TUTORIAL=demo npm run build:fast
+TUTORIAL=mcp-server npm run build:fast
 
 # Full build (uses TTS + Gemini credits!)
-npm run demo:full
+TUTORIAL=my-presentation npm run build:full
 
-# Custom builds
-npm run tutorial:build -i <file> -o <output> --skip-images --skip-audio
+# HTML only (no video recording)
+TUTORIAL=example npm run build:html
 ```
 
-**NPM Scripts Available:**
-- `npm run demo` - Fast testing (skip images & audio) - **TODO: Make generic**
-- `npm run demo:full` - Full build with all AI features - **TODO: Make generic**
-- `npm run demo:html` - HTML only, no video - **TODO: Make generic**
-- `npm run tutorial:build` - Build any presentation (low-level, takes full CLI args)
+**Demo Shortcuts** (hardcoded to demo tutorial):
+```bash
+npm run demo       # Fast: skip images & audio
+npm run demo:full  # Full: with all AI features
+npm run demo:html  # HTML only, no video
+```
+
+**Low-level CLI** (for advanced use):
+```bash
+npm run tutorial:build -- -i <file> -o <output> --skip-images --skip-audio
+```
+
+**Pattern:**
+- All tutorials: `tutorials/<name>/presentation.md`
+- Outputs: `tutorials/<name>/output/`
+- Helper: `scripts/build-tutorial.sh <name> <mode>`
 
 ---
 

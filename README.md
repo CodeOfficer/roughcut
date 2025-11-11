@@ -112,13 +112,21 @@ See `tutorials/demo/presentation.md` for a complete example with all supported f
 ### 4. Build Your Tutorial
 
 ```bash
-# Build presentation and video
-npm run tutorial:build my-tutorial.md
+# Method 1: Generic build scripts (recommended)
+# Fast build (skip AI - saves costs!)
+TUTORIAL=my-tutorial npm run build:fast
 
-# Options:
-npm run tutorial:build my-tutorial.md --skip-audio    # Reuse existing audio
-npm run tutorial:build my-tutorial.md --skip-video    # HTML only (no MP4)
+# Full build (with TTS + images)
+TUTORIAL=my-tutorial npm run build:full
+
+# HTML only (no video)
+TUTORIAL=my-tutorial npm run build:html
+
+# Method 2: Low-level CLI (advanced)
+npm run tutorial:build -- -i tutorials/my-tutorial/presentation.md -o tutorials/my-tutorial/output
 ```
+
+**Note**: Place your presentation at `tutorials/<name>/presentation.md`
 
 ### 5. View Your Outputs
 
@@ -135,18 +143,42 @@ Every build produces TWO outputs:
 
 ## CLI Commands
 
-### Build Tutorial
+### Quick Start Scripts
+
+**Generic Scripts** (use with any tutorial):
 ```bash
-npm run tutorial:build <markdown-file>
+# Fast build (skip images & audio) - saves API costs!
+TUTORIAL=<name> npm run build:fast
+
+# Full build (uses TTS + Gemini credits!)
+TUTORIAL=<name> npm run build:full
+
+# HTML only (no video recording)
+TUTORIAL=<name> npm run build:html
+```
+
+**Demo Shortcuts**:
+```bash
+npm run demo       # Fast: skip images & audio
+npm run demo:full  # Full: with all AI features
+npm run demo:html  # HTML only, no video
+```
+
+### Low-Level CLI
+
+For advanced usage with full control:
+```bash
+npm run tutorial:build -- -i <input-file> -o <output-dir> [options]
 
 # Options:
-npm run tutorial:build demo.md --skip-audio    # Reuse existing audio files
-npm run tutorial:build demo.md --skip-video    # Generate HTML only, skip video recording
+--skip-audio       # Reuse existing audio files
+--skip-images      # Reuse existing images
+--no-video         # Generate HTML only, skip video recording
 ```
 
 **Outputs**:
-- Interactive HTML: `output/presentation/index.html`
-- Video file: `output/tutorial.mp4` (unless --skip-video)
+- Interactive HTML: `tutorials/<name>/output/presentation/index.html`
+- Video file: `tutorials/<name>/output/tutorial.mp4` (unless --no-video)
 
 ## Tutorial Script Format
 
