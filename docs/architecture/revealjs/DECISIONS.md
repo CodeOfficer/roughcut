@@ -71,7 +71,7 @@ Content here...
 - No closing tags (not `[AUDIO]...[/AUDIO]`)
 - Units included: `8s` not `8`
 
-**See**: `/planning/revealjs-integration/format-option-3-minimalist.md`
+**See**: `docs/architecture/revealjs/format-option-3-minimalist.md`
 
 ---
 
@@ -227,18 +227,19 @@ Custom fragment with specific index
 
 ## Project Structure Decisions
 
-### Planning Folder
-**Location**: `/planning/revealjs-integration/`
+### Architecture Documentation
+**Location**: `docs/architecture/revealjs/`
 
 **Contents**:
 - `DECISIONS.md` (this file)
 - `IMPLEMENTATION_PLAN.md` (20-step detailed plan)
 - `revealjs-research.md` (reveal.js API research)
-- `format-option-1-annotated-revealjs.md`
-- `format-option-2-yaml-blocks.md`
-- `format-option-3-minimalist.md` (CHOSEN)
+- `format-option-3-minimalist.md` (chosen format)
+- `markdown-format-examples.md` (format examples)
 
-**Purpose**: Cache important information for reference when context clears
+**Archived**: `docs/archive/` contains outdated format options and old system docs
+
+**Purpose**: Single source of truth for architecture decisions and planning
 
 ---
 

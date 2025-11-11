@@ -106,8 +106,8 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 **Next Session - Start Here:**
 1. Test the demo end-to-end: `npm run demo` (should work without API calls)
 2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-3. Migrate `tutorials/mcp-weather-server/` to v2 format
-4. Add more examples to `tutorials/examples/`
+3. Add more examples to `tutorials/examples/`
+4. Explore additional RevealJS features (vertical slides, fragments, speaker view)
 
 ---
 
@@ -152,8 +152,9 @@ npm run tutorial:build -i <file> -o <output> --skip-images --skip-audio
 genai-tutorial-factory/
 ├── src/                    # Source code
 ├── tutorials/              # All tutorials & outputs
-│   ├── demo/              # Demo presentation
-│   └── mcp-weather-server/ # Old format (needs migration)
+│   ├── .template/         # Template for new presentations
+│   ├── demo/              # Demo presentation (canonical example)
+│   └── examples/          # Additional examples
 ├── docs/                   # All documentation
 │   ├── architecture/      # Design docs
 │   ├── archive/           # Historical docs
@@ -196,3 +197,5 @@ All strategic decisions are recorded in:
 - Build is strict (all TypeScript errors must be resolved)
 - Documentation is now single-source-of-truth (no duplication)
 - NPM scripts are the interface (no standalone scripts like run-demo.mjs)
+- make sure you ask and commit your changes at milestone task completion  in our plan
+- please commit all changes when you tell me a task is done

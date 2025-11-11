@@ -639,10 +639,10 @@ title: Tutorial Title
 
 ## Getting Help
 
-- **Format Examples**: See `demo-presentation.md` for comprehensive examples
+- **Format Examples**: See `tutorials/demo/presentation.md` for comprehensive examples
 - **Architecture**: See `CLAUDE.md` for system overview
-- **Decisions**: See `planning/revealjs-integration/DECISIONS.md` for design rationale
-- **Format Spec**: See `planning/revealjs-integration/format-option-3-minimalist.md`
+- **Decisions**: See `docs/architecture/revealjs/DECISIONS.md` for design rationale
+- **Format Spec**: See `docs/architecture/revealjs/format-option-3-minimalist.md`
 - **RevealJS Docs**: https://revealjs.com/ for advanced features
 
 ---

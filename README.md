@@ -107,7 +107,7 @@ description: Learn something amazing
 - Wait 2s
 ```
 
-See `demo-presentation.md` for a complete example with all supported features.
+See `tutorials/demo/presentation.md` for a complete example with all supported features.
 
 ### 4. Build Your Tutorial
 
@@ -362,7 +362,7 @@ If you have tutorials in the original format (pre-v2.0.0), see `MIGRATION.md` fo
 - [ElevenLabs API Documentation](https://elevenlabs.io/docs)
 - [Playwright Documentation](https://playwright.dev)
 - [FFmpeg Documentation](https://ffmpeg.org/documentation.html)
-- [Planning Documentation](./planning/revealjs-integration/) - Architecture decisions
+- [Architecture Documentation](./docs/architecture/revealjs/) - Design decisions and planning
 
 ## Next Steps
 
