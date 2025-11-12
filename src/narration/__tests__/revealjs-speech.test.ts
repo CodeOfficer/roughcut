@@ -220,7 +220,7 @@ describe('RevealSpeechGenerator', () => {
         ],
       };
 
-      const results = await generator.generateAllSlideAudio(
+      const audioData = await generator.generateAllSlideAudio(
         presentation,
         '/output/audio'
       );
@@ -229,9 +229,13 @@ describe('RevealSpeechGenerator', () => {
       expect(mkdir).toHaveBeenCalledWith('/output/audio', { recursive: true });
 
       // Verify both slides were processed
-      expect(results.size).toBe(2);
-      expect(results.has('slide-001')).toBe(true);
-      expect(results.has('slide-002')).toBe(true);
+      expect(audioData.results.size).toBe(2);
+      expect(audioData.results.has('slide-001')).toBe(true);
+      expect(audioData.results.has('slide-002')).toBe(true);
+
+      // Verify cache statistics
+      expect(audioData.cacheMisses).toBe(2);
+      expect(audioData.cacheHits).toBe(0);
 
       // Verify ElevenLabs was called twice
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledTimes(2);
@@ -270,15 +274,15 @@ describe('RevealSpeechGenerator', () => {
         ],
       };
 
-      const results = await generator.generateAllSlideAudio(
+      const audioData = await generator.generateAllSlideAudio(
         presentation,
         '/output/audio'
       );
 
       // Only slide with audio should be in results
-      expect(results.size).toBe(1);
-      expect(results.has('slide-001')).toBe(true);
-      expect(results.has('slide-002')).toBe(false);
+      expect(audioData.results.size).toBe(1);
+      expect(audioData.results.has('slide-001')).toBe(true);
+      expect(audioData.results.has('slide-002')).toBe(false);
 
       // ElevenLabs called once
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledTimes(1);
@@ -293,12 +297,12 @@ describe('RevealSpeechGenerator', () => {
         slides: [],
       };
 
-      const results = await generator.generateAllSlideAudio(
+      const audioData = await generator.generateAllSlideAudio(
         presentation,
         '/output/audio'
       );
 
-      expect(results.size).toBe(0);
+      expect(audioData.results.size).toBe(0);
       expect(mockElevenLabsClient.generateSpeech).not.toHaveBeenCalled();
     });
 

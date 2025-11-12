@@ -37,12 +37,16 @@ export class RevealSpeechGenerator {
   /**
    * Generate audio for all slides in a presentation
    * Uses intelligent caching to only regenerate changed audio
-   * Returns map of slideId to audio generation result
+   * Returns map of slideId to audio generation result with cache statistics
    */
   async generateAllSlideAudio(
     presentation: RevealPresentation,
     outputDir: string
-  ): Promise<Map<string, AudioGenerationResult>> {
+  ): Promise<{
+    results: Map<string, AudioGenerationResult>;
+    cacheHits: number;
+    cacheMisses: number;
+  }> {
     // Create output directory if it doesn't exist
     await mkdir(outputDir, { recursive: true });
 
@@ -152,7 +156,11 @@ export class RevealSpeechGenerator {
       `Audio generation complete: ${results.size} slides (${cacheHits} cached, ${cacheMisses} generated)`
     );
 
-    return results;
+    return {
+      results,
+      cacheHits,
+      cacheMisses,
+    };
   }
 
   /**

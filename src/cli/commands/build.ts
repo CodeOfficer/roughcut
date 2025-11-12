@@ -21,6 +21,7 @@ import { AudioSyncOrchestrator } from '../../presentation/audio-sync-orchestrato
 import { createRevealVideoAssembler } from '../../video/assembler.js';
 import { ImageGenerator } from '../../images/generator.js';
 import { createDebugLogger } from '../../core/debug-logger.js';
+import { createBuildSummaryGenerator, type BuildSummaryData, type StageTiming } from '../../core/build-summary.js';
 import type { RevealPresentation } from '../../core/types.js';
 
 // ============================================================================
@@ -137,6 +138,11 @@ export class RevealBuildCommand {
     // Initialize debug logger early (outside try block for error handling)
     let debugLogger: ReturnType<typeof createDebugLogger> | null = null;
 
+    // Track stage timings for summary
+    const stages: StageTiming[] = [];
+    let audioCacheHits = 0;
+    let audioCacheMisses = 0;
+
     try {
       // Validate options
       this.validateOptions(options);
@@ -165,10 +171,11 @@ export class RevealBuildCommand {
       const markdown = await fs.readFile(options.input, 'utf-8');
       const parser = createRevealParser();
       const presentation = parser.parse(markdown);
-      await debugLogger.endOperation('parse_markdown', {
+      const parseDuration = await debugLogger.endOperation('parse_markdown', {
         slides: presentation.slides.length,
         title: presentation.title,
       });
+      stages.push({ name: 'parse_markdown', durationMs: parseDuration });
 
       this.reportProgress({
         phase: 'parsing',
@@ -195,7 +202,12 @@ export class RevealBuildCommand {
 
           await this.generateImages(presentation, options);
 
-          await debugLogger.endOperation('generate_images');
+          const imagesDuration = await debugLogger.endOperation('generate_images');
+          stages.push({
+            name: 'generate_images',
+            durationMs: imagesDuration,
+            metadata: { count: slidesWithImagePrompts.length },
+          });
 
           this.reportProgress({
             phase: 'parsing',
@@ -217,10 +229,22 @@ export class RevealBuildCommand {
           message: 'Generating audio narration...',
         });
 
-        audioResults = await this.generateAudio(presentation, options);
+        const audioData = await this.generateAudio(presentation, options);
+        audioResults = audioData.results;
+        audioCacheHits = audioData.cacheHits;
+        audioCacheMisses = audioData.cacheMisses;
 
-        await debugLogger.endOperation('generate_audio', {
+        const audioDuration = await debugLogger.endOperation('generate_audio', {
           slides_with_audio: audioResults?.size || 0,
+        });
+        stages.push({
+          name: 'generate_audio',
+          durationMs: audioDuration,
+          metadata: {
+            slides_with_audio: audioResults?.size || 0,
+            cached: audioCacheHits,
+            generated: audioCacheMisses,
+          },
         });
 
         this.reportProgress({
@@ -232,8 +256,13 @@ export class RevealBuildCommand {
         // Load existing audio files
         await debugLogger.startOperation('load_existing_audio');
         audioResults = await this.loadExistingAudio(presentation, options);
-        await debugLogger.endOperation('load_existing_audio', {
+        const loadDuration = await debugLogger.endOperation('load_existing_audio', {
           slides_with_audio: audioResults?.size || 0,
+        });
+        stages.push({
+          name: 'load_existing_audio',
+          durationMs: loadDuration,
+          metadata: { slides_with_audio: audioResults?.size || 0 },
         });
       }
 
@@ -248,9 +277,10 @@ export class RevealBuildCommand {
 
       const htmlPath = await this.generateHTML(presentation, options);
 
-      await debugLogger.endOperation('generate_html', {
+      const htmlDuration = await debugLogger.endOperation('generate_html', {
         path: htmlPath,
       });
+      stages.push({ name: 'generate_html', durationMs: htmlDuration });
 
       this.reportProgress({
         phase: 'html_generation',
@@ -269,10 +299,11 @@ export class RevealBuildCommand {
 
       const timeline = this.buildTimeline(presentation, audioResults);
 
-      await debugLogger.endOperation('build_timeline', {
+      const timelineDuration = await debugLogger.endOperation('build_timeline', {
         total_duration: timeline.totalDuration,
         slides: timeline.slides.length,
       });
+      stages.push({ name: 'build_timeline', durationMs: timelineDuration });
 
       this.reportProgress({
         phase: 'timeline_building',
@@ -300,9 +331,10 @@ export class RevealBuildCommand {
           options
         );
 
-        await debugLogger.endOperation('record_video', {
+        const recordDuration = await debugLogger.endOperation('record_video', {
           path: recordedVideoPath,
         });
+        stages.push({ name: 'record_video', durationMs: recordDuration });
 
         this.reportProgress({
           phase: 'video_recording',
@@ -329,11 +361,12 @@ export class RevealBuildCommand {
           videoPath = assemblyResult.outputPath;
           videoSize = assemblyResult.sizeBytes;
 
-          await debugLogger.endOperation('assemble_video', {
+          const assemblyDuration = await debugLogger.endOperation('assemble_video', {
             output_path: assemblyResult.outputPath,
             size_bytes: assemblyResult.sizeBytes,
             size_mb: (assemblyResult.sizeBytes / (1024 * 1024)).toFixed(2),
           });
+          stages.push({ name: 'assemble_video', durationMs: assemblyDuration });
 
           this.reportProgress({
             phase: 'video_assembly',
@@ -345,6 +378,26 @@ export class RevealBuildCommand {
 
       // Complete
       const durationSeconds = (Date.now() - startTime) / 1000;
+
+      // Generate build summary
+      const summaryGenerator = createBuildSummaryGenerator();
+      const summaryData: BuildSummaryData = {
+        totalDurationMs: Date.now() - startTime,
+        success: true,
+        stages,
+        slidesProcessed: presentation.slides.length,
+        presentationDuration: timeline.totalDuration,
+        audioCacheHits,
+        audioCacheMisses,
+        htmlPath,
+      };
+      if (videoSize !== undefined) {
+        summaryData.videoSizeBytes = videoSize;
+      }
+      if (videoPath) {
+        summaryData.videoPath = videoPath;
+      }
+      await summaryGenerator.generate(options.output, summaryData);
 
       // Write debug summary
       await debugLogger.info('Build completed successfully', {
@@ -395,6 +448,23 @@ export class RevealBuildCommand {
 
       return result;
     } catch (error) {
+      // Generate build summary for failed build
+      try {
+        const summaryGenerator = createBuildSummaryGenerator();
+        const summaryData: BuildSummaryData = {
+          totalDurationMs: Date.now() - startTime,
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+          stages,
+          slidesProcessed: 0,
+          audioCacheHits,
+          audioCacheMisses,
+        };
+        await summaryGenerator.generate(options.output, summaryData);
+      } catch (summaryError) {
+        // Ignore summary generation errors
+      }
+
       // Log error to debug file if available
       if (debugLogger) {
         await debugLogger.error('Build failed', error);
@@ -459,7 +529,11 @@ export class RevealBuildCommand {
   private async generateAudio(
     presentation: RevealPresentation,
     options: BuildOptions
-  ): Promise<Map<string, any>> {
+  ): Promise<{
+    results: Map<string, any>;
+    cacheHits: number;
+    cacheMisses: number;
+  }> {
     const audioDir = path.join(options.output, 'audio');
     await fs.mkdir(audioDir, { recursive: true });
 
@@ -467,12 +541,10 @@ export class RevealBuildCommand {
     const elevenlabsClient = new ElevenLabsClient(apiKey);
     const speechGenerator = new RevealSpeechGenerator(elevenlabsClient);
 
-    const audioResults = await speechGenerator.generateAllSlideAudio(
+    return await speechGenerator.generateAllSlideAudio(
       presentation,
       audioDir
     );
-
-    return audioResults;
   }
 
   /**
