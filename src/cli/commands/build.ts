@@ -558,7 +558,7 @@ export class RevealBuildCommand {
         slide.metadata.imagePath = result.filePath;
         // If no background is set, use the generated image as background
         if (!slide.metadata.background) {
-          slide.metadata.background = `url(../images/${filename})`;
+          slide.metadata.background = `../images/${filename}`;
         }
       }
     }
