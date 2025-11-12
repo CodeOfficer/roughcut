@@ -17,18 +17,29 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
-import type { AudioLine } from '../core/types.js';
 import type { CharacterAlignment } from './types.js';
 
 /**
  * Cache manifest entry for a single audio line
  */
 export interface CachedAudioLine {
-  /** SHA256 hash of the text content */
+  /** SHA256 hash of the text content + voice parameters */
   hash: string;
 
   /** Original text for debugging/reference */
   text: string;
+
+  /** Voice ID used for generation */
+  voiceId: string;
+
+  /** Model used for generation */
+  model: string;
+
+  /** Stability setting used */
+  stability: number;
+
+  /** Similarity boost setting used */
+  similarityBoost: number;
 
   /** Relative path to audio file (from output/audio/) */
   file: string;
@@ -52,10 +63,33 @@ export interface AudioCacheManifest {
 }
 
 /**
- * Generate SHA256 hash for audio text
+ * Generate SHA256 hash for audio text and voice parameters
+ * Includes all parameters that affect audio generation:
+ * - text content
+ * - voiceId
+ * - model
+ * - stability
+ * - similarityBoost
+ *
+ * Changing any of these will invalidate the cache.
  */
-export function hashAudioText(text: string): string {
-  return createHash('sha256').update(text.trim()).digest('hex');
+export function hashAudioText(
+  text: string,
+  voiceId: string,
+  model: string,
+  stability: number,
+  similarityBoost: number
+): string {
+  // Create a deterministic cache key from all parameters
+  const cacheKey = JSON.stringify({
+    text: text.trim(),
+    voiceId,
+    model,
+    stability,
+    similarityBoost,
+  });
+
+  return createHash('sha256').update(cacheKey).digest('hex');
 }
 
 /**
@@ -127,16 +161,6 @@ export function updateCacheEntry(
 
   // Add new entry
   manifest[slideId].push(entry);
-}
-
-/**
- * Compute hashes for all audio lines
- */
-export function hashAudioLines(lines: AudioLine[]): AudioLine[] {
-  return lines.map(line => ({
-    ...line,
-    hash: hashAudioText(line.text),
-  }));
 }
 
 /**

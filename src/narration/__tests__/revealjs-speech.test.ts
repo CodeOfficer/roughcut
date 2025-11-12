@@ -342,6 +342,76 @@ describe('RevealSpeechGenerator', () => {
   });
 
   // ==========================================================================
+  // CACHE INVALIDATION
+  // ==========================================================================
+
+  describe('cache invalidation', () => {
+    it('should regenerate audio when voice changes', async () => {
+      // Mock fs operations for cache testing
+      const { existsSync } = await import('fs');
+      const { readFile, writeFile } = await import('fs/promises');
+
+      vi.mock('fs', () => ({
+        existsSync: vi.fn(),
+      }));
+
+      vi.mocked(existsSync as any).mockReturnValue(true);
+      vi.mocked(readFile as any).mockResolvedValue(JSON.stringify({
+        'slide-001': [{
+          hash: 'old-hash-with-adam-voice',
+          text: 'Test',
+          voiceId: 'adam',
+          model: 'eleven_multilingual_v2',
+          stability: 0.5,
+          similarityBoost: 0.75,
+          file: 'slide-001.mp3',
+          duration: 5.5,
+        }],
+      }));
+      vi.mocked(writeFile as any).mockResolvedValue(undefined);
+
+      const presentation: RevealPresentation = {
+        title: 'Test',
+        theme: 'black',
+        voice: 'bella', // Different voice!
+        resolution: '1920x1080',
+        slides: [
+          {
+            id: 'slide-001',
+            index: 0,
+            content: '# Test',
+            audio: {
+              rawText: 'Test',
+              cleanText: 'Test', // Same text as cached
+              expectedDuration: null,
+              pauses: [],
+            },
+            playwright: null,
+            notes: null,
+            metadata: { duration: null, pauseAfter: 1, fragments: [] },
+          },
+        ],
+      };
+
+      const audioData = await generator.generateAllSlideAudio(
+        presentation,
+        '/output/audio'
+      );
+
+      // Should be a cache miss because voice changed from 'adam' to 'bella'
+      expect(audioData.cacheMisses).toBe(1);
+      expect(audioData.cacheHits).toBe(0);
+
+      // Verify ElevenLabs was called with new voice
+      expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledWith(
+        'Test',
+        'bella',
+        expect.any(String)
+      );
+    });
+  });
+
+  // ==========================================================================
   // VALIDATION
   // ==========================================================================
 

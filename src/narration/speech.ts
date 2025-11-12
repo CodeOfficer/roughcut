@@ -68,8 +68,20 @@ export class RevealSpeechGenerator {
       const outputPath = join(outputDir, `${slide.id}.mp3`);
 
       try {
-        // Compute hash of audio content
-        const audioHash = hashAudioText(slide.audio.cleanText);
+        // Get voice parameters (same defaults as used during generation)
+        const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
+        const model = env.ELEVENLABS_MODEL;
+        const stability = env.ELEVENLABS_STABILITY;
+        const similarityBoost = env.ELEVENLABS_SIMILARITY_BOOST;
+
+        // Compute hash of audio content + voice parameters
+        const audioHash = hashAudioText(
+          slide.audio.cleanText,
+          voiceId,
+          model,
+          stability,
+          similarityBoost
+        );
 
         // Check cache
         const cached = findCachedAudio(manifest, slide.id, audioHash);
@@ -111,9 +123,6 @@ export class RevealSpeechGenerator {
         // Cache miss - generate new audio
         cacheMisses++;
 
-        // Use voice from presentation or fall back to environment variable
-        const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
-
         const result = await this.generateSlideAudio(
           slide,
           outputPath,
@@ -122,10 +131,14 @@ export class RevealSpeechGenerator {
 
         results.set(slide.id, result);
 
-        // Update cache manifest with all data including alignment
+        // Update cache manifest with all data including alignment and voice parameters
         const cacheEntry: any = {
           hash: audioHash,
           text: slide.audio.cleanText,
+          voiceId,
+          model,
+          stability,
+          similarityBoost,
           file: `${slide.id}.mp3`,
           duration: result.durationSeconds,
         };
