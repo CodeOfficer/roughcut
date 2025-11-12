@@ -270,9 +270,19 @@ TUTORIAL=full-demo npm run tutorial:full
 TUTORIAL=simple-demo npm run tutorial:html
 ```
 
-**Low-level CLI** (for advanced use):
+**Development Tools**:
 ```bash
-npm run tutorial:build -- -i <file> -o <output> --skip-images --skip-audio
+# Code Quality
+npm run build          # TypeScript compilation (must pass!)
+npm test               # Run all tests (283 passing)
+npm run test:watch     # Auto-rerun tests on file changes (TDD mode)
+npm run test:coverage  # Generate coverage report
+npm run lint           # ESLint checks
+npm run format         # Auto-format with Prettier
+npm run type-check     # Type check without compilation
+
+# Voice Management
+npm run voices         # List available ElevenLabs voices
 ```
 
 **Pattern:**
@@ -314,9 +324,10 @@ genai-tutorial-factory/
 ## 🔧 Build & Test
 
 ```bash
-npm run build       # TypeScript compilation (must pass!)
-npm test            # Run all tests (225 tests)
-npm run tutorial:build <file>  # Build presentation + video
+npm run build                        # TypeScript compilation (must pass!)
+npm test                             # Run all tests (283 tests)
+TUTORIAL=<name> npm run tutorial:fast  # Fast build (most common)
+TUTORIAL=<name> npm run tutorial:full  # Full build with AI
 ```
 
 ---

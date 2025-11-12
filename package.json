@@ -17,9 +17,6 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
-    "start": "direnv exec . node dist/cli/index.js",
-    "cli:dev": "direnv exec . tsx src/cli/index.ts",
-    "tutorial:build": "npm run cli:dev build",
     "voices": "direnv exec . tsx scripts/list-voices.ts"
   },
   "keywords": [
