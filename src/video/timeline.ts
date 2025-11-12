@@ -9,6 +9,7 @@ import type {
   RevealTimeline,
   SlideTimelineEntry,
   AudioGenerationResult,
+  FragmentTiming,
 } from '../core/types.js';
 
 /**
@@ -47,6 +48,12 @@ export class RevealTimelineBuilder {
       // Calculate total slide duration
       const totalSlideDuration = audioDuration + pauseAfter;
 
+      // Calculate fragment timings
+      const fragmentTimings = this.calculateFragmentTimings(
+        slide.metadata.fragments,
+        audioDuration
+      );
+
       // Build timeline entry
       const entry: SlideTimelineEntry = {
         slideId: slide.id,
@@ -60,6 +67,7 @@ export class RevealTimelineBuilder {
         hasPlaywright: slide.playwright !== null,
         playwrightInstructions: slide.playwright?.instructions || [],
         metadata: slide.metadata,
+        fragmentTimings,
       };
 
       entries.push(entry);
@@ -80,6 +88,56 @@ export class RevealTimelineBuilder {
       slides: entries,
       totalDuration,
     };
+  }
+
+  /**
+   * Calculate fragment reveal timings for a slide
+   *
+   * Strategy:
+   * - If fragment has explicit timingOffset, use it (relative to slide start)
+   * - Otherwise, space fragments evenly across audio duration
+   *
+   * Example with 3 fragments and 10s audio:
+   * - Fragment 0: 2.5s (10 / 4 * 1)
+   * - Fragment 1: 5.0s (10 / 4 * 2)
+   * - Fragment 2: 7.5s (10 / 4 * 3)
+   */
+  private calculateFragmentTimings(
+    fragments: Array<{ index: number; timingOffset?: number }>,
+    audioDuration: number
+  ): FragmentTiming[] {
+    if (fragments.length === 0) {
+      return [];
+    }
+
+    const timings: FragmentTiming[] = [];
+
+    for (const fragment of fragments) {
+      let timestamp: number;
+
+      if (fragment.timingOffset !== undefined) {
+        // Use explicit timing offset (relative to slide start)
+        timestamp = fragment.timingOffset;
+      } else {
+        // Space evenly across audio duration
+        // Divide duration into (fragments.length + 1) segments
+        // Place each fragment at segment boundaries
+        const segmentDuration = audioDuration / (fragments.length + 1);
+        timestamp = segmentDuration * (fragment.index + 1);
+      }
+
+      timings.push({
+        fragmentIndex: fragment.index,
+        timestamp,
+      });
+
+      logger.debug(
+        `Fragment ${fragment.index} timing: ${timestamp.toFixed(2)}s ` +
+        `(${fragment.timingOffset !== undefined ? 'explicit' : 'auto-spaced'})`
+      );
+    }
+
+    return timings;
   }
 
   /**

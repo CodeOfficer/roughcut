@@ -184,9 +184,14 @@ export class AudioSyncOrchestrator {
         // Navigate to slide
         await this.controller.slide(entry.slideIndex, 0);
 
-        // Play audio if present
+        // Play audio with fragment reveals if present
         if (entry.audioPath) {
-          await this.playAudio(entry.audioPath, i, timeline.slides.length);
+          await this.playAudioWithFragments(
+            entry.audioPath,
+            entry.fragmentTimings,
+            i,
+            timeline.slides.length
+          );
         }
 
         // Pause after audio
@@ -261,10 +266,11 @@ export class AudioSyncOrchestrator {
   // ============================================================================
 
   /**
-   * Play audio and wait for completion
+   * Play audio with scheduled fragment reveals
    */
-  private async playAudio(
+  private async playAudioWithFragments(
     audioPath: string,
+    fragmentTimings: Array<{ fragmentIndex: number; timestamp: number }>,
     slideIndex: number,
     totalSlides: number
   ): Promise<void> {
@@ -285,14 +291,58 @@ export class AudioSyncOrchestrator {
     try {
       // Load and play audio
       await this.audioPlayer.load(audioPath);
+      const audioStartTime = Date.now();
       await this.audioPlayer.play();
 
-      // Wait for audio to finish
-      await this.audioPlayer.waitForEnd();
+      // Schedule fragment reveals
+      const fragmentPromises: Promise<void>[] = [];
+
+      for (const { fragmentIndex, timestamp } of fragmentTimings) {
+        const fragmentPromise = this.scheduleFragmentReveal(
+          fragmentIndex,
+          timestamp,
+          audioStartTime
+        );
+        fragmentPromises.push(fragmentPromise);
+      }
+
+      // Wait for audio to finish (fragments reveal in parallel)
+      await Promise.all([
+        this.audioPlayer.waitForEnd(),
+        ...fragmentPromises,
+      ]);
     } catch (error) {
       // If audio fails to play, wait a minimal amount and continue
       // This handles cases like test mock files or missing audio
       await this.controller.wait(100);
+    }
+  }
+
+  /**
+   * Schedule a fragment reveal at a specific timestamp
+   */
+  private async scheduleFragmentReveal(
+    fragmentIndex: number,
+    timestamp: number,
+    audioStartTime: number
+  ): Promise<void> {
+    // Calculate delay until fragment should be revealed
+    const delayMs = timestamp * 1000;
+
+    // Wait until the scheduled time
+    await this.controller.wait(delayMs);
+
+    // Reveal the fragment
+    try {
+      await this.controller.nextFragment();
+
+      const elapsedMs = Date.now() - audioStartTime;
+      console.log(
+        `✨ Fragment ${fragmentIndex} revealed at ${(elapsedMs / 1000).toFixed(2)}s ` +
+        `(scheduled: ${timestamp.toFixed(2)}s)`
+      );
+    } catch (error) {
+      console.warn(`Failed to reveal fragment ${fragmentIndex}:`, error);
     }
   }
 

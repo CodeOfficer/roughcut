@@ -83,12 +83,23 @@ async function runDev(options: any): Promise<void> {
       const manifestContent = await fs.readFile(manifestPath, 'utf-8');
       const manifest = JSON.parse(manifestContent);
 
-      for (const [slideId, data] of Object.entries(manifest) as [string, any][]) {
-        if (data.duration) {
-          audioResults.set(slideId, { durationSeconds: data.duration });
+      // Manifest structure: { "slide-001": [{ hash, text, file, duration, ... }] }
+      for (const [slideId, lines] of Object.entries(manifest) as [string, any[]][]) {
+        if (Array.isArray(lines) && lines.length > 0) {
+          // Sum durations of all audio lines for this slide
+          const totalDuration = lines.reduce((sum, line) => sum + (line.duration || 0), 0);
+
+          // Use the first line's file path (HTTP server-relative)
+          // The file is already relative in the manifest
+          const filePath = `/audio/${lines[0].file}`;
+
+          audioResults.set(slideId, {
+            filePath,
+            durationSeconds: totalDuration,
+          });
         }
       }
-    } catch {
+    } catch (error) {
       console.warn('⚠️  Audio manifest not found, using metadata durations');
     }
 

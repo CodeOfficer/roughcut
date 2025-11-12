@@ -245,6 +245,17 @@ export interface RevealTimeline {
 }
 
 /**
+ * Fragment timing information for orchestration
+ */
+export interface FragmentTiming {
+  /** Fragment index (0-based) */
+  fragmentIndex: number;
+
+  /** Timestamp in seconds (relative to slide start) */
+  timestamp: number;
+}
+
+/**
  * Timeline entry for a single slide
  */
 export interface SlideTimelineEntry {
@@ -280,6 +291,9 @@ export interface SlideTimelineEntry {
 
   /** Slide metadata */
   metadata: SlideMetadata;
+
+  /** Fragment reveal timings (empty array if no fragments) */
+  fragmentTimings: FragmentTiming[];
 }
 
 // ============================================================================
