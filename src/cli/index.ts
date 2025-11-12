@@ -6,6 +6,7 @@ import {
   createBuildCommand,
   type BuildOptions,
 } from './commands/index.js';
+import { createDevCommand } from './commands/dev.js';
 
 /**
  * Main CLI program
@@ -62,6 +63,11 @@ program
       process.exit(1);
     }
   });
+
+/**
+ * Dev mode - interactive presentation testing
+ */
+program.addCommand(createDevCommand());
 
 // Parse command line arguments
 program.parse();

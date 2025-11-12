@@ -123,6 +123,8 @@ ${this.generateSlides(presentation.slides)}
     // Initialize reveal.js
     Reveal.initialize(${this.generateConfig(config)});
   </script>
+
+${this.generateAudioControllerScript()}
 </body>
 </html>`;
   }
@@ -180,6 +182,8 @@ ${this.generateSlides(presentation.slides)}
     // Initialize reveal.js
     Reveal.initialize(${this.generateConfig(config)});
   </script>
+
+${this.generateAudioControllerScript()}
 </body>
 </html>`;
   }
@@ -225,6 +229,13 @@ ${notes}
     // Markdown attribute
     attrs.push('data-markdown');
 
+    // Audio path (relative to HTML file)
+    if (slide.audio) {
+      // Construct audio path from slide ID (e.g., slide-001 -> slide-001.mp3)
+      const audioFilename = `${slide.id}.mp3`;
+      attrs.push(`data-audio="../audio/${audioFilename}"`);
+    }
+
     // Transition
     if (slide.metadata.transition) {
       attrs.push(`data-transition="${slide.metadata.transition}"`);
@@ -262,7 +273,50 @@ ${notes}
    * Generate slide content (markdown)
    */
   private generateSlideContent(slide: RevealSlide): string {
-    return slide.content;
+    let content = slide.content;
+
+    // If slide has fragments, inject RevealJS fragment directives
+    if (slide.metadata.fragments && slide.metadata.fragments.length > 0) {
+      content = this.injectFragmentDirectives(content, slide.metadata.fragments);
+    }
+
+    return content;
+  }
+
+  /**
+   * Inject RevealJS fragment directives into markdown content
+   * Converts @fragment markers to HTML comment syntax for RevealJS
+   */
+  private injectFragmentDirectives(content: string, fragments: Array<{ index: number; content: string; effect?: string }>): string {
+    let result = content;
+
+    // Process fragments in reverse order to avoid offset issues
+    for (let i = fragments.length - 1; i >= 0; i--) {
+      const fragment = fragments[i];
+      if (!fragment) continue;
+
+      const fragmentContent = fragment.content.trim();
+
+      // Find the line containing this fragment's content
+      const lines = result.split('\n');
+      for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        const line = lines[lineIndex];
+        if (!line) continue;
+
+        // Match the fragment content (trimmed for flexibility)
+        if (line.trim() === fragmentContent) {
+          // Append RevealJS fragment directive as HTML comment
+          const effect = fragment.effect || 'fade';
+          const directive = ` <!-- .element: class="fragment ${effect}-in" data-fragment-index="${fragment.index}" -->`;
+          lines[lineIndex] = line + directive;
+          break;
+        }
+      }
+
+      result = lines.join('\n');
+    }
+
+    return result;
   }
 
   /**
@@ -336,6 +390,69 @@ ${this.indentContent(slide.notes, 10)}
       .split('\n')
       .map((line) => (line.trim() ? indent + line : ''))
       .join('\n');
+  }
+
+  /**
+   * Generate audio controller JavaScript for interactive playback
+   */
+  private generateAudioControllerScript(): string {
+    return `  <script>
+    // Audio controller for interactive presentation
+    (function() {
+      let currentAudio = null;
+
+      // Load and play audio for a slide
+      function playSlideAudio(slide) {
+        // Stop any currently playing audio
+        stopCurrentAudio();
+
+        // Get audio path from data attribute
+        const audioPath = slide.dataset.audio;
+        if (!audioPath) {
+          return; // No audio for this slide
+        }
+
+        // Create and play audio element
+        currentAudio = new Audio(audioPath);
+        currentAudio.play().catch(err => {
+          console.warn('Audio autoplay failed:', err);
+          // Browser may block autoplay - this is expected
+        });
+      }
+
+      // Stop currently playing audio
+      function stopCurrentAudio() {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio = null;
+        }
+      }
+
+      // Listen for slide changes
+      Reveal.on('slidechanged', event => {
+        playSlideAudio(event.currentSlide);
+      });
+
+      // Listen for fragment changes (optional: could restart audio or continue)
+      Reveal.on('fragmentshown', event => {
+        // Currently: do nothing, let audio continue
+        // Alternative: could restart audio or sync with fragment timing
+      });
+
+      // Play audio for initial slide after reveal is ready
+      Reveal.on('ready', event => {
+        playSlideAudio(event.currentSlide);
+      });
+
+      // Expose audio controller globally for dev mode
+      window.revealAudioController = {
+        play: () => playSlideAudio(Reveal.getCurrentSlide()),
+        stop: stopCurrentAudio,
+        getCurrentAudio: () => currentAudio
+      };
+    })();
+  </script>`;
   }
 }
 
