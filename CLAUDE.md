@@ -157,23 +157,41 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 6. ✅ **DONE: Dev Mode for Interactive Testing** - Debug without video recording! (2025-11-11)
    - **Fragment Rendering**: Fragments now properly injected into HTML with RevealJS directives
-   - **Audio Management**: Auto-play audio on slide change, cancel on navigation
+   - **Audio Management**: Auto-play audio on slide change, cancel on navigation, suppress AbortErrors
+   - **Enhanced Logging**: Comprehensive timestamped logging system
+     * Elapsed time from page load: `[0.52s]`, `[2.34s]`, etc.
+     * User interactions: `👆 User clicked`, `⌨️ User pressed: ArrowRight`
+     * Slide changes: `📍 Slide changed: #2 (slide-002)`
+     * Fragment events: `✨ Fragment shown: index 0`, `💨 Fragment hidden: index 0`
+     * Audio timing: `🔊 Audio playing (loaded in 0.22s)`
+     * Audio enablement: `✅ Audio enabled - narration will play on slide changes`
+   - **HTTP Server**: Built-in dev server for fast asset loading
+     * Eliminates 10s file:// protocol delays
+     * Serves from `http://localhost:<random-port>`
+     * Routes: `/reveal/*`, `/audio/*`, `/images/*`
+     * Proper MIME types for all assets
    - **Dev Server**: Two modes for testing presentations
      * Manual mode: Open browser, user controls with keyboard/mouse
      * Auto mode: Watch orchestrator automation (visible, no recording)
-   - **Commands:**
+   - **NPM Commands:**
      ```bash
-     # Manual mode (recommended for debugging!)
-     node dist/cli/index.js dev -i tutorials/full-demo/presentation.md
-
-     # Auto mode (watch automation)
-     node dist/cli/index.js dev -i tutorials/full-demo/presentation.md --auto
+     npm run dev         # Manual mode (full-demo)
+     npm run dev:auto    # Auto mode (watch automation)
+     npm run dev:cli     # Old dev behavior (tsx)
      ```
    - **Benefits:** Debug timing issues, test fragments, verify audio sync without expensive recording
-   - **Files:** `src/dev-server.ts`, `src/cli/commands/dev.ts`
+   - **Files:** `src/dev-server.ts`, `src/cli/commands/dev.ts`, `src/presentation/revealjs-generator.ts`
+   - **Known Issues:** HTTP routing for bundled assets needs refinement (404s on reveal/dist/*)
 
 **Next Tasks:**
-1. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
+1. **TODO: Fix HTTP Server Asset Routing** - Dev mode still getting 404s (PRIORITY!)
+   - Issue: `/reveal/dist/reveal.css` returns 404
+   - Current routing tries `output/presentation/reveal/dist/reveal.css`
+   - Check actual asset paths in bundled build
+   - May need to adjust bundling or routing logic
+   - Browser shows sidebar instead of slides due to missing assets
+
+2. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
    - Need to calculate fragment timing from ElevenLabs alignment data
    - Implement `controller.nextFragment()` calls at proper timestamps
    - Update timeline to include fragment timing metadata
