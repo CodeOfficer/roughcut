@@ -95,15 +95,17 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 4. **NPM Scripts** - Clean interface (removed run-demo.mjs)
 5. **Documentation** - All planning docs updated in `docs/architecture/revealjs/DECISIONS.md`
 6. **Multi-line Audio & TTS Caching** - Readable format with intelligent caching (2025-11-11)
+7. **Markdown Linting System** - Comprehensive validation before build (2025-11-11)
 
 **What's Working:**
 - ✅ Build: `npm run build` (zero errors)
-- ✅ Tests: 231 passing (45 parser tests including multi-line audio)
-- ✅ Pipeline: Parse → Images → Audio (cached) → HTML → Timeline → Record → Assemble
+- ✅ Tests: 283 passing (52 linting tests, 45 parser tests, + integration tests)
+- ✅ Pipeline: **Lint** → Parse → Images → Audio (cached) → HTML → Timeline → Record → Assemble
 - ✅ Outputs: Interactive HTML + MP4 video (both, always)
 - ✅ AI Features: Image generation, TTS narration (with caching), browser automation
-- ✅ Demo: `npm run demo` (fast), `npm run demo:full` (with AI), `npm run demo:html` (HTML only)
+- ✅ Demos: `tutorials/simple-demo` (8 slides), `tutorials/full-demo` (21 slides)
 - ✅ Audio: Multi-line format with SHA256 fingerprinting for incremental TTS
+- ✅ Linting: Strict validation with helpful error messages (fail-fast before expensive operations)
 
 **Next Session - Start Here:**
 1. ✅ **DONE: ElevenLabs Timestamps Endpoint** - Now getting free character-level timing!
@@ -136,15 +138,32 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Complements debug.txt (verbose) with user-friendly summary
    - Example: "Video Recording: 67.32s (97.3%) ← SLOWEST"
 
-5. **TODO: Add Markdown Format Linting**
-   - Validate front matter (required fields: title, theme)
-   - Check directive syntax (`@audio:`, `@image-prompt:`, `@voice:`)
-   - Warn about common mistakes
-   - Helpful error messages with line numbers
+5. ✅ **DONE: Markdown Format Linting** - Strict validation system!
+   - Created directive registry (source of truth for all @commands)
+   - Implemented linting engine with comprehensive validation
+   - Added 52 test cases covering all validation rules
+   - Integrated into build pipeline (fail-fast before expensive operations)
+   - Validation includes:
+     * Required frontmatter fields (title, theme)
+     * All 10 directive types (syntax and values)
+     * Pause marker format and placement
+     * @fragment usage (must be on bullet lists, not numbered)
+     * Empty slide detection
+     * Unknown directive detection with typo suggestions (Levenshtein distance)
+   - Error messages include: line numbers, current/expected values, examples, suggestions
+   - Comprehensive documentation: `docs/LINTING_SPEC.md`
+   - New presentations: `tutorials/simple-demo` (8 slides), `tutorials/full-demo` (21 slides)
+   - Removed old presentations (demo, test) that didn't pass linting
 
-6. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-7. Add more examples to `tutorials/examples/`
-8. Explore additional RevealJS features (vertical slides, fragments, speaker view)
+**Next Tasks:**
+1. **TODO: Explore Auto-Generated Documentation**
+   - Generate markdown format docs from directive registry
+   - Create interactive reference for users
+   - Consider CLI command: `npm run docs:generate`
+
+2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+3. Add more examples to `tutorials/examples/`
+4. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
 
 ---
 
