@@ -429,12 +429,16 @@ ${this.indentContent(slide.notes, 10)}
 
       // Load and play audio for a slide
       function playSlideAudio(slide) {
+        logWithTime(\`🎵 playSlideAudio called (audioEnabled=\${audioEnabled}, slide=\${slide?.id})\`);
+
         // Stop any currently playing audio
         stopCurrentAudio();
 
         // Get audio path from data attribute
         const audioPath = slide.dataset.audio;
+        logWithTime(\`🎵 audioPath=\${audioPath}\`);
         if (!audioPath) {
+          logWithTime('🔇 No audio path for this slide');
           return; // No audio for this slide
         }
 
@@ -445,16 +449,19 @@ ${this.indentContent(slide.notes, 10)}
         }
 
         // Create and play audio element
+        logWithTime(\`🎵 Creating Audio object for: \${audioPath}\`);
         const audioStartTime = performance.now();
         currentAudio = new Audio(audioPath);
         currentAudio.preload = 'auto'; // Preload for faster playback
 
+        logWithTime(\`🎵 Calling audio.play()...\`);
         currentAudio.play().then(() => {
           const loadTime = ((performance.now() - audioStartTime) / 1000).toFixed(2);
           logWithTime(\`🔊 Audio playing (loaded in \${loadTime}s)\`);
         }).catch(err => {
           // Ignore AbortError (happens when navigating quickly)
           if (err.name === 'AbortError') {
+            logWithTime('🔇 Audio aborted (navigation)');
             return;
           }
           logWithTime(\`⚠️ Audio playback failed: \${err.message}\`);

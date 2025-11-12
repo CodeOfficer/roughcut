@@ -334,3 +334,4 @@ All strategic decisions are recorded in:
 - NPM scripts are the interface (no standalone scripts like run-demo.mjs)
 - make sure you ask and commit your changes at milestone task completion  in our plan
 - please commit all changes when you tell me a task is done
+- please make sure you are always cleaning up processses you spin up

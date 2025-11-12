@@ -98,8 +98,11 @@ export class PlaywrightRevealController {
       deviceScaleFactor = 1,
     } = options;
 
-    // Launch browser
-    this.browser = await chromium.launch({ headless });
+    // Launch browser with autoplay enabled
+    this.browser = await chromium.launch({
+      headless,
+      args: ['--autoplay-policy=no-user-gesture-required'],
+    });
 
     // Create context with video recording if specified
     const contextOptions: any = {
@@ -119,10 +122,32 @@ export class PlaywrightRevealController {
     // Create page
     this.page = await this.context.newPage();
 
+    // Capture console messages for debugging
+    this.page.on('console', (msg) => {
+      const type = msg.type();
+      const text = msg.text();
+      if (type === 'error') {
+        console.log(`   🔴 Browser console error: ${text}`);
+      } else if (type === 'warning') {
+        console.log(`   ⚠️  Browser console warning: ${text}`);
+      } else if (type === 'log') {
+        // Show logs from audio controller (they start with timestamps like [0.52s])
+        if (text.includes('[') && text.includes('s]')) {
+          console.log(`   ${text}`);
+        }
+      }
+    });
+
+    // Capture page errors
+    this.page.on('pageerror', (error) => {
+      console.log(`   💥 Browser page error: ${error.message}`);
+    });
+
     // Load HTML file (support both file paths and HTTP URLs)
     const url = htmlPath.startsWith('http://') || htmlPath.startsWith('https://')
       ? htmlPath
       : `file://${path.resolve(htmlPath)}`;
+    console.log(`   Loading URL: ${url}`);
     await this.page.goto(url, { waitUntil: 'networkidle' });
 
     // Wait for reveal.js to initialize
@@ -139,11 +164,46 @@ export class PlaywrightRevealController {
       throw new Error('Page not initialized');
     }
 
-    // Wait for Reveal object to be available
-    await this.page.waitForFunction(
-      () => typeof (window as any).Reveal !== 'undefined' && (window as any).Reveal.isReady(),
-      { timeout: 10000 }
-    );
+    // Add diagnostic logging
+    console.log('⏳ Waiting for Reveal.js to initialize...');
+
+    // Check what's in the page before waiting
+    const initialCheck = await this.page.evaluate(() => {
+      const win = window as any;
+      return {
+        hasReveal: typeof win.Reveal !== 'undefined',
+        revealKeys: typeof win.Reveal !== 'undefined' ? Object.keys(win.Reveal).slice(0, 10) : [],
+        hasIsReady: typeof win.Reveal !== 'undefined' && typeof win.Reveal.isReady === 'function',
+        isReadyValue: typeof win.Reveal !== 'undefined' && typeof win.Reveal.isReady === 'function' ? win.Reveal.isReady() : undefined,
+      };
+    });
+
+    console.log('   Initial state:', JSON.stringify(initialCheck, null, 2));
+
+    try {
+      // Wait for Reveal object to be available
+      await this.page.waitForFunction(
+        () => typeof (window as any).Reveal !== 'undefined' && (window as any).Reveal.isReady(),
+        { timeout: 60000 }  // Increase timeout to 60s for debugging
+      );
+      console.log('✅ Reveal.js ready');
+    } catch (error) {
+      // Get final state on failure
+      const finalCheck = await this.page.evaluate(() => {
+        const win = window as any;
+        return {
+          hasReveal: typeof win.Reveal !== 'undefined',
+          revealKeys: typeof win.Reveal !== 'undefined' ? Object.keys(win.Reveal).slice(0, 10) : [],
+          hasIsReady: typeof win.Reveal !== 'undefined' && typeof win.Reveal.isReady === 'function',
+          isReadyValue: typeof win.Reveal !== 'undefined' && typeof win.Reveal.isReady === 'function' ? win.Reveal.isReady() : undefined,
+        };
+      });
+      console.log('❌ Timeout waiting for Reveal.js');
+      console.log('   Final state:', JSON.stringify(finalCheck, null, 2));
+
+      // Also check for console errors
+      throw error;
+    }
   }
 
   /**

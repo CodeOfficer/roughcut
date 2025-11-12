@@ -43,30 +43,33 @@ export class DevServer {
     return new Promise((resolve, reject) => {
       this.httpServer = http.createServer(async (req, res) => {
         try {
+          // Strip query parameters from URL
+          const urlPath = req.url?.split('?')[0] || '/';
+
           // Map URL to file path
           let filePath: string;
 
           // Root or /index.html -> serve the main HTML
-          if (req.url === '/' || req.url === '/index.html') {
+          if (urlPath === '/' || urlPath === '/index.html') {
             filePath = htmlPath;
           }
           // /reveal/* -> serve from presentation/reveal/
-          else if (req.url?.startsWith('/reveal/')) {
-            filePath = path.join(presentationDir, req.url);
+          else if (urlPath.startsWith('/reveal/')) {
+            filePath = path.join(presentationDir, urlPath);
           }
           // /audio/* -> serve from output/audio/
-          else if (req.url?.startsWith('/audio/')) {
-            filePath = path.join(outputDir, req.url);
+          else if (urlPath.startsWith('/audio/')) {
+            filePath = path.join(outputDir, urlPath);
           }
           // /images/* -> serve from output/images/
-          else if (req.url?.startsWith('/images/')) {
-            filePath = path.join(outputDir, req.url);
+          else if (urlPath.startsWith('/images/')) {
+            filePath = path.join(outputDir, urlPath);
           }
           // Everything else -> try presentation dir first, then output dir
           else {
-            filePath = path.join(presentationDir, req.url || '/');
+            filePath = path.join(presentationDir, urlPath);
             if (!existsSync(filePath)) {
-              filePath = path.join(outputDir, req.url || '/');
+              filePath = path.join(outputDir, urlPath);
             }
           }
 
@@ -77,6 +80,7 @@ export class DevServer {
 
           // Check if file exists
           if (!existsSync(filePath)) {
+            console.log(`   ❌ 404 Not Found: ${urlPath} (tried: ${filePath})`);
             res.writeHead(404);
             res.end('Not found');
             return;
