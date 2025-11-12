@@ -246,24 +246,28 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 **NPM Scripts Available:**
 
-**Generic Scripts** (use with any tutorial):
+**Dev Server** (interactive testing):
 ```bash
-# Fast build (skip images & audio) - saves API costs!
-TUTORIAL=demo npm run build:fast
-TUTORIAL=mcp-server npm run build:fast
+# Manual mode (defaults to full-demo, override with TUTORIAL env var)
+npm run dev
+npm run dev:auto  # Auto-advance with visible browser
 
-# Full build (uses TTS + Gemini credits!)
-TUTORIAL=my-presentation npm run build:full
-
-# HTML only (no video recording)
-TUTORIAL=example npm run build:html
+# With specific tutorial
+TUTORIAL=simple-demo npm run dev
+TUTORIAL=my-presentation npm run dev:auto
 ```
 
-**Demo Shortcuts** (hardcoded to demo tutorial):
+**Build Scripts** (use with any tutorial via TUTORIAL env var):
 ```bash
-npm run demo       # Fast: skip images & audio
-npm run demo:full  # Full: with all AI features
-npm run demo:html  # HTML only, no video
+# Fast build (skip images & audio) - saves API costs!
+TUTORIAL=simple-demo npm run tutorial:fast
+TUTORIAL=my-presentation npm run tutorial:fast
+
+# Full build (uses TTS + Gemini credits!)
+TUTORIAL=full-demo npm run tutorial:full
+
+# HTML only (no video recording)
+TUTORIAL=simple-demo npm run tutorial:html
 ```
 
 **Low-level CLI** (for advanced use):
@@ -274,7 +278,7 @@ npm run tutorial:build -- -i <file> -o <output> --skip-images --skip-audio
 **Pattern:**
 - All tutorials: `tutorials/<name>/presentation.md`
 - Outputs: `tutorials/<name>/output/`
-- Helper: `scripts/build-tutorial.sh <name> <mode>`
+- Helper: `scripts/build-tutorial.sh <mode>` (requires TUTORIAL env var)
 
 ---
 
