@@ -114,17 +114,19 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Test tutorial: `tutorials/test/` (2 slides, ~70s build vs 9min for demo)
    - Scripts: `npm run test:build`, `test:build:full`, `test:build:html`
 
-2. **TODO: Fix Audio Manifest Persistence** 🔴 HIGH PRIORITY
-   - Cache code exists (`audio-cache.ts`) but manifest.json not being saved
-   - Need to debug why `saveCacheManifest()` isn't persisting
-   - Should store: `{slideId: [{hash, text, file, duration, alignment}]}`
-   - Enables incremental TTS regeneration (save API costs!)
+2. ✅ **DONE: Fix Audio Manifest Persistence** - TTS cache now working!
+   - Fixed path construction bug (was writing to audio/audio/manifest.json)
+   - Manifest now persists correctly with full alignment data
+   - Cache hit/miss tracking shows "2 cached, 0 generated" on rebuilds
+   - Saves API costs on incremental builds!
 
-3. **TODO: Implement Verbose Logging System**
-   - Create `{outputDir}/debug.txt` with timestamped logs
-   - Log all operations with start/end times
-   - Include: parsing, image gen, TTS calls, recording, encoding
-   - Make it tail-able for real-time monitoring
+3. ✅ **DONE: Implement Verbose Logging System** - Debug logs now available!
+   - Creates `{outputDir}/debug.txt` with timestamped logs
+   - Tracks all operations with start/end times and metadata
+   - Includes: parsing, image gen, TTS, HTML, timeline, recording, assembly
+   - Operations summary shows time breakdown (e.g., "audio: 1.61s (99%)")
+   - Tail-able for real-time monitoring: `tail -f output/debug.txt`
+   - Perfect for identifying performance bottlenecks!
 
 4. **TODO: Implement Build Summary**
    - Create `{outputDir}/build-summary.txt`
