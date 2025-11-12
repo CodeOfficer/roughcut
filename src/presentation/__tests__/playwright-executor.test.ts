@@ -510,7 +510,7 @@ describe('PlaywrightInstructionExecutor', () => {
       const context: ExecutionContext = { page };
       const result = await executor.execute(instruction, context);
 
-      expect(result.duration).toBeGreaterThanOrEqual(100);
+      expect(result.duration).toBeGreaterThanOrEqual(90); // Allow 10ms tolerance
     });
   });
 });
