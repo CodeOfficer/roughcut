@@ -193,45 +193,38 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - RevealJS expects plain path, not CSS `url()` function
    - Eliminated 404 errors for background images
 
-9. ⚠️ **PARTIAL: Dev:Auto Mode Improvements** (2025-11-12)
+9. ✅ **DONE: Dev:Auto Mode - Full Working Implementation!** (2025-11-12)
    - ✅ Fixed browser conflict: auto mode now uses orchestrator's browser only
    - ✅ Manual mode launches separate browser with DevTools
    - ✅ HTTP server passes URL to orchestrator with `?autoplay=true` parameter
    - ✅ Playwright controller supports HTTP URLs in addition to file:// paths
-   - ✅ Audio controller detects autoplay parameter and skips user interaction requirement
-   - ⚠️ **ISSUE**: Playwright times out waiting for Reveal.js initialization (30s timeout)
-   - HTTP server verified working (assets load via curl)
-   - Needs investigation: browser console may show JS errors or loading issues
+   - ✅ Audio controller detects autoplay parameter and enables audio automatically
+   - ✅ HTTP server strips query parameters for correct routing
+   - ✅ Playwright launches with `--autoplay-policy=no-user-gesture-required` flag
+   - ✅ Browser console logging (log, warning, error) for diagnostics
+   - ✅ Audio playback works in auto mode (confirmed user testing)
+   - ✅ Slides advance automatically with audio narration on each slide
+   - **Result**: Dev:auto mode is fully functional for debugging and testing!
 
 **Next Tasks:**
-1. **TODO: Debug Playwright Timeout in Dev:Auto Mode** (PRIORITY!)
-   - Playwright times out waiting for `Reveal.isReady()` to return true
-   - HTTP server working, assets load correctly via curl
-   - May need to:
-     * Increase timeout beyond 10s (line 145 in playwright-controller.ts)
-     * Add diagnostic logging to see what's failing in browser
-     * Check browser console for JavaScript errors
-     * Verify all script tags load successfully
-   - Run `TUTORIAL=simple-demo npm run dev:auto` and inspect browser console
-
-2. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
+1. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
    - Need to calculate fragment timing from ElevenLabs alignment data
    - Implement `controller.nextFragment()` calls at proper timestamps
    - Update timeline to include fragment timing metadata
 
-3. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
+2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
    - Shows expected vs actual timing for each slide
    - Includes fragment timing once implemented
    - Helps diagnose sync issues
 
-4. **TODO: Explore Auto-Generated Documentation**
+3. **TODO: Explore Auto-Generated Documentation**
    - Generate markdown format docs from directive registry
    - Create interactive reference for users
    - Consider CLI command: `npm run docs:generate`
 
-5. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-6. Add more examples to `tutorials/examples/`
-7. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
+4. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+5. Add more examples to `tutorials/examples/`
+6. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
 
 ---
 
