@@ -20,6 +20,7 @@ import { createRevealTimelineBuilder } from '../../video/timeline.js';
 import { AudioSyncOrchestrator } from '../../presentation/audio-sync-orchestrator.js';
 import { createRevealVideoAssembler } from '../../video/assembler.js';
 import { ImageGenerator } from '../../images/generator.js';
+import { createDebugLogger } from '../../core/debug-logger.js';
 import type { RevealPresentation } from '../../core/types.js';
 
 // ============================================================================
@@ -133,6 +134,9 @@ export class RevealBuildCommand {
   async execute(options: BuildOptions): Promise<BuildResult> {
     const startTime = Date.now();
 
+    // Initialize debug logger early (outside try block for error handling)
+    let debugLogger: ReturnType<typeof createDebugLogger> | null = null;
+
     try {
       // Validate options
       this.validateOptions(options);
@@ -140,7 +144,18 @@ export class RevealBuildCommand {
       // Setup output directories
       await this.setupOutputDirectories(options.output);
 
+      // Initialize debug logger
+      debugLogger = createDebugLogger(options.output);
+      await debugLogger.info('Build started', {
+        input: options.input,
+        output: options.output,
+        skipAudio: options.skipAudio,
+        skipImages: options.skipImages,
+        video: options.video,
+      });
+
       // Phase 1: Parse markdown
+      await debugLogger.startOperation('parse_markdown');
       this.reportProgress({
         phase: 'parsing',
         percentage: 0,
@@ -150,6 +165,10 @@ export class RevealBuildCommand {
       const markdown = await fs.readFile(options.input, 'utf-8');
       const parser = createRevealParser();
       const presentation = parser.parse(markdown);
+      await debugLogger.endOperation('parse_markdown', {
+        slides: presentation.slides.length,
+        title: presentation.title,
+      });
 
       this.reportProgress({
         phase: 'parsing',
@@ -164,6 +183,10 @@ export class RevealBuildCommand {
         );
 
         if (slidesWithImagePrompts.length > 0) {
+          await debugLogger.startOperation('generate_images', {
+            count: slidesWithImagePrompts.length,
+          });
+
           this.reportProgress({
             phase: 'parsing',
             percentage: 12,
@@ -171,6 +194,8 @@ export class RevealBuildCommand {
           });
 
           await this.generateImages(presentation, options);
+
+          await debugLogger.endOperation('generate_images');
 
           this.reportProgress({
             phase: 'parsing',
@@ -184,6 +209,8 @@ export class RevealBuildCommand {
       let audioResults: Map<string, any> | null = null;
 
       if (!options.skipAudio) {
+        await debugLogger.startOperation('generate_audio');
+
         this.reportProgress({
           phase: 'audio_generation',
           percentage: 15,
@@ -192,6 +219,10 @@ export class RevealBuildCommand {
 
         audioResults = await this.generateAudio(presentation, options);
 
+        await debugLogger.endOperation('generate_audio', {
+          slides_with_audio: audioResults?.size || 0,
+        });
+
         this.reportProgress({
           phase: 'audio_generation',
           percentage: 40,
@@ -199,10 +230,16 @@ export class RevealBuildCommand {
         });
       } else {
         // Load existing audio files
+        await debugLogger.startOperation('load_existing_audio');
         audioResults = await this.loadExistingAudio(presentation, options);
+        await debugLogger.endOperation('load_existing_audio', {
+          slides_with_audio: audioResults?.size || 0,
+        });
       }
 
       // Phase 3: Generate HTML
+      await debugLogger.startOperation('generate_html');
+
       this.reportProgress({
         phase: 'html_generation',
         percentage: 45,
@@ -211,6 +248,10 @@ export class RevealBuildCommand {
 
       const htmlPath = await this.generateHTML(presentation, options);
 
+      await debugLogger.endOperation('generate_html', {
+        path: htmlPath,
+      });
+
       this.reportProgress({
         phase: 'html_generation',
         percentage: 55,
@@ -218,6 +259,8 @@ export class RevealBuildCommand {
       });
 
       // Phase 4: Build timeline
+      await debugLogger.startOperation('build_timeline');
+
       this.reportProgress({
         phase: 'timeline_building',
         percentage: 60,
@@ -225,6 +268,11 @@ export class RevealBuildCommand {
       });
 
       const timeline = this.buildTimeline(presentation, audioResults);
+
+      await debugLogger.endOperation('build_timeline', {
+        total_duration: timeline.totalDuration,
+        slides: timeline.slides.length,
+      });
 
       this.reportProgress({
         phase: 'timeline_building',
@@ -238,6 +286,8 @@ export class RevealBuildCommand {
       // Phase 5: Record and assemble video (if enabled)
       if (options.video !== false) {
         // Record video with orchestrator
+        await debugLogger.startOperation('record_video');
+
         this.reportProgress({
           phase: 'video_recording',
           percentage: 70,
@@ -250,6 +300,10 @@ export class RevealBuildCommand {
           options
         );
 
+        await debugLogger.endOperation('record_video', {
+          path: recordedVideoPath,
+        });
+
         this.reportProgress({
           phase: 'video_recording',
           percentage: 85,
@@ -257,6 +311,8 @@ export class RevealBuildCommand {
         });
 
         // Assemble final video with audio
+        await debugLogger.startOperation('assemble_video');
+
         this.reportProgress({
           phase: 'video_assembly',
           percentage: 90,
@@ -273,6 +329,12 @@ export class RevealBuildCommand {
           videoPath = assemblyResult.outputPath;
           videoSize = assemblyResult.sizeBytes;
 
+          await debugLogger.endOperation('assemble_video', {
+            output_path: assemblyResult.outputPath,
+            size_bytes: assemblyResult.sizeBytes,
+            size_mb: (assemblyResult.sizeBytes / (1024 * 1024)).toFixed(2),
+          });
+
           this.reportProgress({
             phase: 'video_assembly',
             percentage: 95,
@@ -283,6 +345,15 @@ export class RevealBuildCommand {
 
       // Complete
       const durationSeconds = (Date.now() - startTime) / 1000;
+
+      // Write debug summary
+      await debugLogger.info('Build completed successfully', {
+        duration_seconds: durationSeconds,
+        slides_processed: presentation.slides.length,
+        audio_files: audioResults?.size || 0,
+        video_generated: options.video !== false,
+      });
+      await debugLogger.writeSummary();
 
       this.reportProgress({
         phase: 'complete',
@@ -324,6 +395,12 @@ export class RevealBuildCommand {
 
       return result;
     } catch (error) {
+      // Log error to debug file if available
+      if (debugLogger) {
+        await debugLogger.error('Build failed', error);
+        await debugLogger.writeSummary();
+      }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
