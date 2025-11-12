@@ -26,7 +26,7 @@ export class ElevenLabsClient {
       stability?: number;
       similarityBoost?: number;
     }
-  ): Promise<{ alignment?: CharacterAlignment; durationSeconds: number }> {
+  ): Promise<{ alignment?: CharacterAlignment; normalizedAlignment?: CharacterAlignment; durationSeconds: number }> {
     const model = options?.model || env.ELEVENLABS_MODEL;
     const stability = options?.stability ?? env.ELEVENLABS_STABILITY;
     const similarityBoost = options?.similarityBoost ?? env.ELEVENLABS_SIMILARITY_BOOST;
@@ -75,12 +75,16 @@ export class ElevenLabsClient {
 
       logger.debug(`Saved audio to ${outputPath} (${audioBuffer.byteLength} bytes, ${durationSeconds.toFixed(2)}s)`);
 
-      const result: { alignment?: CharacterAlignment; durationSeconds: number } = {
+      const result: { alignment?: CharacterAlignment; normalizedAlignment?: CharacterAlignment; durationSeconds: number } = {
         durationSeconds,
       };
 
       if (data.alignment) {
         result.alignment = data.alignment;
+      }
+
+      if (data.normalized_alignment) {
+        result.normalizedAlignment = data.normalized_alignment;
       }
 
       return result;

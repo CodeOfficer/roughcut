@@ -71,25 +71,36 @@ export class RevealSpeechGenerator {
         const cached = findCachedAudio(manifest, slide.id, audioHash);
 
         if (cached && existsSync(join(outputDir, cached.file))) {
-          // Cache hit! Reuse existing audio
+          // Cache hit! Reuse existing audio with alignment data
           cacheHits++;
           const cachedPath = join(outputDir, cached.file);
 
           // Get file size
           const stats = await stat(cachedPath);
 
-          results.set(slide.id, {
+          const result: AudioGenerationResult = {
             slideId: slide.id,
             filePath: cachedPath,
             durationSeconds: cached.duration,
             sizeBytes: stats.size,
-          });
+          };
+
+          // Include alignment data if it exists in cache
+          if (cached.alignment) {
+            result.alignment = cached.alignment;
+          }
+          if (cached.normalizedAlignment) {
+            result.normalizedAlignment = cached.normalizedAlignment;
+          }
+
+          results.set(slide.id, result);
 
           // Update slide's audio block
           slide.audio.actualDuration = cached.duration;
           slide.audio.audioPath = cachedPath;
 
-          logger.info(`[CACHE] Reusing audio for ${slide.id} (${cached.duration.toFixed(2)}s)`);
+          const alignmentInfo = cached.alignment ? ` with ${cached.alignment.characters.length} char timestamps` : '';
+          logger.info(`[CACHE] Reusing audio for ${slide.id} (${cached.duration.toFixed(2)}s)${alignmentInfo}`);
           continue;
         }
 
@@ -107,13 +118,23 @@ export class RevealSpeechGenerator {
 
         results.set(slide.id, result);
 
-        // Update cache manifest
-        updateCacheEntry(manifest, slide.id, {
+        // Update cache manifest with all data including alignment
+        const cacheEntry: any = {
           hash: audioHash,
           text: slide.audio.cleanText,
           file: `${slide.id}.mp3`,
           duration: result.durationSeconds,
-        });
+        };
+
+        // Only include alignment data if it exists
+        if (result.alignment) {
+          cacheEntry.alignment = result.alignment;
+        }
+        if (result.normalizedAlignment) {
+          cacheEntry.normalizedAlignment = result.normalizedAlignment;
+        }
+
+        updateCacheEntry(manifest, slide.id, cacheEntry);
 
         logger.info(
           `[TTS] Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`
@@ -157,7 +178,7 @@ export class RevealSpeechGenerator {
     logger.debug(`Text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
 
     // Generate speech using ElevenLabs (with timestamps)
-    const { alignment, durationSeconds: apiDuration } = await this.elevenlabsClient.generateSpeech(
+    const { alignment, normalizedAlignment, durationSeconds: apiDuration } = await this.elevenlabsClient.generateSpeech(
       text,
       voiceId,
       outputPath
@@ -170,21 +191,34 @@ export class RevealSpeechGenerator {
     const stats = await stat(outputPath);
     const sizeBytes = stats.size;
 
-    // TODO: Store alignment data in manifest for future features (word highlighting, subtitles)
+    // Log alignment data receipt
     if (alignment) {
       logger.debug(`Received ${alignment.characters.length} character timestamps for ${slide.id}`);
+    }
+    if (normalizedAlignment) {
+      logger.debug(`Received normalized alignment (${normalizedAlignment.characters.length} chars) for ${slide.id}`);
     }
 
     // Update slide's audio block with actual duration and path
     slide.audio.actualDuration = durationSeconds;
     slide.audio.audioPath = outputPath;
 
-    return {
+    const result: AudioGenerationResult = {
       slideId: slide.id,
       filePath: outputPath,
       durationSeconds,
       sizeBytes,
     };
+
+    // Only include alignment data if it exists
+    if (alignment) {
+      result.alignment = alignment;
+    }
+    if (normalizedAlignment) {
+      result.normalizedAlignment = normalizedAlignment;
+    }
+
+    return result;
   }
 
   /**

@@ -137,6 +137,20 @@ export interface AudioGenerationResult {
 
   /** File size in bytes */
   sizeBytes: number;
+
+  /** Character-level alignment data from ElevenLabs (if available) */
+  alignment?: {
+    characters: string[];
+    character_start_times_seconds: number[];
+    character_end_times_seconds: number[];
+  };
+
+  /** Normalized alignment data from ElevenLabs (if available) */
+  normalizedAlignment?: {
+    characters: string[];
+    character_start_times_seconds: number[];
+    character_end_times_seconds: number[];
+  };
 }
 
 // ============================================================================

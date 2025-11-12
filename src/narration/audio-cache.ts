@@ -18,6 +18,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
 import type { AudioLine } from '../core/types.js';
+import type { CharacterAlignment } from './types.js';
 
 /**
  * Cache manifest entry for a single audio line
@@ -34,6 +35,12 @@ export interface CachedAudioLine {
 
   /** Duration in seconds */
   duration: number;
+
+  /** Character-level alignment data from ElevenLabs (optional for backwards compatibility) */
+  alignment?: CharacterAlignment;
+
+  /** Normalized alignment data from ElevenLabs (optional for backwards compatibility) */
+  normalizedAlignment?: CharacterAlignment;
 }
 
 /**
