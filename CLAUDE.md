@@ -155,8 +155,35 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - New presentations: `tutorials/simple-demo` (8 slides), `tutorials/full-demo` (21 slides)
    - Removed old presentations (demo, test) that didn't pass linting
 
+6. ✅ **DONE: Dev Mode for Interactive Testing** - Debug without video recording! (2025-11-11)
+   - **Fragment Rendering**: Fragments now properly injected into HTML with RevealJS directives
+   - **Audio Management**: Auto-play audio on slide change, cancel on navigation
+   - **Dev Server**: Two modes for testing presentations
+     * Manual mode: Open browser, user controls with keyboard/mouse
+     * Auto mode: Watch orchestrator automation (visible, no recording)
+   - **Commands:**
+     ```bash
+     # Manual mode (recommended for debugging!)
+     node dist/cli/index.js dev -i tutorials/full-demo/presentation.md
+
+     # Auto mode (watch automation)
+     node dist/cli/index.js dev -i tutorials/full-demo/presentation.md --auto
+     ```
+   - **Benefits:** Debug timing issues, test fragments, verify audio sync without expensive recording
+   - **Files:** `src/dev-server.ts`, `src/cli/commands/dev.ts`
+
 **Next Tasks:**
-1. **TODO: Explore Auto-Generated Documentation**
+1. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
+   - Need to calculate fragment timing from ElevenLabs alignment data
+   - Implement `controller.nextFragment()` calls at proper timestamps
+   - Update timeline to include fragment timing metadata
+
+2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
+   - Shows expected vs actual timing for each slide
+   - Includes fragment timing once implemented
+   - Helps diagnose sync issues
+
+3. **TODO: Explore Auto-Generated Documentation**
    - Generate markdown format docs from directive registry
    - Create interactive reference for users
    - Consider CLI command: `npm run docs:generate`
