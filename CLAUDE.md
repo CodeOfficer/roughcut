@@ -128,12 +128,13 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Tail-able for real-time monitoring: `tail -f output/debug.txt`
    - Perfect for identifying performance bottlenecks!
 
-4. **TODO: Implement Build Summary**
-   - Create `{outputDir}/build-summary.txt`
-   - Show total build time & breakdown by stage
-   - Per-slide timing: which slides took longest (audio/images)
-   - Cache hit/miss ratio
-   - Historical comparison (if available)
+4. ✅ **DONE: Implement Build Summary** - User-friendly reports!
+   - Creates `{outputDir}/build-summary.txt` with readable overview
+   - Stage breakdown with percentages, marks slowest stage
+   - Audio cache statistics: "2 hits, 0 misses (100.0% hit rate) - Saved 2 TTS API calls"
+   - Helpful tips based on build profile (e.g., "Use --no-video for faster iteration")
+   - Complements debug.txt (verbose) with user-friendly summary
+   - Example: "Video Recording: 67.32s (97.3%) ← SLOWEST"
 
 5. **TODO: Add Markdown Format Linting**
    - Validate front matter (required fields: title, theme)
