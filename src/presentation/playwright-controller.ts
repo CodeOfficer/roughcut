@@ -119,9 +119,11 @@ export class PlaywrightRevealController {
     // Create page
     this.page = await this.context.newPage();
 
-    // Load HTML file
-    const fileUrl = `file://${path.resolve(htmlPath)}`;
-    await this.page.goto(fileUrl, { waitUntil: 'networkidle' });
+    // Load HTML file (support both file paths and HTTP URLs)
+    const url = htmlPath.startsWith('http://') || htmlPath.startsWith('https://')
+      ? htmlPath
+      : `file://${path.resolve(htmlPath)}`;
+    await this.page.goto(url, { waitUntil: 'networkidle' });
 
     // Wait for reveal.js to initialize
     await this.waitForReveal();

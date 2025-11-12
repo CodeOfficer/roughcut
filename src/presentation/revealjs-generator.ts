@@ -419,6 +419,14 @@ ${this.indentContent(slide.notes, 10)}
         }
       }
 
+      // Check for autoplay parameter (used in dev:auto mode)
+      const urlParams = new URLSearchParams(window.location.search);
+      const autoplay = urlParams.get('autoplay') === 'true';
+      if (autoplay) {
+        logWithTime('🎵 Autoplay enabled - audio will start automatically');
+        enableAudio();
+      }
+
       // Load and play audio for a slide
       function playSlideAudio(slide) {
         // Stop any currently playing audio

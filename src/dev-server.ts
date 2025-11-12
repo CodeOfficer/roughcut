@@ -137,26 +137,10 @@ export class DevServer {
     const serverUrl = await this.startHttpServer(htmlPath);
     console.log(`   Server: ${serverUrl}`);
 
-    // Launch browser in non-headless mode
-    this.browser = await chromium.launch({
-      headless: false,
-      slowMo,
-      args: ['--auto-open-devtools-for-tabs'], // Open DevTools by default
-    });
-
-    this.page = await this.browser.newPage();
-
-    // Load presentation from HTTP server
-    await this.page.goto(serverUrl, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-
-    console.log('✅ Presentation loaded');
-    console.log(`   URL: ${serverUrl}`);
-    console.log('');
-
     if (autoAdvance) {
+      // In auto mode, let orchestrator handle the browser
+      console.log('✅ HTTP server ready');
+      console.log('');
       if (!timeline || !audioBaseDir) {
         throw new Error('Timeline and audioBaseDir required for auto-advance mode');
       }
@@ -182,7 +166,7 @@ export class DevServer {
       });
 
       const result = await orchestrator.run({
-        htmlPath,
+        htmlPath: `${serverUrl}?autoplay=true`,    // Use HTTP URL with autoplay parameter
         timeline,
         audioBaseDir,
         // recordVideo is omitted - no video recording in dev mode
@@ -199,9 +183,27 @@ export class DevServer {
         console.error('❌ Auto-advance failed:', result.error);
       }
 
-      // Keep browser open after completion
+      // Keep HTTP server running - orchestrator's browser will stay open
       await this.waitForever();
     } else {
+      // In manual mode, launch our own browser
+      this.browser = await chromium.launch({
+        headless: false,
+        slowMo,
+        args: ['--auto-open-devtools-for-tabs'], // Open DevTools by default
+      });
+
+      this.page = await this.browser.newPage();
+
+      // Load presentation from HTTP server
+      await this.page.goto(serverUrl, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+
+      console.log('✅ Presentation loaded');
+      console.log(`   URL: ${serverUrl}`);
+      console.log('');
       console.log('🎮 Manual mode active');
       console.log('   Use arrow keys or click to navigate slides');
       console.log('   Audio will play automatically on slide change');

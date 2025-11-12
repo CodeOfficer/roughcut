@@ -86,7 +86,7 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 ---
 
-## 🚀 Current Status (Updated: 2025-11-11)
+## 🚀 Current Status (Updated: 2025-11-12)
 
 **✅ COMPLETE - Major Milestones:**
 1. **Codebase Reorganization** - Cleaned root, created docs/ structure, single source of truth
@@ -181,34 +181,57 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
      ```
    - **Benefits:** Debug timing issues, test fragments, verify audio sync without expensive recording
    - **Files:** `src/dev-server.ts`, `src/cli/commands/dev.ts`, `src/presentation/revealjs-generator.ts`
-   - **Known Issues:** HTTP routing for bundled assets needs refinement (404s on reveal/dist/*)
+
+7. ✅ **DONE: Cache Invalidation for Voice Changes** (2025-11-12)
+   - Extended audio cache hash to include all TTS parameters (voiceId, model, stability, similarityBoost)
+   - Changing any voice parameter now invalidates cache and regenerates audio
+   - Updated `CachedAudioLine` interface to store voice parameters
+   - Full test suite passing (283 tests)
+
+8. ✅ **DONE: Background Image URL Fix** (2025-11-12)
+   - Fixed incorrect `url()` wrapper in `data-background-image` attribute
+   - RevealJS expects plain path, not CSS `url()` function
+   - Eliminated 404 errors for background images
+
+9. ⚠️ **PARTIAL: Dev:Auto Mode Improvements** (2025-11-12)
+   - ✅ Fixed browser conflict: auto mode now uses orchestrator's browser only
+   - ✅ Manual mode launches separate browser with DevTools
+   - ✅ HTTP server passes URL to orchestrator with `?autoplay=true` parameter
+   - ✅ Playwright controller supports HTTP URLs in addition to file:// paths
+   - ✅ Audio controller detects autoplay parameter and skips user interaction requirement
+   - ⚠️ **ISSUE**: Playwright times out waiting for Reveal.js initialization (30s timeout)
+   - HTTP server verified working (assets load via curl)
+   - Needs investigation: browser console may show JS errors or loading issues
 
 **Next Tasks:**
-1. **TODO: Fix HTTP Server Asset Routing** - Dev mode still getting 404s (PRIORITY!)
-   - Issue: `/reveal/dist/reveal.css` returns 404
-   - Current routing tries `output/presentation/reveal/dist/reveal.css`
-   - Check actual asset paths in bundled build
-   - May need to adjust bundling or routing logic
-   - Browser shows sidebar instead of slides due to missing assets
+1. **TODO: Debug Playwright Timeout in Dev:Auto Mode** (PRIORITY!)
+   - Playwright times out waiting for `Reveal.isReady()` to return true
+   - HTTP server working, assets load correctly via curl
+   - May need to:
+     * Increase timeout beyond 10s (line 145 in playwright-controller.ts)
+     * Add diagnostic logging to see what's failing in browser
+     * Check browser console for JavaScript errors
+     * Verify all script tags load successfully
+   - Run `TUTORIAL=simple-demo npm run dev:auto` and inspect browser console
 
 2. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
    - Need to calculate fragment timing from ElevenLabs alignment data
    - Implement `controller.nextFragment()` calls at proper timestamps
    - Update timeline to include fragment timing metadata
 
-2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
+3. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
    - Shows expected vs actual timing for each slide
    - Includes fragment timing once implemented
    - Helps diagnose sync issues
 
-3. **TODO: Explore Auto-Generated Documentation**
+4. **TODO: Explore Auto-Generated Documentation**
    - Generate markdown format docs from directive registry
    - Create interactive reference for users
    - Consider CLI command: `npm run docs:generate`
 
-2. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-3. Add more examples to `tutorials/examples/`
-4. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
+5. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+6. Add more examples to `tutorials/examples/`
+7. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
 
 ---
 
