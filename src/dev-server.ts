@@ -6,6 +6,9 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { AudioSyncOrchestrator } from './presentation/audio-sync-orchestrator.js';
 import * as path from 'path';
+import * as http from 'http';
+import * as fs from 'fs/promises';
+import { existsSync } from 'fs';
 
 export interface DevServerOptions {
   /** Path to HTML presentation */
@@ -27,6 +30,79 @@ export interface DevServerOptions {
 export class DevServer {
   private browser: Browser | null = null;
   private page: Page | null = null;
+  private httpServer: http.Server | null = null;
+  private serverPort: number = 0;
+
+  /**
+   * Start HTTP server to serve presentation files
+   */
+  private async startHttpServer(htmlPath: string): Promise<string> {
+    const presentationDir = path.dirname(htmlPath);
+    const outputDir = path.dirname(presentationDir); // Go up to output/ directory
+
+    return new Promise((resolve, reject) => {
+      this.httpServer = http.createServer(async (req, res) => {
+        try {
+          // Map URL to file path
+          let filePath = path.join(outputDir, req.url || '/');
+
+          // Default to index.html
+          if (filePath.endsWith('/')) {
+            filePath = path.join(filePath, 'index.html');
+          }
+
+          // Serve presentation/index.html by default
+          if (req.url === '/' || req.url === '/index.html') {
+            filePath = htmlPath;
+          }
+
+          // Check if file exists
+          if (!existsSync(filePath)) {
+            res.writeHead(404);
+            res.end('Not found');
+            return;
+          }
+
+          // Read and serve file
+          const content = await fs.readFile(filePath);
+          const ext = path.extname(filePath);
+
+          // Set content type
+          const contentTypes: Record<string, string> = {
+            '.html': 'text/html',
+            '.js': 'text/javascript',
+            '.css': 'text/css',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.svg': 'image/svg+xml',
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+          };
+
+          const contentType = contentTypes[ext] || 'application/octet-stream';
+          res.writeHead(200, { 'Content-Type': contentType });
+          res.end(content);
+        } catch (error) {
+          console.error('Server error:', error);
+          res.writeHead(500);
+          res.end('Internal server error');
+        }
+      });
+
+      // Listen on random available port
+      this.httpServer.listen(0, () => {
+        const address = this.httpServer?.address();
+        if (address && typeof address !== 'string') {
+          this.serverPort = address.port;
+          resolve(`http://localhost:${this.serverPort}`);
+        } else {
+          reject(new Error('Failed to start HTTP server'));
+        }
+      });
+    });
+  }
 
   /**
    * Start dev server and open presentation in browser
@@ -34,11 +110,15 @@ export class DevServer {
   async start(options: DevServerOptions): Promise<void> {
     const { htmlPath, autoAdvance = false, timeline, audioBaseDir, slowMo = 100 } = options;
 
-    // Launch browser in non-headless mode
     console.log('🚀 Starting dev server...');
     console.log(`   Mode: ${autoAdvance ? 'Auto-advance' : 'Manual'}`);
     console.log(`   HTML: ${htmlPath}`);
 
+    // Start HTTP server
+    const serverUrl = await this.startHttpServer(htmlPath);
+    console.log(`   Server: ${serverUrl}`);
+
+    // Launch browser in non-headless mode
     this.browser = await chromium.launch({
       headless: false,
       slowMo,
@@ -47,16 +127,14 @@ export class DevServer {
 
     this.page = await this.browser.newPage();
 
-    // Load presentation
-    const absolutePath = path.resolve(htmlPath);
-    const fileUrl = `file://${absolutePath}`;
-    await this.page.goto(fileUrl, {
-      waitUntil: 'domcontentloaded', // Don't wait for all resources
-      timeout: 60000, // 60 second timeout
+    // Load presentation from HTTP server
+    await this.page.goto(serverUrl, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
     });
 
     console.log('✅ Presentation loaded');
-    console.log(`   URL: ${fileUrl}`);
+    console.log(`   URL: ${serverUrl}`);
     console.log('');
 
     if (autoAdvance) {
@@ -163,6 +241,16 @@ export class DevServer {
     if (this.browser) {
       await this.browser.close().catch(() => {});
       this.browser = null;
+    }
+
+    if (this.httpServer) {
+      await new Promise<void>((resolve) => {
+        this.httpServer?.close(() => {
+          console.log(`📡 HTTP server stopped (port ${this.serverPort})`);
+          resolve();
+        });
+      });
+      this.httpServer = null;
     }
   }
 }
