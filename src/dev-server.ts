@@ -37,23 +37,42 @@ export class DevServer {
    * Start HTTP server to serve presentation files
    */
   private async startHttpServer(htmlPath: string): Promise<string> {
-    const presentationDir = path.dirname(htmlPath);
-    const outputDir = path.dirname(presentationDir); // Go up to output/ directory
+    const presentationDir = path.dirname(htmlPath); // This is output/presentation/
+    const outputDir = path.dirname(presentationDir); // This is output/
 
     return new Promise((resolve, reject) => {
       this.httpServer = http.createServer(async (req, res) => {
         try {
           // Map URL to file path
-          let filePath = path.join(outputDir, req.url || '/');
+          let filePath: string;
 
-          // Default to index.html
-          if (filePath.endsWith('/')) {
-            filePath = path.join(filePath, 'index.html');
-          }
-
-          // Serve presentation/index.html by default
+          // Root or /index.html -> serve the main HTML
           if (req.url === '/' || req.url === '/index.html') {
             filePath = htmlPath;
+          }
+          // /reveal/* -> serve from presentation/reveal/
+          else if (req.url?.startsWith('/reveal/')) {
+            filePath = path.join(presentationDir, req.url);
+          }
+          // /audio/* -> serve from output/audio/
+          else if (req.url?.startsWith('/audio/')) {
+            filePath = path.join(outputDir, req.url);
+          }
+          // /images/* -> serve from output/images/
+          else if (req.url?.startsWith('/images/')) {
+            filePath = path.join(outputDir, req.url);
+          }
+          // Everything else -> try presentation dir first, then output dir
+          else {
+            filePath = path.join(presentationDir, req.url || '/');
+            if (!existsSync(filePath)) {
+              filePath = path.join(outputDir, req.url || '/');
+            }
+          }
+
+          // Default to index.html for directories
+          if (filePath.endsWith('/')) {
+            filePath = path.join(filePath, 'index.html');
           }
 
           // Check if file exists
