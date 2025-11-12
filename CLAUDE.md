@@ -106,20 +106,42 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 - ✅ Audio: Multi-line format with SHA256 fingerprinting for incremental TTS
 
 **Next Session - Start Here:**
-1. ✅ **DONE: NPM Scripts Refactored** - Generic build scripts now available!
-   - Generic: `TUTORIAL=<name> npm run build:fast|full|html`
-   - Example: `TUTORIAL=mcp-server npm run build:fast`
-   - Shortcuts: `npm run demo`, `npm run demo:full`, `npm run demo:html`
-   - Helper script: `scripts/build-tutorial.sh`
-2. ✅ **DONE: Multi-line Audio Format & TTS Caching** - Incremental TTS regeneration!
-   - Multi-line: `@audio: One sentence per line.`
-   - Auto 1s pauses between lines
-   - SHA256 fingerprinting tracks changes
-   - Cache manifest: `tutorials/<name>/output/audio/manifest.json`
-   - Only regenerates TTS for changed audio
-3. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-4. Add more examples to `tutorials/examples/`
-5. Explore additional RevealJS features (vertical slides, fragments, speaker view)
+1. ✅ **DONE: ElevenLabs Timestamps Endpoint** - Now getting free character-level timing!
+   - Switched to `/text-to-speech/:voice_id/with-timestamps`
+   - Receives alignment data: characters, start_times, end_times
+   - Duration calculated from API (no MP3 analysis needed)
+   - Same cost as regular endpoint (character-based pricing)
+   - Test tutorial: `tutorials/test/` (2 slides, ~70s build vs 9min for demo)
+   - Scripts: `npm run test:build`, `test:build:full`, `test:build:html`
+
+2. **TODO: Fix Audio Manifest Persistence** 🔴 HIGH PRIORITY
+   - Cache code exists (`audio-cache.ts`) but manifest.json not being saved
+   - Need to debug why `saveCacheManifest()` isn't persisting
+   - Should store: `{slideId: [{hash, text, file, duration, alignment}]}`
+   - Enables incremental TTS regeneration (save API costs!)
+
+3. **TODO: Implement Verbose Logging System**
+   - Create `{outputDir}/debug.txt` with timestamped logs
+   - Log all operations with start/end times
+   - Include: parsing, image gen, TTS calls, recording, encoding
+   - Make it tail-able for real-time monitoring
+
+4. **TODO: Implement Build Summary**
+   - Create `{outputDir}/build-summary.txt`
+   - Show total build time & breakdown by stage
+   - Per-slide timing: which slides took longest (audio/images)
+   - Cache hit/miss ratio
+   - Historical comparison (if available)
+
+5. **TODO: Add Markdown Format Linting**
+   - Validate front matter (required fields: title, theme)
+   - Check directive syntax (`@audio:`, `@image-prompt:`, `@voice:`)
+   - Warn about common mistakes
+   - Helpful error messages with line numbers
+
+6. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+7. Add more examples to `tutorials/examples/`
+8. Explore additional RevealJS features (vertical slides, fragments, speaker view)
 
 ---
 

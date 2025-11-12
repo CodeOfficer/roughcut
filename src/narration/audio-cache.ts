@@ -57,7 +57,7 @@ export function hashAudioText(text: string): string {
 export async function loadCacheManifest(
   outputDir: string,
 ): Promise<AudioCacheManifest> {
-  const manifestPath = join(outputDir, 'audio', 'manifest.json');
+  const manifestPath = join(outputDir, 'manifest.json');
 
   if (!existsSync(manifestPath)) {
     return {};
@@ -79,7 +79,7 @@ export async function saveCacheManifest(
   outputDir: string,
   manifest: AudioCacheManifest,
 ): Promise<void> {
-  const manifestPath = join(outputDir, 'audio', 'manifest.json');
+  const manifestPath = join(outputDir, 'manifest.json');
 
   // Ensure directory exists
   await mkdir(dirname(manifestPath), { recursive: true });
@@ -151,7 +151,7 @@ export function needsRegeneration(
   }
 
   // Check if file exists
-  const audioPath = join(outputDir, 'audio', cached.file);
+  const audioPath = join(outputDir, cached.file);
   if (!existsSync(audioPath)) {
     return true; // Cache entry exists but file is missing
   }

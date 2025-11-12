@@ -27,7 +27,14 @@ describe('RevealSpeechGenerator', () => {
 
     // Mock ElevenLabsClient
     mockElevenLabsClient = {
-      generateSpeech: vi.fn().mockResolvedValue(undefined),
+      generateSpeech: vi.fn().mockResolvedValue({
+        alignment: {
+          characters: ['H', 'e', 'l', 'l', 'o'],
+          characterStartTimesSeconds: [0, 0.1, 0.2, 0.3, 0.4],
+          characterEndTimesSeconds: [0.1, 0.2, 0.3, 0.4, 0.5],
+        },
+        durationSeconds: 5.5,
+      }),
     };
 
     generator = new RevealSpeechGenerator(mockElevenLabsClient);
