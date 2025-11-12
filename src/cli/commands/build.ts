@@ -22,6 +22,8 @@ import { createRevealVideoAssembler } from '../../video/assembler.js';
 import { ImageGenerator } from '../../images/generator.js';
 import { createDebugLogger } from '../../core/debug-logger.js';
 import { createBuildSummaryGenerator, type BuildSummaryData, type StageTiming } from '../../core/build-summary.js';
+import { lintMarkdown } from '../../core/linter.js';
+import { logger } from '../../core/logger.js';
 import type { RevealPresentation } from '../../core/types.js';
 
 // ============================================================================
@@ -169,6 +171,43 @@ export class RevealBuildCommand {
       });
 
       const markdown = await fs.readFile(options.input, 'utf-8');
+
+      // Lint markdown BEFORE parsing (fail fast on errors)
+      await debugLogger.startOperation('lint_markdown');
+      this.reportProgress({
+        phase: 'parsing',
+        percentage: 5,
+        message: 'Validating markdown format...',
+      });
+
+      const lintingResult = lintMarkdown(markdown, options.input);
+      const lintDuration = await debugLogger.endOperation('lint_markdown', {
+        errors: lintingResult.errors.length,
+        warnings: lintingResult.warnings.length,
+      });
+      stages.push({ name: 'lint_markdown', durationMs: lintDuration });
+
+      if (!lintingResult.passed) {
+        // Linting failed - log all errors and stop build
+        await debugLogger.error('Linting failed', {
+          errors: lintingResult.errors.length,
+          warnings: lintingResult.warnings.length,
+        });
+
+        // Print errors to console
+        logger.error('\n' + lintingResult.toString());
+
+        throw new Error(`Markdown linting failed with ${lintingResult.errors.length} error(s). See above for details.`);
+      }
+
+      if (lintingResult.warnings.length > 0) {
+        logger.warn(`Found ${lintingResult.warnings.length} warning(s) during linting:`);
+        for (const warning of lintingResult.warnings) {
+          logger.warn(warning.toString());
+        }
+      }
+
+      // Parse markdown
       const parser = createRevealParser();
       const presentation = parser.parse(markdown);
       const parseDuration = await debugLogger.endOperation('parse_markdown', {

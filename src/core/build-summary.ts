@@ -177,6 +177,7 @@ export class BuildSummaryGenerator {
    */
   private formatStageName(name: string): string {
     const names: Record<string, string> = {
+      lint_markdown: 'Linting',
       parse_markdown: 'Parsing',
       generate_images: 'Images',
       generate_audio: 'Audio',
