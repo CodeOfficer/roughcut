@@ -206,15 +206,24 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - ✅ Slides advance automatically with audio narration on each slide
    - **Result**: Dev:auto mode is fully functional for debugging and testing!
 
+10. ✅ **DONE: Fragment Auto-Advancement** (2025-11-12)
+   - Added `FragmentTiming` interface to track fragment reveal timestamps
+   - Timeline builder calculates fragment timing (explicit `@fragment +2s` or even spacing)
+   - Orchestrator schedules fragment reveals during audio playback
+   - Fixed dev command audio manifest loading for new cache format
+   - Timing accuracy: within 30ms of scheduled time
+   - Test results: All 5 fragments on slide 6 revealed successfully
+   - Files: `src/core/types.ts`, `src/video/timeline.ts`, `src/presentation/audio-sync-orchestrator.ts`, `src/cli/commands/dev.ts`
+   - **Result**: Fragments now reveal automatically during presentations!
+
 **Next Tasks:**
-1. **TODO: Fix Fragment Auto-Advancement** - Fragments don't reveal during auto mode yet
-   - Need to calculate fragment timing from ElevenLabs alignment data
-   - Implement `controller.nextFragment()` calls at proper timestamps
-   - Update timeline to include fragment timing metadata
+1. **TODO: Fix Google/Gemini Image Generation** - Make @image-prompt work with Gemini
+   - Current implementation needs updating for latest Gemini API
+   - Test with simple-demo and full-demo presentations
 
 2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
    - Shows expected vs actual timing for each slide
-   - Includes fragment timing once implemented
+   - Includes fragment timing metadata
    - Helps diagnose sync issues
 
 3. **TODO: Explore Auto-Generated Documentation**
@@ -222,9 +231,14 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Create interactive reference for users
    - Consider CLI command: `npm run docs:generate`
 
-4. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-5. Add more examples to `tutorials/examples/`
-6. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
+4. **TODO: Regenerate simple-demo audio** - Fix robotic sound quality
+   - Current cached audio has null voice parameters (from pre-cache-fix era)
+   - Run: `rm -rf tutorials/simple-demo/output/audio && TUTORIAL=simple-demo npm run build:full`
+   - Will generate fresh audio with consistent quality
+
+5. Consider adding `@background-video:` support (similar to `@image-prompt:`)
+6. Add more examples to `tutorials/examples/`
+7. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
 
 ---
 
