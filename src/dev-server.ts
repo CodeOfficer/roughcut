@@ -50,7 +50,10 @@ export class DevServer {
     // Load presentation
     const absolutePath = path.resolve(htmlPath);
     const fileUrl = `file://${absolutePath}`;
-    await this.page.goto(fileUrl);
+    await this.page.goto(fileUrl, {
+      waitUntil: 'domcontentloaded', // Don't wait for all resources
+      timeout: 60000, // 60 second timeout
+    });
 
     console.log('✅ Presentation loaded');
     console.log(`   URL: ${fileUrl}`);
@@ -117,23 +120,34 @@ export class DevServer {
    * Wait until browser is closed or process is interrupted
    */
   private async waitForever(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((_resolve) => {
       // Handle Ctrl+C
-      process.on('SIGINT', async () => {
+      const sigintHandler = async () => {
         console.log('');
         console.log('👋 Closing dev server...');
         await this.stop();
-        resolve();
-      });
+        process.exit(0);
+      };
+      process.on('SIGINT', sigintHandler);
 
       // Handle browser close
       if (this.browser) {
         this.browser.on('disconnected', () => {
           console.log('');
           console.log('👋 Browser closed');
-          resolve();
+          process.exit(0);
         });
       }
+
+      // Keep process alive
+      const keepAlive = setInterval(() => {
+        // Just keep the process running
+      }, 1000);
+
+      // Cleanup interval when promise resolves
+      process.on('exit', () => {
+        clearInterval(keepAlive);
+      });
     });
   }
 

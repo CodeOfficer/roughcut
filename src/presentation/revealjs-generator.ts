@@ -399,7 +399,25 @@ ${this.indentContent(slide.notes, 10)}
     return `  <script>
     // Audio controller for interactive presentation
     (function() {
+      const startTime = performance.now();
+      const logWithTime = (msg) => {
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+        console.log(\`[\${elapsed}s] \${msg}\`);
+      };
+
+      logWithTime('🎬 Audio controller initializing...');
+
       let currentAudio = null;
+      let audioEnabled = false;
+
+      // Enable audio on first user interaction
+      function enableAudio() {
+        if (!audioEnabled) {
+          audioEnabled = true;
+          logWithTime('✅ Audio enabled - narration will play on slide changes');
+          playSlideAudio(Reveal.getCurrentSlide());
+        }
+      }
 
       // Load and play audio for a slide
       function playSlideAudio(slide) {
@@ -412,11 +430,26 @@ ${this.indentContent(slide.notes, 10)}
           return; // No audio for this slide
         }
 
+        // Don't try to play if audio not enabled yet (prevents autoplay errors)
+        if (!audioEnabled) {
+          logWithTime('🔇 Audio not enabled yet - click anywhere to start');
+          return;
+        }
+
         // Create and play audio element
+        const audioStartTime = performance.now();
         currentAudio = new Audio(audioPath);
-        currentAudio.play().catch(err => {
-          console.warn('Audio autoplay failed:', err);
-          // Browser may block autoplay - this is expected
+        currentAudio.preload = 'auto'; // Preload for faster playback
+
+        currentAudio.play().then(() => {
+          const loadTime = ((performance.now() - audioStartTime) / 1000).toFixed(2);
+          logWithTime(\`🔊 Audio playing (loaded in \${loadTime}s)\`);
+        }).catch(err => {
+          // Ignore AbortError (happens when navigating quickly)
+          if (err.name === 'AbortError') {
+            return;
+          }
+          logWithTime(\`⚠️ Audio playback failed: \${err.message}\`);
         });
       }
 
@@ -429,19 +462,44 @@ ${this.indentContent(slide.notes, 10)}
         }
       }
 
+      // Log user interactions
+      document.addEventListener('click', (e) => {
+        const target = e.target.tagName || 'unknown';
+        logWithTime(\`👆 User clicked: \${target}\`);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        logWithTime(\`⌨️  User pressed: \${e.key}\`);
+      });
+
+      // Enable audio on any user interaction
+      document.addEventListener('click', enableAudio, { once: true });
+      document.addEventListener('keydown', enableAudio, { once: true });
+
       // Listen for slide changes
       Reveal.on('slidechanged', event => {
+        const slideNum = event.indexh + 1;
+        const slideId = event.currentSlide.id || 'unknown';
+        logWithTime(\`📍 Slide changed: #\${slideNum} (\${slideId})\`);
         playSlideAudio(event.currentSlide);
       });
 
-      // Listen for fragment changes (optional: could restart audio or continue)
+      // Listen for fragment changes
       Reveal.on('fragmentshown', event => {
+        const fragmentIndex = event.fragment.dataset.fragmentIndex || 'unknown';
+        logWithTime(\`✨ Fragment shown: index \${fragmentIndex}\`);
         // Currently: do nothing, let audio continue
         // Alternative: could restart audio or sync with fragment timing
       });
 
-      // Play audio for initial slide after reveal is ready
+      Reveal.on('fragmenthidden', event => {
+        const fragmentIndex = event.fragment.dataset.fragmentIndex || 'unknown';
+        logWithTime(\`💨 Fragment hidden: index \${fragmentIndex}\`);
+      });
+
+      // Try to play audio for initial slide after reveal is ready
       Reveal.on('ready', event => {
+        logWithTime('✅ Presentation ready - click anywhere to enable audio');
         playSlideAudio(event.currentSlide);
       });
 
@@ -449,7 +507,8 @@ ${this.indentContent(slide.notes, 10)}
       window.revealAudioController = {
         play: () => playSlideAudio(Reveal.getCurrentSlide()),
         stop: stopCurrentAudio,
-        getCurrentAudio: () => currentAudio
+        getCurrentAudio: () => currentAudio,
+        enable: enableAudio
       };
     })();
   </script>`;
