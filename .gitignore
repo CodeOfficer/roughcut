@@ -26,6 +26,10 @@ tmp/
 *.tmp
 *.log
 
+# Build artifacts in root (should be in output directories)
+/build-summary.txt
+/debug.txt
+
 # Tutorial outputs (keep structure, ignore generated content)
 tutorials/*/audio/
 tutorials/*/screenshots/

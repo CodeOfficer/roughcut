@@ -487,21 +487,23 @@ export class RevealBuildCommand {
 
       return result;
     } catch (error) {
-      // Generate build summary for failed build
-      try {
-        const summaryGenerator = createBuildSummaryGenerator();
-        const summaryData: BuildSummaryData = {
-          totalDurationMs: Date.now() - startTime,
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-          stages,
-          slidesProcessed: 0,
-          audioCacheHits,
-          audioCacheMisses,
-        };
-        await summaryGenerator.generate(options.output, summaryData);
-      } catch (summaryError) {
-        // Ignore summary generation errors
+      // Generate build summary for failed build (only if output directory is valid)
+      if (options.output) {
+        try {
+          const summaryGenerator = createBuildSummaryGenerator();
+          const summaryData: BuildSummaryData = {
+            totalDurationMs: Date.now() - startTime,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            stages,
+            slidesProcessed: 0,
+            audioCacheHits,
+            audioCacheMisses,
+          };
+          await summaryGenerator.generate(options.output, summaryData);
+        } catch (summaryError) {
+          // Ignore summary generation errors
+        }
       }
 
       // Log error to debug file if available
