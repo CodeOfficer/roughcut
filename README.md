@@ -75,6 +75,15 @@ ELEVENLABS_API_KEY=your_api_key_here
 
 See `.envrc.example` for all available configuration options.
 
+**Discover Available Voices:**
+
+To see all available voices in your ElevenLabs account:
+```bash
+npm run voices
+```
+
+This will display a formatted list of voices grouped by category (Premade, Professional, Generated, Cloned) with their IDs and descriptions. Copy the voice ID you want to use into your `.envrc` file or presentation frontmatter.
+
 ### 3. Write Your Tutorial Script
 
 Create a markdown file (e.g., `my-tutorial.md`) using RevealJS format:

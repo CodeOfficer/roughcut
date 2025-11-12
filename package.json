@@ -23,7 +23,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "voices": "direnv exec . tsx scripts/list-voices.ts"
   },
   "keywords": [
     "tutorial",
