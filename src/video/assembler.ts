@@ -162,7 +162,7 @@ export class RevealVideoAssembler {
   /**
    * Assemble video with combined audio track
    *
-   * Creates combined audio with navigation delays matching the recorded video,
+   * Creates combined audio using actual recorded timestamps for perfect sync,
    * then uses FFmpeg to replace the video's audio track.
    */
   async assembleFromTimeline(
@@ -172,9 +172,32 @@ export class RevealVideoAssembler {
     outputPath: string
   ): Promise<VideoAssemblyResult> {
     try {
-      // Create combined audio file with navigation delays
+      // Try to load recorded timestamps from recording phase
+      const outputDir = path.dirname(audioBaseDir);
+      const timestampsPath = path.join(outputDir, 'recording-timeline.json');
+      let recordedTimestamps: Array<{
+        slideId: string;
+        slideIndex: number;
+        audioStartTime: number;
+        audioDuration: number;
+      }> | null = null;
+
+      try {
+        const timestampsData = await fs.readFile(timestampsPath, 'utf8');
+        recordedTimestamps = JSON.parse(timestampsData);
+        console.log(`✅ Using recorded timestamps from: ${timestampsPath}`);
+      } catch (error) {
+        console.log(`⚠️  No recorded timestamps found, using fixed delays`);
+      }
+
+      // Create combined audio file with timestamps
       const audioPath = path.join(audioBaseDir, 'combined-audio.mp3');
-      await this.concatenateSlideAudioWithNavDelays(timeline, audioBaseDir, audioPath);
+      await this.concatenateSlideAudioWithTimestamps(
+        timeline,
+        audioBaseDir,
+        audioPath,
+        recordedTimestamps
+      );
 
       // Assemble video with combined audio
       return await this.assemble({
@@ -301,32 +324,61 @@ export class RevealVideoAssembler {
   // ============================================================================
 
   /**
-   * Concatenate slide audio files with navigation delays
+   * Concatenate slide audio files using actual recorded timestamps
    *
-   * Creates combined-audio.mp3 that matches the timing of the recorded video:
-   * - 350ms silence for each slide navigation (RevealJS transition time)
-   * - Audio for the slide
-   * - Pause after audio (from @pause-after directive)
+   * Creates combined-audio.mp3 with perfect timing sync:
+   * - Uses ACTUAL timestamps from recording (when available)
+   * - Falls back to fixed delays if timestamps not available
+   * - Adds exact silence padding to match video timing
    */
-  private async concatenateSlideAudioWithNavDelays(
+  private async concatenateSlideAudioWithTimestamps(
     timeline: RevealTimeline,
     audioBaseDir: string,
-    outputPath: string
+    outputPath: string,
+    recordedTimestamps: Array<{
+      slideId: string;
+      slideIndex: number;
+      audioStartTime: number;
+      audioDuration: number;
+    }> | null
   ): Promise<void> {
-    // Navigation delay constant (matches orchestrator delay)
-    const NAVIGATION_DELAY = 0.35; // 350ms
+    // Build audio segments
+    const segments: Array<{
+      audioPath: string;
+      slideId: string;
+      slideIndex: number;
+      recordedStartTime?: number;
+    }> = [];
 
-    // Build audio segments with navigation delays
-    const segments: Array<{ audioPath: string; pauseAfter: number }> = [];
+    for (let i = 0; i < timeline.slides.length; i++) {
+      const slide = timeline.slides[i];
+      if (!slide || !slide.audioPath) continue;
 
-    for (const slide of timeline.slides) {
-      if (slide.audioPath) {
-        const audioPath = path.join(audioBaseDir, path.basename(slide.audioPath));
-        const exists = await fs.access(audioPath).then(() => true).catch(() => false);
+      const audioPath = path.join(audioBaseDir, path.basename(slide.audioPath));
+      const exists = await fs.access(audioPath).then(() => true).catch(() => false);
 
-        if (exists) {
-          segments.push({ audioPath, pauseAfter: slide.pauseAfter });
+      if (exists) {
+        // Find recorded timestamp for this slide
+        const recordedTime = recordedTimestamps?.find(
+          (t) => t.slideId === slide.slideId
+        );
+
+        const seg: {
+          audioPath: string;
+          slideId: string;
+          slideIndex: number;
+          recordedStartTime?: number;
+        } = {
+          audioPath,
+          slideId: slide.slideId,
+          slideIndex: i,
+        };
+
+        if (recordedTime) {
+          seg.recordedStartTime = recordedTime.audioStartTime;
         }
+
+        segments.push(seg);
       }
     }
 
@@ -334,36 +386,45 @@ export class RevealVideoAssembler {
       throw new Error('No audio files found for concatenation');
     }
 
-    // Build FFmpeg filter to concatenate audio with:
-    // 1. Navigation delay (silence) before each slide
-    // 2. Audio for the slide
-    // 3. Pause after audio (from timeline)
+    // Build FFmpeg filter based on whether we have recorded timestamps
     const inputs: string[] = [];
     const filterParts: string[] = [];
 
-    for (let i = 0; i < segments.length; i++) {
-      inputs.push('-i', segments[i]!.audioPath);
+    if (recordedTimestamps) {
+      // Use EXACT recorded timestamps for perfect sync
+      console.log('Building combined audio with recorded timestamps:');
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i]!;
+        inputs.push('-i', segment.audioPath);
 
-      // Create filter for this segment:
-      // [nav_delay] + [audio] + [pause]
-      const navDelay = `aevalsrc=0:d=${NAVIGATION_DELAY}[nav${i}]`;
-      filterParts.push(navDelay);
+        const expectedStart = segment.recordedStartTime || 0;
+        const actualStart = i === 0 ? 0 : segments[i - 1]!.recordedStartTime || 0;
+        const silenceDuration = i === 0 ? expectedStart : expectedStart - actualStart - timeline.slides[i - 1]!.audioDuration;
 
-      // Add pause after audio if specified
-      if (segments[i]!.pauseAfter > 0) {
-        const silenceDuration = segments[i]!.pauseAfter;
-        filterParts.push(
-          `[${i}:a]apad=pad_dur=${silenceDuration}[audio${i}]`
-        );
-      } else {
-        // No pause, just use audio as-is
-        filterParts.push(`[${i}:a]anull[audio${i}]`);
+        console.log(`  Slide ${i + 1}: ${silenceDuration.toFixed(3)}s silence + audio`);
+
+        if (silenceDuration > 0.001) {
+          // Add silence before this slide's audio
+          filterParts.push(`aevalsrc=0:d=${silenceDuration.toFixed(3)}[silence${i}]`);
+          filterParts.push(`[${i}:a]anull[audio${i}]`);
+          filterParts.push(`[silence${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`);
+        } else {
+          // No silence needed
+          filterParts.push(`[${i}:a]anull[seg${i}]`);
+        }
       }
+    } else {
+      // Fallback: Use fixed navigation delay
+      console.log('Building combined audio with fixed delays (no timestamps):');
+      const NAVIGATION_DELAY = 0.35;
 
-      // Concatenate navigation delay + audio for this slide
-      filterParts.push(
-        `[nav${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`
-      );
+      for (let i = 0; i < segments.length; i++) {
+        inputs.push('-i', segments[i]!.audioPath);
+
+        filterParts.push(`aevalsrc=0:d=${NAVIGATION_DELAY}[nav${i}]`);
+        filterParts.push(`[${i}:a]anull[audio${i}]`);
+        filterParts.push(`[nav${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`);
+      }
     }
 
     // Concatenate all segments

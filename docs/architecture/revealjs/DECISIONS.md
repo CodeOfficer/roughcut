@@ -606,93 +606,153 @@ npm run demo:html       # HTML only, no video
 
 ---
 
-## Decision 8: Audio/Video Synchronization Fix (2025-11-12)
+## Decision 8: Audio/Video Synchronization Fix - Timestamp-Based Approach (2025-11-12)
 
-**Context**: Users reported that in the final MP4 output, audio narration played BEFORE slide headings were visible. The slide would transition while audio was already playing, causing a jarring experience where you hear "Let's talk about X" before seeing the "X" heading.
+**Context**: Users reported audio/video sync issues in the final MP4 output:
+1. **Initial problem**: Audio narration played BEFORE slide headings were visible
+2. **Second problem**: Even after adding fixed 350ms delays, timing drift accumulated by slide 8
 
 **Root Cause Analysis**:
-1. **Orchestrator Issue**: After navigating to a slide with `controller.slide()`, audio playback started immediately with no delay for the RevealJS transition animation (~300ms default).
-2. **Playwright Limitation**: Playwright's `recordVideo` API only captures video frames, NOT audio from the browser. This is a known limitation of browser automation.
+1. **Orchestrator Timing**: Variable real-world timing (browser overhead, fragment reveals, rendering delays)
+2. **Combined Audio Timing**: Fixed theoretical timing (350ms navigation delays)
+3. **Timing Drift**: Small differences compounded across slides → audio progressively ahead of video
+4. **Playwright Limitation**: `recordVideo` API captures only video frames, NOT browser audio
 
-**Decision**: Implement two-part fix to ensure slides drive audio (not vice versa):
-1. Add 350ms delay in orchestrator between navigation and audio playback
-2. Create `combined-audio.mp3` with matching navigation delays for FFmpeg assembly
+**Example of Drift**:
+```
+Slide 1: 350ms planned, 420ms actual  → +70ms drift
+Slide 2: 350ms planned, 380ms actual  → +100ms drift
+Slide 3: 350ms planned, 450ms actual  → +200ms drift (includes fragments!)
+...
+Slide 8: Audio 1.5s ahead of video ❌
+```
 
-**Why This Works**:
-- Orchestrator delay ensures slide is fully visible before audio starts during recording
-- Combined audio includes same 350ms silence before each slide's audio
-- FFmpeg replaces Playwright's silent video with synchronized combined audio
-- Result: Timeline matches in both orchestrator (recording) and FFmpeg (assembly)
+**Decision**: Implement timestamp-based audio synchronization using actual recorded timing
+
+**Solution Architecture**:
+
+1. **Orchestrator Tracks Actual Timestamps**:
+   - Records exact time when audio starts for each slide
+   - Stores in `recordedTimestamps` array
+   - Returns timestamps in orchestration result
+
+2. **Export Recording Timeline**:
+   - Build command saves timestamps to `output/recording-timeline.json`
+   - JSON format: `[{slideId, slideIndex, audioStartTime, audioDuration}, ...]`
+   - Provides single source of truth for actual timing
+
+3. **Timestamp-Based Audio Assembly**:
+   - Assembler reads `recording-timeline.json`
+   - Calculates exact silence padding for each slide
+   - Builds combined audio matching recorded video timing
+   - Variable gaps (0.7s-2.1s) capture all real-world delays
 
 **Implementation Details**:
 
-**1. Orchestrator Fix** (`src/presentation/audio-sync-orchestrator.ts:188`):
+**1. Orchestrator** (`src/presentation/audio-sync-orchestrator.ts`):
 ```typescript
-// Navigate to slide
-await this.controller.slide(entry.slideIndex, 0);
+// Record actual timestamp BEFORE audio starts
+const audioStartTime = this.getElapsedTime();
 
-// Wait for slide transition to complete (RevealJS default transition: ~300ms)
-await this.controller.wait(350);
+// Play audio
+await this.playAudioWithFragments(...);
 
-// Play audio with fragment reveals if present
-if (entry.audioPath) {
-  await this.playAudioWithFragments(...);
+// Save timestamp for this slide
+this.recordedTimestamps.push({
+  slideId: entry.slideId,
+  slideIndex: i,
+  audioStartTime,
+  audioDuration: entry.audioDuration,
+});
+```
+
+**2. Build Command** (`src/cli/commands/build.ts`):
+```typescript
+// Save recorded timestamps
+if (result.recordedTimestamps) {
+  const timestampsPath = path.join(options.output, 'recording-timeline.json');
+  await fs.writeFile(timestampsPath, JSON.stringify(result.recordedTimestamps, null, 2));
 }
 ```
 
-**2. Assembler Fix** (`src/video/assembler.ts`):
-- Implemented `concatenateSlideAudioWithNavDelays()` method
-- Audio structure per slide: `[350ms silence] + [audio] + [pause_after]`
-- FFmpeg filter chain builds segments with navigation delays
-- Example: 8 slides × 350ms = 2.8s additional time for transitions
+**3. Video Assembler** (`src/video/assembler.ts`):
+```typescript
+// Load recorded timestamps
+const timestampsData = await fs.readFile('recording-timeline.json', 'utf8');
+const recordedTimestamps = JSON.parse(timestampsData);
 
-**Timing Calculation**:
+// Calculate exact silence padding per slide
+for (let i = 0; i < segments.length; i++) {
+  const expectedStart = segments[i].recordedStartTime;
+  const silenceDuration = i === 0
+    ? expectedStart
+    : expectedStart - prevEnd - prevAudioDuration;
+
+  // Build FFmpeg filter with exact timing
+  filterParts.push(`aevalsrc=0:d=${silenceDuration}[silence${i}]`);
+}
 ```
-Total video duration = Σ(nav_delay + audio_duration + pause_after)
-                     = (350ms × 8) + (47.2s audio) + (4.0s pauses)
-                     = 2.8s + 47.2s + 4.0s
-                     = 54.0s
+
+**Real-World Example (simple-demo)**:
 ```
+recording-timeline.json:
+- Slide 1: audioStartTime=1.070s  → 1.070s initial silence
+- Slide 2: audioStartTime=7.490s  → 0.708s gap (after prev audio ends)
+- Slide 3: audioStartTime=13.301s → 1.121s gap
+- Slide 4: audioStartTime=19.469s → 1.106s gap
+- Slide 5: audioStartTime=30.898s → 1.119s gap
+- Slide 6: audioStartTime=41.415s → 2.111s gap ← includes 5 fragments!
+- Slide 7: audioStartTime=46.404s → 1.134s gap
+- Slide 8: audioStartTime=53.183s → 1.113s gap
+
+Combined audio structure:
+[1.070s silence][audio1][0.708s][audio2][1.121s][audio3]...
+```
+
+**Why Variable Gaps Work**:
+- Slide 6 has 2.111s gap (vs ~1.1s for others) because it has 5 fragment reveals
+- Each gap captures ALL real-world timing: browser rendering, fragments, network delays
+- Audio starts at EXACT recorded time for each slide → zero drift
 
 **Verification**:
-- ✅ Video track: h264 codec, 59.32s duration
-- ✅ Audio track: aac codec, 59.34s duration
-- ✅ Duration match: within 20ms tolerance
-- ✅ combined-audio.mp3: 475KB, 59.34s
-- ✅ Manual review: slide headings appear before narration begins
+- ✅ recording-timeline.json: 8 slides, timestamps 1.07s to 53.18s
+- ✅ Combined audio built with timestamp-based padding
+- ✅ Video: h264, 56.95s | Audio: aac, 56.95s (exact match)
+- ✅ Manual review: Perfect sync from slide 1 to slide 8
 
-**Alternative Approaches Considered**:
+**Alternative Approaches Rejected**:
 
-1. **Record audio directly from browser**: Rejected - Playwright doesn't support this
-2. **Adjust FFmpeg timing in post**: Rejected - too fragile, timing would drift
-3. **Skip combined audio entirely**: Rejected - need clean audio track separate from video
+1. **Increase fixed delay** (e.g., 500ms): Still drifts due to variable timing
+2. **Adjust FFmpeg in post**: Too fragile, requires manual tuning per presentation
+3. **Record browser audio**: Playwright doesn't support this
 
 **Benefits**:
-- Perfect audio/video synchronization in final MP4
-- Slide headings visible before narration starts
-- Maintains "slides drive audio" principle (user's workflow)
-- One constant (350ms) ensures consistency across system
+- ✅ **Zero timing drift**: Uses actual recorded timestamps
+- ✅ **Handles fragments**: Automatically accounts for reveal timing
+- ✅ **Handles browser variability**: Captures real-world delays
+- ✅ **No manual tuning**: Works automatically for any presentation
+- ✅ **Debuggable**: recording-timeline.json provides visibility into timing
 
 **Files Modified**:
-- `src/presentation/audio-sync-orchestrator.ts`: Added 350ms wait after navigation
-- `src/video/assembler.ts`: Implemented `concatenateSlideAudioWithNavDelays()`
+- `src/presentation/audio-sync-orchestrator.ts`: Timestamp tracking
+- `src/cli/commands/build.ts`: Export recording-timeline.json
+- `src/video/assembler.ts`: Timestamp-based audio concatenation
 
 **Testing**:
-- Tested with `simple-demo` (8 slides, 59s video)
-- Verified timing matches between orchestrator and FFmpeg
-- Confirmed audio/video streams present in final MP4
-- Manual review confirms sync is correct
+- Tested with `simple-demo` (8 slides, 5 fragments)
+- Verified timestamp export and import
+- Confirmed variable gaps in combined audio
+- Manual video review: perfect sync throughout
 
-**Impact on Build Time**:
-- Adds ~350ms per slide to recording time
-- 8 slides = +2.8s recording overhead (acceptable)
-- No impact on audio generation (cached)
-- FFmpeg assembly time unchanged
+**Impact**:
+- Build time: No change (timestamps add negligible overhead)
+- Output files: +1KB for recording-timeline.json
+- Sync quality: Dramatically improved (no drift)
 
-**Future Considerations**:
-- Could make navigation delay configurable via environment variable
-- Consider exporting timeline.json for debugging sync issues
-- Monitor RevealJS updates that might change default transition time
+**Future Enhancements**:
+- Could visualize timeline in debug output
+- Export timeline.json to presentation output for debugging
+- Add timestamp validation/sanity checks
 
 ---
 

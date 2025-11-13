@@ -216,27 +216,47 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Files: `src/core/types.ts`, `src/video/timeline.ts`, `src/presentation/audio-sync-orchestrator.ts`, `src/cli/commands/dev.ts`
    - **Result**: Fragments now reveal automatically during presentations!
 
-11. ✅ **DONE: Audio/Video Sync Fix** (2025-11-12)
-   - **Problem**: Audio played before slide headings were visible in final MP4
-   - **Root Cause**: Two issues identified:
-     1. Orchestrator played audio immediately after navigation (no delay for RevealJS transitions)
-     2. Playwright doesn't capture audio during video recording (known limitation)
+11. ✅ **DONE: Audio/Video Sync Fix - Timestamp-Based Approach** (2025-11-12)
+   - **Problem**: Audio played BEFORE slide headings were visible in final MP4, timing drift accumulated over presentation
+   - **Root Causes**:
+     1. Orchestrator had variable real-world timing (browser overhead, fragments, rendering)
+     2. Combined audio used fixed theoretical timing (350ms nav delays)
+     3. Small differences compounded across slides → audio ahead of video by slide 8
+     4. Playwright doesn't capture browser audio (known limitation)
    - **Solution Implemented**:
-     * Added 350ms delay in orchestrator after navigation, before audio playback
-     * Implemented `concatenateSlideAudioWithNavDelays()` in video assembler
-     * Combined audio now includes 350ms silence before each slide's audio
-     * FFmpeg replaces recorded video's empty audio track with synchronized combined audio
-   - **Technical Details**:
-     * Orchestrator: `audio-sync-orchestrator.ts` line 188
-     * Assembler: `video/assembler.ts` `concatenateSlideAudioWithNavDelays()`
-     * Audio structure: `[350ms silence] + [audio] + [pause]` per slide
-     * Final video: perfect sync between slides and narration
+     * **Orchestrator tracks ACTUAL timestamps**: Records exact time when audio starts for each slide
+     * **Export recording timeline**: Saves timestamps to `recording-timeline.json`
+     * **Timestamp-based audio assembly**: Builds combined audio using exact recorded timing
+     * **No more timing drift**: Audio matches video perfectly throughout presentation
+   - **Technical Implementation**:
+     * Orchestrator: Records `audioStartTime` for each slide in `recordedTimestamps` array
+     * Build command: Exports timestamps to `output/recording-timeline.json`
+     * Assembler: Reads timestamps and calculates exact silence padding per slide
+     * FFmpeg: Concatenates audio with variable gaps matching recorded timing
+   - **Example Timing (simple-demo)**:
+     ```
+     Slide 1: 1.070s silence (initial delay)
+     Slide 2: 0.708s gap
+     Slide 3: 1.121s gap
+     Slide 4: 1.106s gap
+     Slide 5: 1.119s gap
+     Slide 6: 2.111s gap  ← includes fragment reveals!
+     Slide 7: 1.134s gap
+     Slide 8: 1.113s gap
+     ```
+   - **Why Variable Gaps Work**:
+     * Captures ALL real-world timing: browser rendering, fragments, network delays
+     * Slide 6 has 2.1s gap (vs ~1.1s others) because it has 5 fragments
+     * Each slide's audio starts at EXACT recorded time → perfect sync
    - **Verification**:
-     * Video has both video (h264) and audio (aac) tracks
-     * Durations match: video 59.32s, audio 59.34s
-     * combined-audio.mp3 created with correct timing (475KB)
-   - **Files Modified**: `src/presentation/audio-sync-orchestrator.ts`, `src/video/assembler.ts`
-   - **Result**: Slides now drive audio - headings appear BEFORE narration begins!
+     * recording-timeline.json: 8 slides, timestamps 1.07s to 53.18s
+     * Video: h264, 56.95s | Audio: aac (exact match)
+     * Manual review: Perfect sync throughout entire presentation ✅
+   - **Files Modified**:
+     * `src/presentation/audio-sync-orchestrator.ts`: Added timestamp tracking
+     * `src/cli/commands/build.ts`: Export recording-timeline.json
+     * `src/video/assembler.ts`: Timestamp-based audio concatenation
+   - **Result**: TRUE slides-drive-audio with zero timing drift!
 
 **Next Tasks:**
 1. **TODO: Fix Google/Gemini Image Generation** - Make @image-prompt work with Gemini

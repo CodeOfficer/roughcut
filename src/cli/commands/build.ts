@@ -684,6 +684,16 @@ export class RevealBuildCommand {
       throw new Error(result.error || 'Video recording failed');
     }
 
+    // Save recorded timestamps for audio sync (if available)
+    if (result.recordedTimestamps && result.recordedTimestamps.length > 0) {
+      const timestampsPath = path.join(options.output, 'recording-timeline.json');
+      await fs.writeFile(
+        timestampsPath,
+        JSON.stringify(result.recordedTimestamps, null, 2),
+        'utf8'
+      );
+    }
+
     return result.videoPath;
   }
 

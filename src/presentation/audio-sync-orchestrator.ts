@@ -98,6 +98,14 @@ export interface OrchestrationResult {
 
   /** Error message if failed */
   error?: string;
+
+  /** Actual recorded timestamps for each slide (for audio sync) */
+  recordedTimestamps?: Array<{
+    slideId: string;
+    slideIndex: number;
+    audioStartTime: number; // Seconds from recording start
+    audioDuration: number; // Duration of audio
+  }>;
 }
 
 // ============================================================================
@@ -110,6 +118,12 @@ export class AudioSyncOrchestrator {
   private audioPlayer: BrowserAudioPlayer | null = null;
   private progressCallback: ProgressCallback | null = null;
   private startTime: number = 0;
+  private recordedTimestamps: Array<{
+    slideId: string;
+    slideIndex: number;
+    audioStartTime: number;
+    audioDuration: number;
+  }> = [];
 
   constructor() {
     this.controller = new PlaywrightRevealController();
@@ -187,6 +201,9 @@ export class AudioSyncOrchestrator {
         // Wait for slide transition to complete (RevealJS default transition: ~300ms)
         await this.controller.wait(350);
 
+        // Record actual timestamp BEFORE audio starts (for sync)
+        const audioStartTime = this.getElapsedTime();
+
         // Play audio with fragment reveals if present
         if (entry.audioPath) {
           await this.playAudioWithFragments(
@@ -195,6 +212,14 @@ export class AudioSyncOrchestrator {
             i,
             timeline.slides.length
           );
+
+          // Record timestamp data for this slide
+          this.recordedTimestamps.push({
+            slideId: entry.slideId,
+            slideIndex: i,
+            audioStartTime,
+            audioDuration: entry.audioDuration,
+          });
         }
 
         // Pause after audio
@@ -236,6 +261,12 @@ export class AudioSyncOrchestrator {
         slidesProcessed: number;
         totalDuration: number;
         videoPath?: string;
+        recordedTimestamps?: Array<{
+          slideId: string;
+          slideIndex: number;
+          audioStartTime: number;
+          audioDuration: number;
+        }>;
       } = {
         success: true,
         slidesProcessed: timeline.slides.length,
@@ -244,6 +275,11 @@ export class AudioSyncOrchestrator {
 
       if (videoPath) {
         result.videoPath = videoPath;
+      }
+
+      // Include recorded timestamps for audio sync
+      if (this.recordedTimestamps.length > 0) {
+        result.recordedTimestamps = this.recordedTimestamps;
       }
 
       return result;
