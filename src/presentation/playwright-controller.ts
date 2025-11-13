@@ -144,9 +144,14 @@ export class PlaywrightRevealController {
     });
 
     // Load HTML file (support both file paths and HTTP URLs)
-    const url = htmlPath.startsWith('http://') || htmlPath.startsWith('https://')
+    let url = htmlPath.startsWith('http://') || htmlPath.startsWith('https://')
       ? htmlPath
       : `file://${path.resolve(htmlPath)}`;
+
+    // Add autoplay parameter to enable audio automatically (required for video recording)
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}autoplay=true`;
+
     console.log(`   Loading URL: ${url}`);
     await this.page.goto(url, { waitUntil: 'networkidle' });
 

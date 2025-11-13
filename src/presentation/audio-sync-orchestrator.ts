@@ -274,10 +274,6 @@ export class AudioSyncOrchestrator {
     slideIndex: number,
     totalSlides: number
   ): Promise<void> {
-    if (!this.audioPlayer) {
-      throw new Error('Audio player not initialized');
-    }
-
     await this.reportProgress({
       slideIndex,
       totalSlides,
@@ -289,31 +285,58 @@ export class AudioSyncOrchestrator {
     });
 
     try {
-      // Load and play audio
-      await this.audioPlayer.load(audioPath);
-      const audioStartTime = Date.now();
-      await this.audioPlayer.play();
+      // Check if page has its own audio controller (used with autoplay)
+      const hasPageAudioController = await this.hasPageAudioController();
 
-      // Schedule fragment reveals
-      const fragmentPromises: Promise<void>[] = [];
+      if (hasPageAudioController) {
+        // Use page's audio controller (it handles playback automatically)
+        const audioStartTime = Date.now();
 
-      for (const { fragmentIndex, timestamp } of fragmentTimings) {
-        const fragmentPromise = this.scheduleFragmentReveal(
-          fragmentIndex,
-          timestamp,
-          audioStartTime
-        );
-        fragmentPromises.push(fragmentPromise);
+        // Schedule fragment reveals
+        const fragmentPromises: Promise<void>[] = [];
+        for (const { fragmentIndex, timestamp } of fragmentTimings) {
+          const fragmentPromise = this.scheduleFragmentReveal(
+            fragmentIndex,
+            timestamp,
+            audioStartTime
+          );
+          fragmentPromises.push(fragmentPromise);
+        }
+
+        // Wait for page's audio to finish
+        await Promise.all([
+          this.waitForPageAudio(),
+          ...fragmentPromises,
+        ]);
+      } else {
+        // Fallback: Use orchestrator's audio player
+        if (!this.audioPlayer) {
+          throw new Error('Audio player not initialized');
+        }
+
+        await this.audioPlayer.load(audioPath);
+        const audioStartTime = Date.now();
+        await this.audioPlayer.play();
+
+        // Schedule fragment reveals
+        const fragmentPromises: Promise<void>[] = [];
+        for (const { fragmentIndex, timestamp } of fragmentTimings) {
+          const fragmentPromise = this.scheduleFragmentReveal(
+            fragmentIndex,
+            timestamp,
+            audioStartTime
+          );
+          fragmentPromises.push(fragmentPromise);
+        }
+
+        // Wait for audio to finish
+        await Promise.all([
+          this.audioPlayer.waitForEnd(),
+          ...fragmentPromises,
+        ]);
       }
-
-      // Wait for audio to finish (fragments reveal in parallel)
-      await Promise.all([
-        this.audioPlayer.waitForEnd(),
-        ...fragmentPromises,
-      ]);
     } catch (error) {
       // If audio fails to play, wait a minimal amount and continue
-      // This handles cases like test mock files or missing audio
       await this.controller.wait(100);
     }
   }
@@ -343,6 +366,42 @@ export class AudioSyncOrchestrator {
       );
     } catch (error) {
       console.warn(`Failed to reveal fragment ${fragmentIndex}:`, error);
+    }
+  }
+
+  /**
+   * Check if page has its own audio controller
+   */
+  private async hasPageAudioController(): Promise<boolean> {
+    const page = this.controller.getPage();
+    return await page.evaluate(() => {
+      return typeof (window as any).revealAudioController !== 'undefined';
+    });
+  }
+
+  /**
+   * Wait for page's audio to finish playing
+   */
+  private async waitForPageAudio(timeout: number = 60000): Promise<void> {
+    const page = this.controller.getPage();
+
+    try {
+      await page.waitForFunction(
+        () => {
+          const controller = (window as any).revealAudioController;
+          if (!controller) return true;
+
+          const audio = controller.getCurrentAudio();
+          if (!audio) return true;
+
+          // Audio has finished if it's ended or paused
+          return audio.ended || audio.paused;
+        },
+        { timeout, polling: 100 }
+      );
+    } catch (error) {
+      // Timeout - continue anyway
+      console.warn('⚠️  Timeout waiting for page audio to finish');
     }
   }
 

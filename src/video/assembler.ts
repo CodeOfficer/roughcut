@@ -318,8 +318,8 @@ export class RevealVideoAssembler {
     audioBaseDir: string,
     outputPath: string
   ): Promise<void> {
-    // Collect audio files in order
-    const audioFiles: string[] = [];
+    // Build audio segments with pauses
+    const segments: Array<{ audioPath: string; pauseAfter: number }> = [];
 
     for (const slide of timeline.slides) {
       if (slide.audioPath) {
@@ -327,33 +327,51 @@ export class RevealVideoAssembler {
         const exists = await fs.access(audioPath).then(() => true).catch(() => false);
 
         if (exists) {
-          audioFiles.push(audioPath);
+          segments.push({ audioPath, pauseAfter: slide.pauseAfter });
         }
       }
     }
 
-    if (audioFiles.length === 0) {
+    if (segments.length === 0) {
       throw new Error('No audio files found for concatenation');
     }
 
-    // Create file list for FFmpeg
-    // Use basenames only - paths are relative to the concat file location
-    const fileListPath = path.join(audioBaseDir, 'concat-list.txt');
-    const fileListContent = audioFiles.map((f) => `file '${path.basename(f)}'`).join('\n');
-    await fs.writeFile(fileListPath, fileListContent);
+    // Build FFmpeg filter to concatenate audio with silence for pauses
+    const inputs: string[] = [];
+    const filterParts: string[] = [];
 
-    // Concatenate with FFmpeg
+    for (let i = 0; i < segments.length; i++) {
+      inputs.push('-i', segments[i]!.audioPath);
+
+      if (segments[i]!.pauseAfter > 0) {
+        // Add silence after this audio
+        const silenceDuration = segments[i]!.pauseAfter;
+        filterParts.push(
+          `[${i}:a]apad=pad_dur=${silenceDuration}[a${i}]`
+        );
+      } else {
+        // No pause, just use audio as-is
+        filterParts.push(`[${i}:a]anull[a${i}]`);
+      }
+    }
+
+    // Concatenate all segments
+    const concatInputs = segments.map((_, i) => `[a${i}]`).join('');
+    const concatFilter = `${concatInputs}concat=n=${segments.length}:v=0:a=1[out]`;
+    filterParts.push(concatFilter);
+
+    // Build complete filter_complex
+    const filterComplex = filterParts.join(';');
+
+    // Execute FFmpeg with filter
     const command = [
       'ffmpeg',
       '-y',
-      '-f',
-      'concat',
-      '-safe',
-      '0',
-      '-i',
-      fileListPath,
-      '-c',
-      'copy',
+      ...inputs,
+      '-filter_complex',
+      filterComplex,
+      '-map',
+      '[out]',
       outputPath,
     ];
 
@@ -362,9 +380,6 @@ export class RevealVideoAssembler {
       audioPath: '',
       outputPath,
     });
-
-    // Cleanup file list
-    await fs.unlink(fileListPath).catch(() => {});
   }
 
   // ============================================================================
