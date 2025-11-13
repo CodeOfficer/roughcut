@@ -184,6 +184,9 @@ export class AudioSyncOrchestrator {
         // Navigate to slide
         await this.controller.slide(entry.slideIndex, 0);
 
+        // Wait for slide transition to complete (RevealJS default transition: ~300ms)
+        await this.controller.wait(350);
+
         // Play audio with fragment reveals if present
         if (entry.audioPath) {
           await this.playAudioWithFragments(

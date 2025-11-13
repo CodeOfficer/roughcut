@@ -160,9 +160,10 @@ export class RevealVideoAssembler {
   }
 
   /**
-   * Assemble multiple videos with audio (one per slide)
+   * Assemble video with combined audio track
    *
-   * Creates individual video segments per slide, then concatenates them
+   * Creates combined audio with navigation delays matching the recorded video,
+   * then uses FFmpeg to replace the video's audio track.
    */
   async assembleFromTimeline(
     inputVideoPath: string,
@@ -171,22 +172,11 @@ export class RevealVideoAssembler {
     outputPath: string
   ): Promise<VideoAssemblyResult> {
     try {
-      // For now, use simple audio replacement approach
-      // Future enhancement: could split video by timeline and use per-slide audio
-
-      // Find combined audio file or create it
+      // Create combined audio file with navigation delays
       const audioPath = path.join(audioBaseDir, 'combined-audio.mp3');
-      const audioExists = await fs
-        .access(audioPath)
-        .then(() => true)
-        .catch(() => false);
+      await this.concatenateSlideAudioWithNavDelays(timeline, audioBaseDir, audioPath);
 
-      if (!audioExists) {
-        // If no combined audio, try to concatenate individual slide audio files
-        await this.concatenateSlideAudio(timeline, audioBaseDir, audioPath);
-      }
-
-      // Assemble video with audio
+      // Assemble video with combined audio
       return await this.assemble({
         inputVideoPath,
         audioPath,
@@ -311,14 +301,22 @@ export class RevealVideoAssembler {
   // ============================================================================
 
   /**
-   * Concatenate individual slide audio files into one
+   * Concatenate slide audio files with navigation delays
+   *
+   * Creates combined-audio.mp3 that matches the timing of the recorded video:
+   * - 350ms silence for each slide navigation (RevealJS transition time)
+   * - Audio for the slide
+   * - Pause after audio (from @pause-after directive)
    */
-  private async concatenateSlideAudio(
+  private async concatenateSlideAudioWithNavDelays(
     timeline: RevealTimeline,
     audioBaseDir: string,
     outputPath: string
   ): Promise<void> {
-    // Build audio segments with pauses
+    // Navigation delay constant (matches orchestrator delay)
+    const NAVIGATION_DELAY = 0.35; // 350ms
+
+    // Build audio segments with navigation delays
     const segments: Array<{ audioPath: string; pauseAfter: number }> = [];
 
     for (const slide of timeline.slides) {
@@ -336,27 +334,40 @@ export class RevealVideoAssembler {
       throw new Error('No audio files found for concatenation');
     }
 
-    // Build FFmpeg filter to concatenate audio with silence for pauses
+    // Build FFmpeg filter to concatenate audio with:
+    // 1. Navigation delay (silence) before each slide
+    // 2. Audio for the slide
+    // 3. Pause after audio (from timeline)
     const inputs: string[] = [];
     const filterParts: string[] = [];
 
     for (let i = 0; i < segments.length; i++) {
       inputs.push('-i', segments[i]!.audioPath);
 
+      // Create filter for this segment:
+      // [nav_delay] + [audio] + [pause]
+      const navDelay = `aevalsrc=0:d=${NAVIGATION_DELAY}[nav${i}]`;
+      filterParts.push(navDelay);
+
+      // Add pause after audio if specified
       if (segments[i]!.pauseAfter > 0) {
-        // Add silence after this audio
         const silenceDuration = segments[i]!.pauseAfter;
         filterParts.push(
-          `[${i}:a]apad=pad_dur=${silenceDuration}[a${i}]`
+          `[${i}:a]apad=pad_dur=${silenceDuration}[audio${i}]`
         );
       } else {
         // No pause, just use audio as-is
-        filterParts.push(`[${i}:a]anull[a${i}]`);
+        filterParts.push(`[${i}:a]anull[audio${i}]`);
       }
+
+      // Concatenate navigation delay + audio for this slide
+      filterParts.push(
+        `[nav${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`
+      );
     }
 
     // Concatenate all segments
-    const concatInputs = segments.map((_, i) => `[a${i}]`).join('');
+    const concatInputs = segments.map((_, i) => `[seg${i}]`).join('');
     const concatFilter = `${concatInputs}concat=n=${segments.length}:v=0:a=1[out]`;
     filterParts.push(concatFilter);
 

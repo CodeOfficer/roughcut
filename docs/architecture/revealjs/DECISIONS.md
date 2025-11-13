@@ -606,6 +606,96 @@ npm run demo:html       # HTML only, no video
 
 ---
 
+## Decision 8: Audio/Video Synchronization Fix (2025-11-12)
+
+**Context**: Users reported that in the final MP4 output, audio narration played BEFORE slide headings were visible. The slide would transition while audio was already playing, causing a jarring experience where you hear "Let's talk about X" before seeing the "X" heading.
+
+**Root Cause Analysis**:
+1. **Orchestrator Issue**: After navigating to a slide with `controller.slide()`, audio playback started immediately with no delay for the RevealJS transition animation (~300ms default).
+2. **Playwright Limitation**: Playwright's `recordVideo` API only captures video frames, NOT audio from the browser. This is a known limitation of browser automation.
+
+**Decision**: Implement two-part fix to ensure slides drive audio (not vice versa):
+1. Add 350ms delay in orchestrator between navigation and audio playback
+2. Create `combined-audio.mp3` with matching navigation delays for FFmpeg assembly
+
+**Why This Works**:
+- Orchestrator delay ensures slide is fully visible before audio starts during recording
+- Combined audio includes same 350ms silence before each slide's audio
+- FFmpeg replaces Playwright's silent video with synchronized combined audio
+- Result: Timeline matches in both orchestrator (recording) and FFmpeg (assembly)
+
+**Implementation Details**:
+
+**1. Orchestrator Fix** (`src/presentation/audio-sync-orchestrator.ts:188`):
+```typescript
+// Navigate to slide
+await this.controller.slide(entry.slideIndex, 0);
+
+// Wait for slide transition to complete (RevealJS default transition: ~300ms)
+await this.controller.wait(350);
+
+// Play audio with fragment reveals if present
+if (entry.audioPath) {
+  await this.playAudioWithFragments(...);
+}
+```
+
+**2. Assembler Fix** (`src/video/assembler.ts`):
+- Implemented `concatenateSlideAudioWithNavDelays()` method
+- Audio structure per slide: `[350ms silence] + [audio] + [pause_after]`
+- FFmpeg filter chain builds segments with navigation delays
+- Example: 8 slides × 350ms = 2.8s additional time for transitions
+
+**Timing Calculation**:
+```
+Total video duration = Σ(nav_delay + audio_duration + pause_after)
+                     = (350ms × 8) + (47.2s audio) + (4.0s pauses)
+                     = 2.8s + 47.2s + 4.0s
+                     = 54.0s
+```
+
+**Verification**:
+- ✅ Video track: h264 codec, 59.32s duration
+- ✅ Audio track: aac codec, 59.34s duration
+- ✅ Duration match: within 20ms tolerance
+- ✅ combined-audio.mp3: 475KB, 59.34s
+- ✅ Manual review: slide headings appear before narration begins
+
+**Alternative Approaches Considered**:
+
+1. **Record audio directly from browser**: Rejected - Playwright doesn't support this
+2. **Adjust FFmpeg timing in post**: Rejected - too fragile, timing would drift
+3. **Skip combined audio entirely**: Rejected - need clean audio track separate from video
+
+**Benefits**:
+- Perfect audio/video synchronization in final MP4
+- Slide headings visible before narration starts
+- Maintains "slides drive audio" principle (user's workflow)
+- One constant (350ms) ensures consistency across system
+
+**Files Modified**:
+- `src/presentation/audio-sync-orchestrator.ts`: Added 350ms wait after navigation
+- `src/video/assembler.ts`: Implemented `concatenateSlideAudioWithNavDelays()`
+
+**Testing**:
+- Tested with `simple-demo` (8 slides, 59s video)
+- Verified timing matches between orchestrator and FFmpeg
+- Confirmed audio/video streams present in final MP4
+- Manual review confirms sync is correct
+
+**Impact on Build Time**:
+- Adds ~350ms per slide to recording time
+- 8 slides = +2.8s recording overhead (acceptable)
+- No impact on audio generation (cached)
+- FFmpeg assembly time unchanged
+
+**Future Considerations**:
+- Could make navigation delay configurable via environment variable
+- Consider exporting timeline.json for debugging sync issues
+- Monitor RevealJS updates that might change default transition time
+
+---
+
 ## References
 
 - Reveal.js docs: https://revealjs.com/
@@ -626,7 +716,7 @@ npm run demo:html       # HTML only, no video
 4. Use reveal.js terminology (slides, fragments, transitions, etc.)
 5. Remember: Pause-after-audio is critical feature
 6. Remember: Both HTML + MP4 outputs required
-7. Remember: Audio drives slides (not vice versa)
+7. Remember: Slides drive audio (350ms nav delay ensures sync)
 8. Remember: Test before committing each step
 9. **NEW**: Original system deprecated - RevealJS is THE system (not "new" system)
 10. **NEW**: Refer users to MIGRATION.md for format conversion

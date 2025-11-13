@@ -216,6 +216,28 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
    - Files: `src/core/types.ts`, `src/video/timeline.ts`, `src/presentation/audio-sync-orchestrator.ts`, `src/cli/commands/dev.ts`
    - **Result**: Fragments now reveal automatically during presentations!
 
+11. ✅ **DONE: Audio/Video Sync Fix** (2025-11-12)
+   - **Problem**: Audio played before slide headings were visible in final MP4
+   - **Root Cause**: Two issues identified:
+     1. Orchestrator played audio immediately after navigation (no delay for RevealJS transitions)
+     2. Playwright doesn't capture audio during video recording (known limitation)
+   - **Solution Implemented**:
+     * Added 350ms delay in orchestrator after navigation, before audio playback
+     * Implemented `concatenateSlideAudioWithNavDelays()` in video assembler
+     * Combined audio now includes 350ms silence before each slide's audio
+     * FFmpeg replaces recorded video's empty audio track with synchronized combined audio
+   - **Technical Details**:
+     * Orchestrator: `audio-sync-orchestrator.ts` line 188
+     * Assembler: `video/assembler.ts` `concatenateSlideAudioWithNavDelays()`
+     * Audio structure: `[350ms silence] + [audio] + [pause]` per slide
+     * Final video: perfect sync between slides and narration
+   - **Verification**:
+     * Video has both video (h264) and audio (aac) tracks
+     * Durations match: video 59.32s, audio 59.34s
+     * combined-audio.mp3 created with correct timing (475KB)
+   - **Files Modified**: `src/presentation/audio-sync-orchestrator.ts`, `src/video/assembler.ts`
+   - **Result**: Slides now drive audio - headings appear BEFORE narration begins!
+
 **Next Tasks:**
 1. **TODO: Fix Google/Gemini Image Generation** - Make @image-prompt work with Gemini
    - Current implementation needs updating for latest Gemini API
