@@ -25,6 +25,9 @@ export interface DevServerOptions {
 
   /** Slow down automation speed (milliseconds per step) */
   slowMo?: number;
+
+  /** Debug overlay data (narration text, fragment counts) */
+  debugOverlayData?: Map<string, { narration: string; fragmentCount: number }>;
 }
 
 export class DevServer {
@@ -32,6 +35,7 @@ export class DevServer {
   private page: Page | null = null;
   private httpServer: http.Server | null = null;
   private serverPort: number = 0;
+  private debugOverlayData: Map<string, { narration: string; fragmentCount: number }> | null = null;
 
   /**
    * Start HTTP server to serve presentation files
@@ -48,10 +52,12 @@ export class DevServer {
 
           // Map URL to file path
           let filePath: string;
+          let isMainHtml = false;
 
           // Root or /index.html -> serve the main HTML
           if (urlPath === '/' || urlPath === '/index.html') {
             filePath = htmlPath;
+            isMainHtml = true;
           }
           // /reveal/* -> serve from presentation/reveal/
           else if (urlPath.startsWith('/reveal/')) {
@@ -87,8 +93,17 @@ export class DevServer {
           }
 
           // Read and serve file
-          const content = await fs.readFile(filePath);
+          let content = await fs.readFile(filePath);
           const ext = path.extname(filePath);
+
+          // If this is the main HTML and we have debug overlay data, inject the overlay script
+          if (isMainHtml && this.debugOverlayData) {
+            let htmlContent = content.toString('utf-8');
+            const overlayScript = this.generateDebugOverlayScript(this.debugOverlayData);
+            // Inject before closing </body> tag
+            htmlContent = htmlContent.replace('</body>', `${overlayScript}</body>`);
+            content = Buffer.from(htmlContent, 'utf-8');
+          }
 
           // Set content type
           const contentTypes: Record<string, string> = {
@@ -131,11 +146,17 @@ export class DevServer {
    * Start dev server and open presentation in browser
    */
   async start(options: DevServerOptions): Promise<void> {
-    const { htmlPath, autoAdvance = false, timeline, audioBaseDir, slowMo = 100 } = options;
+    const { htmlPath, autoAdvance = false, timeline, audioBaseDir, slowMo = 100, debugOverlayData } = options;
+
+    // Store debug overlay data for injection
+    this.debugOverlayData = debugOverlayData || null;
 
     console.log('🚀 Starting dev server...');
     console.log(`   Mode: ${autoAdvance ? 'Auto-advance' : 'Manual'}`);
     console.log(`   HTML: ${htmlPath}`);
+    if (this.debugOverlayData) {
+      console.log(`   Debug overlay: Enabled (press 'D' to toggle)`);
+    }
 
     // Start HTTP server
     const serverUrl = await this.startHttpServer(htmlPath);
@@ -252,6 +273,214 @@ export class DevServer {
         clearInterval(keepAlive);
       });
     });
+  }
+
+  /**
+   * Generate debug overlay script to inject into HTML
+   */
+  private generateDebugOverlayScript(overlayData: Map<string, { narration: string; fragmentCount: number }>): string {
+    // Convert Map to plain object for JSON serialization
+    const dataObject: Record<string, { narration: string; fragmentCount: number }> = {};
+    overlayData.forEach((value, key) => {
+      dataObject[key] = value;
+    });
+
+    return `
+  <!-- Debug Overlay (injected by dev server) -->
+  <style>
+    #debug-overlay {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 400px;
+      max-height: 500px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 10000;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: opacity 0.3s ease;
+    }
+
+    #debug-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #debug-overlay h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #4CAF50;
+      border-bottom: 1px solid #4CAF50;
+      padding-bottom: 5px;
+    }
+
+    #debug-overlay .section {
+      margin-bottom: 12px;
+    }
+
+    #debug-overlay .label {
+      color: #888;
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    #debug-overlay .value {
+      color: #fff;
+    }
+
+    #debug-overlay .narration {
+      color: #FFD700;
+      line-height: 1.4;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    #debug-overlay .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    #debug-overlay .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      transition: width 0.3s ease;
+    }
+  </style>
+
+  <div id="debug-overlay">
+    <h3>🐛 Debug Overlay</h3>
+    <div class="section">
+      <span class="label">Slide:</span>
+      <span class="value" id="debug-slide">-</span>
+    </div>
+    <div class="section">
+      <span class="label">Fragments:</span>
+      <span class="value" id="debug-fragments">-</span>
+    </div>
+    <div class="section">
+      <span class="label">Audio:</span>
+      <span class="value" id="debug-audio">-</span>
+    </div>
+    <div class="section">
+      <span class="label">Narration:</span>
+      <div class="narration" id="debug-narration">-</div>
+    </div>
+    <div class="section">
+      <span class="label">Progress:</span>
+      <span class="value" id="debug-progress">-</span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="debug-progress-bar" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Debug overlay controller
+    (function() {
+      // Store presentation data
+      window.PRESENTATION_DATA = ${JSON.stringify(dataObject, null, 2)};
+
+      const overlay = document.getElementById('debug-overlay');
+      const slideEl = document.getElementById('debug-slide');
+      const fragmentsEl = document.getElementById('debug-fragments');
+      const audioEl = document.getElementById('debug-audio');
+      const narrationEl = document.getElementById('debug-narration');
+      const progressEl = document.getElementById('debug-progress');
+      const progressBarEl = document.getElementById('debug-progress-bar');
+
+      let fragmentsShown = 0;
+      let totalSlides = 0;
+
+      // Toggle overlay with 'D' key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'd' || e.key === 'D') {
+          overlay.classList.toggle('hidden');
+        }
+      });
+
+      // Update overlay with current slide info
+      function updateOverlay(slide) {
+        const slideId = slide.id;
+        const slideIndex = Reveal.getIndices().h;
+        totalSlides = Reveal.getTotalSlides();
+
+        // Update slide info
+        slideEl.textContent = \`#\${slideIndex + 1} (\${slideId})\`;
+
+        // Get slide data from window.PRESENTATION_DATA
+        const slideData = window.PRESENTATION_DATA[slideId];
+
+        if (slideData) {
+          // Update fragments
+          const fragmentCount = slideData.fragmentCount || 0;
+          if (fragmentCount > 0) {
+            fragmentsEl.textContent = \`\${fragmentsShown}/\${fragmentCount} revealed\`;
+          } else {
+            fragmentsEl.textContent = 'None';
+          }
+
+          // Update narration
+          if (slideData.narration) {
+            narrationEl.textContent = slideData.narration;
+          } else {
+            narrationEl.textContent = 'No narration text';
+          }
+        } else {
+          fragmentsEl.textContent = 'Unknown';
+          narrationEl.textContent = 'No data available';
+        }
+
+        // Update audio status (from audio controller if available)
+        const audioController = window.revealAudioController;
+        const currentAudio = audioController?.getCurrentAudio();
+        if (currentAudio && !currentAudio.paused) {
+          const remaining = currentAudio.duration - currentAudio.currentTime;
+          audioEl.textContent = \`🔊 Playing (\${remaining.toFixed(1)}s remaining)\`;
+        } else {
+          audioEl.textContent = '⏸️  Not playing';
+        }
+
+        // Update progress
+        const progressPercent = ((slideIndex + 1) / totalSlides) * 100;
+        progressEl.textContent = \`\${slideIndex + 1}/\${totalSlides} (\${progressPercent.toFixed(0)}%)\`;
+        progressBarEl.style.width = \`\${progressPercent}%\`;
+      }
+
+      // Listen for slide changes
+      Reveal.on('slidechanged', event => {
+        fragmentsShown = 0; // Reset fragment counter
+        updateOverlay(event.currentSlide);
+      });
+
+      // Listen for fragment changes
+      Reveal.on('fragmentshown', event => {
+        fragmentsShown++;
+        updateOverlay(Reveal.getCurrentSlide());
+      });
+
+      Reveal.on('fragmenthidden', event => {
+        fragmentsShown--;
+        updateOverlay(Reveal.getCurrentSlide());
+      });
+
+      // Initial update when ready
+      Reveal.on('ready', event => {
+        updateOverlay(event.currentSlide);
+      });
+
+      console.log('🐛 Debug overlay loaded - Press "D" to toggle');
+    })();
+  </script>
+`;
   }
 
   /**

@@ -51,17 +51,17 @@ async function runDev(options: any): Promise<void> {
     process.exit(1);
   }
 
+  // For both manual and auto mode, we need to parse presentation for overlay data
+  console.log('📖 Parsing presentation...');
+  const markdown = await fs.readFile(inputPath, 'utf-8');
+  const parser = createRevealParser();
+  const presentation = parser.parse(markdown);
+
   // For auto mode, we need timeline
   let timeline = null;
   let audioBaseDir = null;
 
   if (auto) {
-    // Parse presentation to build timeline
-    console.log('📖 Parsing presentation...');
-    const markdown = await fs.readFile(inputPath, 'utf-8');
-    const parser = createRevealParser();
-    const presentation = parser.parse(markdown);
-
     // Check if audio files exist
     audioBaseDir = path.join(outputDir, 'audio');
     try {
@@ -109,6 +109,9 @@ async function runDev(options: any): Promise<void> {
     console.log('');
   }
 
+  // Prepare debug overlay data (available in both manual and auto modes)
+  const debugOverlayData = await prepareDebugOverlayData(presentation, path.join(outputDir, 'audio'));
+
   // Start dev server
   const devServer = createDevServer();
   await devServer.start({
@@ -117,5 +120,52 @@ async function runDev(options: any): Promise<void> {
     timeline,
     audioBaseDir: audioBaseDir || null,
     slowMo: parseInt(slowMo, 10),
+    debugOverlayData,
   });
+}
+
+/**
+ * Prepare debug overlay data by extracting narration text and fragment info
+ */
+async function prepareDebugOverlayData(
+  presentation: any,
+  audioDir: string
+): Promise<Map<string, { narration: string; fragmentCount: number }>> {
+  const overlayData = new Map();
+
+  // Load audio manifest to get narration text
+  const manifestPath = path.join(audioDir, 'manifest.json');
+  let manifest: any = {};
+
+  try {
+    const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+    manifest = JSON.parse(manifestContent);
+  } catch (error) {
+    // No manifest available, overlay will show slides without narration text
+    console.log('ℹ️  No audio manifest found - debug overlay will show limited info');
+  }
+
+  // Build overlay data for each slide
+  for (const slide of presentation.slides) {
+    const slideId = slide.id;
+
+    // Extract narration text from manifest
+    let narration = '';
+    if (manifest[slideId]) {
+      const lines = manifest[slideId];
+      // Concatenate all text lines, removing [pause] markers
+      narration = lines
+        .map((line: any) => line.text || '')
+        .join(' ')
+        .replace(/\[pause[^\]]*\]/g, '') // Remove [pause] markers
+        .trim();
+    }
+
+    // Get fragment count from slide metadata
+    const fragmentCount = slide.metadata?.fragments?.length || 0;
+
+    overlayData.set(slideId, { narration, fragmentCount });
+  }
+
+  return overlayData;
 }
