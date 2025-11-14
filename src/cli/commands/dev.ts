@@ -153,9 +153,10 @@ async function prepareDebugOverlayData(
     let narration = '';
     if (manifest[slideId]) {
       const lines = manifest[slideId];
-      // Concatenate all text lines, removing [pause] markers
-      narration = lines
-        .map((line: any) => line.text || '')
+      // Deduplicate text entries (manifest may have duplicates)
+      const uniqueTexts = Array.from(new Set(lines.map((line: any) => line.text || '')));
+      // Concatenate all unique text lines, removing [pause] markers
+      narration = uniqueTexts
         .join(' ')
         .replace(/\[pause[^\]]*\]/g, '') // Remove [pause] markers
         .trim();
