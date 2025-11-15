@@ -132,6 +132,19 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
     description: 'Video output resolution',
     example: 'resolution: 1920x1080',
   },
+  {
+    name: 'config',
+    context: DirectiveContext.FRONTMATTER,
+    format: DirectiveFormat.MULTI_LINE,
+    valueType: DirectiveValueType.STRING,
+    required: false,
+    description: 'RevealJS configuration overrides (nested YAML)',
+    example: `config:
+  controls: true
+  progress: false
+  slideNumber: 'c/t'`,
+    notes: 'Phase 1: Supports controls, progress, slideNumber, center, overview',
+  },
 
   // ========================================================================
   // SLIDE-LEVEL DIRECTIVES (Single-line)

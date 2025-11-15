@@ -34,6 +34,9 @@ export interface RevealPresentation {
 
   /** Total presentation duration in seconds (calculated after audio generation) */
   totalDuration?: number;
+
+  /** Optional RevealJS configuration overrides from frontmatter */
+  config?: Partial<RevealConfig>;
 }
 
 /**
@@ -330,6 +333,25 @@ export interface RevealConfig {
 
   /** Plugin names to load */
   plugins: string[];
+
+  // ============================================================================
+  // PHASE 1: CORE CONFIG OPTIONS (exposed to users)
+  // ============================================================================
+
+  /** Show navigation controls in the bottom right corner */
+  controls?: boolean;
+
+  /** Show progress bar at the bottom */
+  progress?: boolean;
+
+  /** Display slide numbers (true, false, 'c', 'c/t', 'h.v', 'h/v') */
+  slideNumber?: boolean | string;
+
+  /** Vertically center slide content */
+  center?: boolean;
+
+  /** Enable overview mode (press 'o') */
+  overview?: boolean;
 }
 
 // ============================================================================
@@ -344,6 +366,9 @@ export interface PresentationFrontMatter {
   theme: string;
   voice?: string;
   resolution?: string;
+
+  /** Optional RevealJS configuration overrides */
+  config?: Partial<RevealConfig>;
 }
 
 /**
@@ -414,6 +439,13 @@ export const DEFAULT_REVEAL_CONFIG: RevealConfig = {
   transitionSpeed: 'default',
   autoPlayMedia: false,
   plugins: ['RevealMarkdown', 'RevealHighlight', 'RevealNotes'],
+
+  // Phase 1: Core config options (sensible defaults)
+  controls: true,
+  progress: true,
+  slideNumber: false,
+  center: true,
+  overview: true,
 };
 
 /**

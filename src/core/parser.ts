@@ -57,6 +57,11 @@ export class RevealMarkdownParser {
       presentation.voice = frontMatter.voice;
     }
 
+    // Only set config if it's defined (Phase 1: expose core config options)
+    if (frontMatter.config) {
+      presentation.config = frontMatter.config;
+    }
+
     return presentation;
   }
 
@@ -72,6 +77,10 @@ export class RevealMarkdownParser {
    * theme: dracula
    * voice: adam
    * resolution: 1920x1080
+   * config:
+   *   controls: true
+   *   progress: false
+   *   slideNumber: 'c/t'
    * ---
    */
   private extractFrontMatter(markdown: string): {
@@ -88,15 +97,51 @@ export class RevealMarkdownParser {
     const frontMatterText = match[1];
     const content = markdown.slice(match[0].length);
 
-    // Parse front matter lines
+    // Parse front matter lines (with support for nested config)
     const lines = frontMatterText.split('\n');
     const frontMatter: Partial<PresentationFrontMatter> = {};
+    let currentSection: string | null = null;
 
     for (const line of lines) {
+      // Skip empty lines
+      if (!line.trim()) continue;
+
+      // Check if this is a nested section (e.g., "config:")
+      if (line.match(/^[a-zA-Z]+:\s*$/) && line.startsWith('config:')) {
+        currentSection = 'config';
+        frontMatter.config = {};
+        continue;
+      }
+
+      // Parse indented lines under config section
+      if (currentSection === 'config' && line.match(/^\s+/)) {
+        const [key, ...valueParts] = line.trim().split(':');
+        if (key && valueParts.length > 0) {
+          let value: string | boolean | number = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+
+          // Parse boolean values
+          if (value === 'true') value = true;
+          else if (value === 'false') value = false;
+          // Parse numbers
+          else if (!isNaN(Number(value)) && value !== '') value = Number(value);
+
+          (frontMatter.config as any)[key.trim()] = value;
+        }
+        continue;
+      }
+
+      // Reset section if we hit a non-indented line after a section
+      if (currentSection && !line.match(/^\s+/)) {
+        currentSection = null;
+      }
+
+      // Parse top-level key-value pairs
       const [key, ...valueParts] = line.split(':');
-      if (key && valueParts.length > 0) {
+      if (key && valueParts.length > 0 && !currentSection) {
         const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
-        frontMatter[key.trim() as keyof PresentationFrontMatter] = value;
+        if (key.trim() !== 'config') {
+          frontMatter[key.trim() as keyof PresentationFrontMatter] = value as any;
+        }
       }
     }
 

@@ -74,7 +74,8 @@ export class RevealHTMLGenerator {
    * Generate HTML string with direct paths (useful for testing)
    */
   generateHTML(presentation: RevealPresentation, revealJsPath: string): string {
-    const config = DEFAULT_REVEAL_CONFIG;
+    // Merge user config with defaults (user config overrides defaults)
+    const config = { ...DEFAULT_REVEAL_CONFIG, ...presentation.config };
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -133,7 +134,8 @@ ${this.generateAudioControllerScript()}
    * Generate HTML string with bundled assets (standalone mode)
    */
   generateHTMLWithBundledAssets(presentation: RevealPresentation, assets: BundledAssets): string {
-    const config = DEFAULT_REVEAL_CONFIG;
+    // Merge user config with defaults (user config overrides defaults)
+    const config = { ...DEFAULT_REVEAL_CONFIG, ...presentation.config };
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -340,17 +342,41 @@ ${this.indentContent(slide.notes, 10)}
    * Generate reveal.js config object as JavaScript
    */
   private generateConfig(config: RevealConfig): string {
-    return `{
-      autoSlide: ${config.autoSlide},
-      hash: ${config.hash},
-      history: ${config.history},
-      fragments: ${config.fragments},
-      fragmentInURL: ${config.fragmentInURL},
-      transition: '${config.transition}',
-      transitionSpeed: '${config.transitionSpeed}',
-      autoPlayMedia: ${config.autoPlayMedia},
-      plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
-    }`;
+    // Build config options array
+    const options: string[] = [
+      `autoSlide: ${config.autoSlide}`,
+      `hash: ${config.hash}`,
+      `history: ${config.history}`,
+      `fragments: ${config.fragments}`,
+      `fragmentInURL: ${config.fragmentInURL}`,
+      `transition: '${config.transition}'`,
+      `transitionSpeed: '${config.transitionSpeed}'`,
+      `autoPlayMedia: ${config.autoPlayMedia}`,
+      `plugins: [RevealMarkdown, RevealHighlight, RevealNotes]`,
+    ];
+
+    // Add Phase 1 core config options if defined
+    if (config.controls !== undefined) {
+      options.push(`controls: ${config.controls}`);
+    }
+    if (config.progress !== undefined) {
+      options.push(`progress: ${config.progress}`);
+    }
+    if (config.slideNumber !== undefined) {
+      // Handle both boolean and string values for slideNumber
+      const slideNumberValue = typeof config.slideNumber === 'string'
+        ? `'${config.slideNumber}'`
+        : config.slideNumber;
+      options.push(`slideNumber: ${slideNumberValue}`);
+    }
+    if (config.center !== undefined) {
+      options.push(`center: ${config.center}`);
+    }
+    if (config.overview !== undefined) {
+      options.push(`overview: ${config.overview}`);
+    }
+
+    return `{\n      ${options.join(',\n      ')}\n    }`;
   }
 
   // ============================================================================

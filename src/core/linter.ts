@@ -77,6 +77,7 @@ export class MarkdownLinter {
     // Parse frontmatter fields
     const frontmatterLines = lines.slice(1, endLine);
     const foundFields = new Set<string>();
+    let inConfigSection = false;
 
     for (let i = 0; i < frontmatterLines.length; i++) {
       const line = frontmatterLines[i];
@@ -87,6 +88,23 @@ export class MarkdownLinter {
       // Skip empty lines and comments
       if (line.trim().length === 0 || line.trim().startsWith('#')) {
         continue;
+      }
+
+      // Check if this is a config section start
+      if (line.match(/^config:\s*$/)) {
+        inConfigSection = true;
+        foundFields.add('config');
+        continue;
+      }
+
+      // Skip indented lines under config section (Phase 1: nested config validation)
+      if (inConfigSection && line.match(/^\s+/)) {
+        continue;
+      }
+
+      // If we hit a non-indented line after config section, exit config section
+      if (inConfigSection && !line.match(/^\s+/)) {
+        inConfigSection = false;
       }
 
       // Parse field: value
