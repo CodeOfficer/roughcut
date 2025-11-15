@@ -400,6 +400,8 @@ export class RevealMarkdownParser {
    * Format:
    * - Item 1 @fragment
    * - Item 2 @fragment +2s
+   *
+   * Note: Only matches @fragment on content lines (not directive lines starting with @)
    */
   private extractFragments(markdown: string): FragmentDefinition[] {
     const fragments: FragmentDefinition[] = [];
@@ -413,10 +415,17 @@ export class RevealMarkdownParser {
 
       if (!content) continue;
 
+      // Skip if this is a directive line (starts with @)
+      // This prevents matching "@fragment" when it appears in @audio: or other directives
+      const trimmedContent = content.trim();
+      if (trimmedContent.startsWith('@')) {
+        continue;
+      }
+
       const fragment: FragmentDefinition = {
         index,
         effect: 'fade', // Default effect
-        content: content.trim(),
+        content: trimmedContent,
       };
 
       if (timingOffset) {
