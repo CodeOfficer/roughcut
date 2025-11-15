@@ -92,19 +92,8 @@ export class RevealHTMLGenerator {
   <link rel="stylesheet" href="${revealJsPath}/plugin/highlight/monokai.css">
 
   <style>
-    /* Custom styles */
-    .reveal {
-      font-size: 2em;
-    }
-    .reveal h1 {
-      font-size: 2.5em;
-    }
-    .reveal h2 {
-      font-size: 2em;
-    }
-    .reveal h3 {
-      font-size: 1.5em;
-    }
+    /* Phase 1: Removed hardcoded font sizes - using theme CSS variables instead */
+    /* Themes define: --r-main-font-size, --r-heading1-size, --r-heading2-size, --r-heading3-size */
   </style>
 </head>
 <body>
@@ -152,19 +141,8 @@ ${this.generateAudioControllerScript()}
   <link rel="stylesheet" href="${assets.highlightCss}">
 
   <style>
-    /* Custom styles */
-    .reveal {
-      font-size: 2em;
-    }
-    .reveal h1 {
-      font-size: 2.5em;
-    }
-    .reveal h2 {
-      font-size: 2em;
-    }
-    .reveal h3 {
-      font-size: 1.5em;
-    }
+    /* Phase 1: Removed hardcoded font sizes - using theme CSS variables instead */
+    /* Themes define: --r-main-font-size, --r-heading1-size, --r-heading2-size, --r-heading3-size */
   </style>
 </head>
 <body>
