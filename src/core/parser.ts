@@ -23,6 +23,8 @@ import type {
   PresentationFrontMatter,
 } from './types.js';
 import { DEFAULT_SLIDE_METADATA } from './types.js';
+import { resolveConfig } from './revealjs-config-schema.js';
+import { validateConfig, validatePreset, formatValidationErrors } from '../validation/config-validator.js';
 
 // ============================================================================
 // MAIN PARSER CLASS
@@ -57,9 +59,26 @@ export class RevealMarkdownParser {
       presentation.voice = frontMatter.voice;
     }
 
-    // Only set config if it's defined (Phase 1: expose core config options)
-    if (frontMatter.config) {
-      presentation.config = frontMatter.config;
+    // Phase 2: Validate and resolve config with preset support
+    if (frontMatter.preset || frontMatter.config) {
+      // Validate preset if provided
+      if (frontMatter.preset) {
+        const presetValidation = validatePreset(frontMatter.preset);
+        if (!presetValidation.valid) {
+          throw new Error(formatValidationErrors(presetValidation.errors));
+        }
+      }
+
+      // Validate config options if provided
+      if (frontMatter.config) {
+        const configValidation = validateConfig(frontMatter.config);
+        if (!configValidation.valid) {
+          throw new Error(formatValidationErrors(configValidation.errors));
+        }
+      }
+
+      // Resolve final config (merges preset + user config + defaults)
+      presentation.config = resolveConfig(frontMatter.config, frontMatter.preset);
     }
 
     return presentation;

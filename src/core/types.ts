@@ -9,6 +9,8 @@
  * - Playwright orchestration
  */
 
+import type { RevealJSConfig } from './revealjs-config-schema.js';
+
 // ============================================================================
 // PRESENTATION STRUCTURE
 // ============================================================================
@@ -35,8 +37,8 @@ export interface RevealPresentation {
   /** Total presentation duration in seconds (calculated after audio generation) */
   totalDuration?: number;
 
-  /** Optional RevealJS configuration overrides from frontmatter */
-  config?: Partial<RevealConfig>;
+  /** Optional RevealJS configuration overrides from frontmatter (Phase 2: 60+ options) */
+  config?: Partial<RevealJSConfig>;
 }
 
 /**
@@ -367,8 +369,15 @@ export interface PresentationFrontMatter {
   voice?: string;
   resolution?: string;
 
-  /** Optional RevealJS configuration overrides */
-  config?: Partial<RevealConfig>;
+  /**
+   * Optional config preset name
+   * Available presets: 'video-recording', 'manual-presentation', 'auto-demo', 'speaker-mode'
+   * Phase 2: Configuration Enhancement
+   */
+  preset?: string;
+
+  /** Optional RevealJS configuration overrides (Phase 2: Now supports 60+ options) */
+  config?: Partial<RevealJSConfig>;
 }
 
 /**

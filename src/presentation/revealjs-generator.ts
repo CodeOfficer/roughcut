@@ -17,6 +17,7 @@ import type {
   RevealConfig,
 } from '../core/types.js';
 import { DEFAULT_REVEAL_CONFIG } from '../core/types.js';
+import type { RevealJSConfig } from '../core/revealjs-config-schema.js';
 import type { BundledAssets } from './revealjs-assets.js';
 import { createRevealAssetBundler, getDefaultRevealJsPath } from './revealjs-assets.js';
 
@@ -75,7 +76,8 @@ export class RevealHTMLGenerator {
    */
   generateHTML(presentation: RevealPresentation, revealJsPath: string): string {
     // Merge user config with defaults (user config overrides defaults)
-    const config = { ...DEFAULT_REVEAL_CONFIG, ...presentation.config };
+    // Phase 2: Now supports comprehensive RevealJSConfig with 60+ options
+    const config = Object.assign({}, DEFAULT_REVEAL_CONFIG, presentation.config) as RevealConfig & RevealJSConfig;
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -124,7 +126,8 @@ ${this.generateAudioControllerScript()}
    */
   generateHTMLWithBundledAssets(presentation: RevealPresentation, assets: BundledAssets): string {
     // Merge user config with defaults (user config overrides defaults)
-    const config = { ...DEFAULT_REVEAL_CONFIG, ...presentation.config };
+    // Phase 2: Now supports comprehensive RevealJSConfig with 60+ options
+    const config = Object.assign({}, DEFAULT_REVEAL_CONFIG, presentation.config) as RevealConfig & RevealJSConfig;
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -319,7 +322,7 @@ ${this.indentContent(slide.notes, 10)}
   /**
    * Generate reveal.js config object as JavaScript
    */
-  private generateConfig(config: RevealConfig): string {
+  private generateConfig(config: RevealConfig | RevealJSConfig): string {
     // Build config options array
     const options: string[] = [
       `autoSlide: ${config.autoSlide}`,
@@ -559,6 +562,6 @@ export interface GenerateHTMLOptions {
   /** Custom reveal.js path (optional, will auto-detect if not provided) */
   revealJsPath?: string;
 
-  /** Custom reveal.js config (optional, uses defaults if not provided) */
-  config?: Partial<RevealConfig>;
+  /** Custom reveal.js config (optional, uses defaults if not provided - Phase 2: supports 60+ options) */
+  config?: Partial<RevealConfig | RevealJSConfig>;
 }
