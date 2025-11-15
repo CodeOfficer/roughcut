@@ -133,6 +133,17 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
     example: 'resolution: 1920x1080',
   },
   {
+    name: 'preset',
+    context: DirectiveContext.FRONTMATTER,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.ENUM,
+    validValues: ['video-recording', 'manual-presentation', 'auto-demo', 'speaker-mode'],
+    required: false,
+    description: 'RevealJS configuration preset (Phase 2)',
+    example: 'preset: manual-presentation',
+    notes: 'Applies a preset configuration optimized for specific use cases. Can be overridden by config section.',
+  },
+  {
     name: 'config',
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.MULTI_LINE,
@@ -143,7 +154,7 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
   controls: true
   progress: false
   slideNumber: 'c/t'`,
-    notes: 'Phase 1: Supports controls, progress, slideNumber, center, overview',
+    notes: 'Phase 2: Supports 60+ RevealJS options. See docs/architecture/revealjs/CONFIGURATION.md',
   },
 
   // ========================================================================

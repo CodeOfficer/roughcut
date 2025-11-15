@@ -83,6 +83,16 @@ const TYPE_VALIDATORS: Record<
     };
   },
 
+  'boolean | string': (value) => {
+    if (typeof value === 'boolean' || typeof value === 'string') {
+      return { valid: true };
+    }
+    return {
+      valid: false,
+      message: `Expected boolean or string, got ${typeof value}`,
+    };
+  },
+
   'boolean | null': (value) => {
     if (typeof value === 'boolean' || value === null) {
       return { valid: true };

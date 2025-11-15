@@ -20,6 +20,8 @@ import {
   ErrorCategory,
   ErrorFactories,
 } from './linting-errors.js';
+import { validateConfig } from '../validation/config-validator.js';
+import type { RevealJSConfig } from './revealjs-config-schema.js';
 
 /**
  * Markdown linting engine
@@ -94,10 +96,51 @@ export class MarkdownLinter {
       if (line.match(/^config:\s*$/)) {
         inConfigSection = true;
         foundFields.add('config');
+
+        // Phase 2: Validate config options
+        const configOptions = this.parseConfigSection(frontmatterLines, i);
+        if (Object.keys(configOptions).length > 0) {
+          const configValidation = validateConfig(configOptions);
+          if (!configValidation.valid) {
+            // Add validation errors
+            for (const error of configValidation.errors) {
+              // Build options object, only including defined fields (exactOptionalPropertyTypes)
+              const errorOptions: {
+                currentValue?: string;
+                expectedValue?: string;
+                suggestions?: string[];
+                example?: string;
+              } = {};
+
+              if (error.value !== undefined) {
+                errorOptions.currentValue = String(error.value);
+              }
+              if (error.expected) {
+                errorOptions.expectedValue = error.expected;
+              }
+              if (error.suggestion) {
+                errorOptions.suggestions = [error.suggestion];
+              }
+              if (error.example) {
+                errorOptions.example = error.example;
+              }
+
+              result.addError(
+                new LintingError(
+                  ErrorSeverity.ERROR,
+                  ErrorCategory.FRONTMATTER,
+                  error.message,
+                  lineNumber,
+                  errorOptions
+                )
+              );
+            }
+          }
+        }
         continue;
       }
 
-      // Skip indented lines under config section (Phase 1: nested config validation)
+      // Skip indented lines under config section (already validated above)
       if (inConfigSection && line.match(/^\s+/)) {
         continue;
       }
@@ -161,6 +204,46 @@ export class MarkdownLinter {
     }
 
     return endLine;
+  }
+
+  /**
+   * Parse config section from frontmatter
+   * Extracts indented key-value pairs under "config:" section
+   */
+  private parseConfigSection(
+    frontmatterLines: (string | undefined)[],
+    configLineIndex: number
+  ): Partial<RevealJSConfig> {
+    const config: Partial<RevealJSConfig> = {};
+
+    // Parse all indented lines after "config:"
+    for (let i = configLineIndex + 1; i < frontmatterLines.length; i++) {
+      const line = frontmatterLines[i];
+      if (!line) continue;
+
+      // Stop when we hit a non-indented line
+      if (!line.match(/^\s+/)) {
+        break;
+      }
+
+      // Parse key: value
+      const [key, ...valueParts] = line.trim().split(':');
+      if (key && valueParts.length > 0) {
+        let value: string | boolean | number = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+
+        // Parse boolean values
+        if (value === 'true') value = true;
+        else if (value === 'false') value = false;
+        // Parse numbers
+        else if (!isNaN(Number(value)) && value !== '') value = Number(value);
+        // Parse null
+        else if (value === 'null') value = null as any;
+
+        (config as any)[key.trim()] = value;
+      }
+    }
+
+    return config;
   }
 
   /**
