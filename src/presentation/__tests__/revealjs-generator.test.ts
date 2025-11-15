@@ -94,6 +94,51 @@ describe('RevealHTMLGenerator', () => {
       expect(html).toContain('plugin/notes/notes.js');
     });
 
+    it('should follow RevealJS required DOM hierarchy (Phase 1 validation)', () => {
+      const presentation: RevealPresentation = {
+        title: 'Test',
+        theme: 'black',
+        voice: 'adam',
+        resolution: '1920x1080',
+        slides: [
+          {
+            id: 'slide-001',
+            index: 0,
+            content: '# Test Slide',
+            audio: null,
+            playwright: null,
+            notes: null,
+            metadata: { ...DEFAULT_SLIDE_METADATA },
+          },
+        ],
+      };
+
+      const html = generator.generateHTML(presentation, './node_modules/reveal.js');
+
+      // Required hierarchy: .reveal > .slides > section
+      // Based on revealjs-docs/docs/06-markup.md
+
+      // 1. Must have <div class="reveal"> as root container
+      expect(html).toContain('<div class="reveal">');
+
+      // 2. Must have <div class="slides"> as direct child of .reveal
+      const revealMatch = html.match(/<div class="reveal">\s*<div class="slides">/);
+      expect(revealMatch).toBeTruthy();
+
+      // 3. Must have <section> as direct children of .slides
+      const slidesMatch = html.match(/<div class="slides">([\s\S]*?)<\/div>\s*<\/div>/);
+      expect(slidesMatch).toBeTruthy();
+
+      // 4. Section must have required attributes
+      expect(html).toContain('<section id="slide-001"');
+      expect(html).toContain('data-markdown');
+
+      // 5. No hardcoded font styles (should use theme CSS variables)
+      expect(html).not.toContain('.reveal h1 {');
+      expect(html).not.toContain('font-size: 2em');
+      expect(html).not.toContain('font-size: 2.5em');
+    });
+
     it('should initialize reveal.js with config', () => {
       const presentation: RevealPresentation = {
         title: 'Test',
