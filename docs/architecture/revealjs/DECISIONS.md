@@ -756,6 +756,72 @@ Combined audio structure:
 
 ---
 
+### 9. RevealJS Best Practices Migration - Phase 1 Complete
+**Decision**: Align with RevealJS conventions and best practices (phased approach)
+**Date**: 2025-11-15
+**Status**: Phase 1 Complete ✅
+
+**Rationale**: After implementing the core RevealJS system, we identified several areas where our implementation diverged from RevealJS conventions or could be enhanced with standard RevealJS features.
+
+**Phase 1 Changes Implemented**:
+
+1. **Fragment Indices (0-based)** - commit be01bbd
+   - **Old**: Fragments used 1-based indexing (1, 2, 3...)
+   - **New**: Fragments use 0-based indexing (0, 1, 2...)
+   - **Why**: Match RevealJS convention exactly
+   - **Impact**: Low (fragments still reveal in same order, better alignment with RevealJS)
+
+2. **Core Config Options Exposed** - commit abf6f35
+   - **Added frontmatter fields**: `controls`, `progress`, `slideNumber`, `center`, `overview`
+   - **Example**:
+     ```yaml
+     ---
+     title: My Presentation
+     theme: black
+     config:
+       controls: true
+       progress: true
+       slideNumber: 'c/t'
+       center: false
+     ---
+     ```
+   - **Why**: Give users control over RevealJS presentation behavior
+   - **Impact**: Medium (enables user customization)
+
+3. **Theme-Responsive Font Sizing** - commit a550cf1
+   - **Old**: Hardcoded font sizes in generated HTML
+   - **New**: Use CSS variables from RevealJS themes
+   - **Why**: Better theme integration, respect theme design decisions
+   - **Impact**: Low (fonts now scale properly with themes)
+
+4. **DOM Structure Validation** - commit 05ef9ed
+   - **Added**: Automated test to validate generated HTML against RevealJS requirements
+   - **Validates**: `.reveal > .slides > section` structure, data attributes, markdown sections
+   - **Why**: Ensure compliance with RevealJS expectations
+   - **Impact**: Low (prevents future regressions)
+
+5. **Keyboard Shortcuts Documentation** - commit 00089a4
+   - **Created**: `docs/KEYBOARD_SHORTCUTS.md`
+   - **Content**: Complete list of RevealJS keyboard shortcuts with examples
+   - **Why**: Improve accessibility and user experience
+   - **Impact**: Low (documentation only)
+
+**Results**:
+- ✅ All 284 tests passing (up from 283)
+- ✅ Regression testing passed (simple-demo builds successfully)
+- ✅ Fragment indices verified as 0-based in generated HTML
+- ✅ Config options working in Reveal.initialize()
+- ✅ Zero breaking changes to existing presentations
+
+**Next Steps**: Phase 2 - Configuration Enhancement
+- Complete config schema (50+ RevealJS options)
+- Config validation with helpful error messages
+- Config presets (video-recording, manual-presentation, auto-demo, speaker-mode)
+
+**See**: `docs/architecture/revealjs/MIGRATION-TO-BEST-PRACTICES.md` for full plan
+
+---
+
 ## References
 
 - Reveal.js docs: https://revealjs.com/
