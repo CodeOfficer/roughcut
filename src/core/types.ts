@@ -65,6 +65,12 @@ export interface RevealSlide {
 
   /** Slide-specific metadata and configuration */
   metadata: SlideMetadata;
+
+  /** Phase 3: Whether this is a vertical slide (for 2D navigation) */
+  isVertical?: boolean;
+
+  /** Phase 3: Vertical group ID (slides with same ID are in same vertical stack) */
+  verticalGroup?: number;
 }
 
 // ============================================================================

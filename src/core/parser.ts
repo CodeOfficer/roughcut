@@ -46,7 +46,10 @@ export class RevealMarkdownParser {
       this.parseSlide(slideMarkdown, index)
     );
 
-    // 4. Build presentation
+    // 4. Phase 3: Detect and group vertical slides (2D navigation)
+    this.assignVerticalGroups(slides, slideStrings);
+
+    // 5. Build presentation
     const presentation: RevealPresentation = {
       title: frontMatter.title,
       theme: frontMatter.theme,
@@ -249,15 +252,16 @@ export class RevealMarkdownParser {
 
     // Match @directive: value (single line only, not multi-line blocks)
     // Excludes @audio: and @playwright: which are multi-line
-    const directiveRegex = /^@([\w-]+):\s*(.+)$/gm;
+    // Phase 3: Updated to support marker directives with no value (e.g., @vertical-slide:)
+    const directiveRegex = /^@([\w-]+):\s*(.*)$/gm;
 
     let match;
     while ((match = directiveRegex.exec(markdown)) !== null) {
       const [, name, value] = match;
 
       // Skip audio and playwright (handled separately)
-      if (name && value && name !== 'audio' && name !== 'playwright') {
-        directives.set(name, value.trim());
+      if (name && name !== 'audio' && name !== 'playwright') {
+        directives.set(name, value?.trim() || '');
       }
     }
 
@@ -524,6 +528,56 @@ export class RevealMarkdownParser {
   // CONTENT CLEANING
   // ============================================================================
 
+  // ============================================================================
+  // VERTICAL SLIDE GROUPING (Phase 3)
+  // ============================================================================
+
+  /**
+   * Assign vertical groups to slides based on @vertical-slide: directive
+   * Vertical slides are grouped under the previous horizontal slide
+   *
+   * Example:
+   *   Slide 1 (horizontal) -> verticalGroup: undefined
+   *   Slide 2 (@vertical-slide:) -> isVertical: true, verticalGroup: 0
+   *   Slide 3 (@vertical-slide:) -> isVertical: true, verticalGroup: 0
+   *   Slide 4 (horizontal) -> verticalGroup: undefined
+   *   Slide 5 (@vertical-slide:) -> isVertical: true, verticalGroup: 1
+   */
+  private assignVerticalGroups(slides: RevealSlide[], slideStrings: string[]): void {
+    let currentVerticalGroup = -1;
+    let lastHorizontalSlideIndex = -1;
+
+    for (let i = 0; i < slides.length; i++) {
+      const slideMarkdown = slideStrings[i];
+      const slide = slides[i];
+
+      if (!slideMarkdown || !slide) {
+        continue;
+      }
+
+      // Check if this slide has @vertical-slide: directive
+      const hasVerticalDirective = slideMarkdown.includes('@vertical-slide:');
+
+      if (hasVerticalDirective) {
+        // This is a vertical slide
+        slide.isVertical = true;
+
+        // If this is the first vertical slide after a horizontal slide,
+        // create a new vertical group
+        if (lastHorizontalSlideIndex === i - 1) {
+          currentVerticalGroup++;
+        }
+
+        slide.verticalGroup = currentVerticalGroup;
+      } else {
+        // This is a horizontal slide
+        slide.isVertical = false;
+        lastHorizontalSlideIndex = i;
+        // Don't set verticalGroup (leave undefined)
+      }
+    }
+  }
+
   /**
    * Clean content by removing all @directive lines
    * Preserves markdown content for reveal.js
@@ -532,7 +586,8 @@ export class RevealMarkdownParser {
     let cleaned = markdown;
 
     // Remove all @directive: lines (single line directives)
-    cleaned = cleaned.replace(/^@[\w-]+:.+$/gm, '');
+    // Phase 3: Updated to handle marker directives with no value (e.g., @vertical-slide:)
+    cleaned = cleaned.replace(/^@[\w-]+:.*$/gm, '');
 
     // Remove @audio: block
     cleaned = cleaned.replace(/^@audio:.+$/gm, '');

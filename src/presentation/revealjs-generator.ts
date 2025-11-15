@@ -177,9 +177,55 @@ ${this.generateAudioControllerScript()}
 
   /**
    * Generate all slide sections
+   * Phase 3: Now supports vertical slides with nested <section> elements
    */
   private generateSlides(slides: RevealSlide[]): string {
-    return slides.map((slide) => this.generateSlide(slide)).join('\n');
+    const groups = this.groupSlidesByVertical(slides);
+
+    return groups.map((group) => {
+      if (group.length === 1) {
+        // Single slide (horizontal)
+        return this.generateSlide(group[0]!);
+      } else {
+        // Vertical slide group (nested sections)
+        const verticalSlides = group.map((slide) => this.generateSlide(slide)).join('\n');
+        return `      <section>\n${verticalSlides}\n      </section>`;
+      }
+    }).join('\n');
+  }
+
+  /**
+   * Group slides into arrays based on vertical groups
+   * Phase 3: Supports 2D navigation
+   *
+   * Example:
+   *   Input: [H1, V1, V2, H2, V3] (H=horizontal, V=vertical)
+   *   Output: [[H1, V1, V2], [H2, V3]]
+   */
+  private groupSlidesByVertical(slides: RevealSlide[]): RevealSlide[][] {
+    const groups: RevealSlide[][] = [];
+    let currentGroup: RevealSlide[] = [];
+
+    for (const slide of slides) {
+      if (slide.isVertical) {
+        // Vertical slide: add to current group
+        currentGroup.push(slide);
+      } else {
+        // Horizontal slide: start new group
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+          currentGroup = [];
+        }
+        currentGroup.push(slide);
+      }
+    }
+
+    // Push remaining group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
   }
 
   /**

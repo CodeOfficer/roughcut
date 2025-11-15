@@ -27,6 +27,7 @@ export enum DirectiveValueType {
   MULTILINE_TEXT = 'multiline_text',
   MULTILINE_LIST = 'multiline_list',
   INLINE_MARKER = 'inline_marker',
+  MARKER = 'marker', // Phase 3: Directive marker with no value (e.g., @vertical-slide:)
 }
 
 /**
@@ -257,6 +258,20 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
     example: '- Item one @fragment\n- Item two @fragment +2s',
     notes: 'Must be used on list items. Supports timing offset: @fragment +2s',
   },
+
+  // ========================================================================
+  // SLIDE STRUCTURE DIRECTIVES (Phase 3: Advanced Features)
+  // ========================================================================
+  {
+    name: 'vertical-slide',
+    context: DirectiveContext.SLIDE,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.MARKER,
+    required: false,
+    description: 'Marks slide as vertical (2D navigation with up/down arrows)',
+    example: '@vertical-slide:',
+    notes: 'Phase 3: Enables 2D navigation. Vertical slides group under previous horizontal slide. Use arrow keys: left/right for horizontal, up/down for vertical.',
+  },
 ];
 
 /**
@@ -416,6 +431,18 @@ export const VALUE_VALIDATORS: Record<
       return {
         valid: false,
         error: 'Invalid fragment timing. Use "@fragment" or "@fragment +2s"',
+      };
+    }
+    return { valid: true };
+  },
+
+  [DirectiveValueType.MARKER]: (value: string) => {
+    // Phase 3: Marker directives with no value (e.g., @vertical-slide:)
+    // Value should be empty or whitespace only
+    if (value.trim().length > 0) {
+      return {
+        valid: false,
+        error: 'Marker directive should not have a value. Use "@vertical-slide:" without any value.',
       };
     }
     return { valid: true };
