@@ -26,14 +26,16 @@
 ## 🎯 Key Documentation
 
 **Start here when context is lost:**
-1. `docs/architecture/revealjs/DECISIONS.md` - All strategic decisions
-2. `docs/architecture/revealjs/IMPLEMENTATION_PLAN.md` - 20-step plan
+1. `docs/architecture/revealjs/MIGRATION-TO-BEST-PRACTICES.md` - **Current plan: RevealJS alignment (4 phases)**
+2. `docs/architecture/revealjs/DECISIONS.md` - All strategic decisions
 3. `README.md` - User-facing setup & usage
 
 **Quick reference:**
+- RevealJS docs: `revealjs-docs/` - Comprehensive offline reference (34 files)
 - Markdown format: `docs/architecture/revealjs/format-option-3-minimalist.md`
 - RevealJS API: `docs/architecture/revealjs/revealjs-research.md`
 - Migration guide: `docs/MIGRATION.md` (v1 → v2)
+- Historical: `docs/architecture/revealjs/IMPLEMENTATION_PLAN.md` - Original 20-step plan (completed)
 
 ---
 
@@ -258,29 +260,56 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
      * `src/video/assembler.ts`: Timestamp-based audio concatenation
    - **Result**: TRUE slides-drive-audio with zero timing drift!
 
-**Next Tasks:**
+**Next Session - Start Here (Updated 2025-11-15):**
+
+🎯 **ACTIVE: RevealJS Best Practices Migration** - Phase 1 of 4
+
+**Current Plan**: `docs/architecture/revealjs/MIGRATION-TO-BEST-PRACTICES.md`
+
+### Phase 1: Foundational Fixes (Week 1) - **IN PROGRESS**
+
+**High Priority Tasks**:
+1. **Fix Fragment Indices** - Change from 1-based to 0-based (RevealJS convention)
+   - File: `src/presentation/revealjs-generator.ts`
+   - Impact: Alignment with RevealJS standards
+   - Risk: Low (fragments still reveal in same order)
+
+2. **Expose Core Config Options** - Add frontmatter config support
+   - Files: `src/core/types.ts`, `src/parser/frontmatter-parser.ts`
+   - Options: controls, progress, slideNumber, center, overview
+   - Impact: User customization capability
+
+3. **Theme-Responsive Font Sizing** - Replace hardcoded font sizes
+   - File: `src/presentation/revealjs-generator.ts`
+   - Use CSS variables from themes
+   - Impact: Better theme integration
+
+4. **DOM Structure Validation** - Ensure exact RevealJS requirements
+   - Review generated HTML against `revealjs-docs/docs/06-markup.md`
+   - Fix any remaining structure issues
+
+5. **Keyboard Shortcuts Documentation**
+   - Create `docs/KEYBOARD_SHORTCUTS.md`
+   - Document all available shortcuts
+   - Improve accessibility
+
+**Success Criteria**:
+- ✅ All 283 tests passing
+- ✅ Existing presentations unchanged (regression testing)
+- ✅ Fragment indices 0-based
+- ✅ Core config options working
+
+**Future Phases** (deferred):
+- Phase 2: Configuration Enhancement (Week 2)
+- Phase 3: Advanced Features - vertical slides, video backgrounds, speaker view (Week 3)
+- Phase 4: Polish & Export (Week 4)
+
+---
+
+**Backlog Items** (lower priority):
 1. **TODO: Fix Google/Gemini Image Generation** - Make @image-prompt work with Gemini
-   - Current implementation needs updating for latest Gemini API
-   - Test with simple-demo and full-demo presentations
-
 2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
-   - Shows expected vs actual timing for each slide
-   - Includes fragment timing metadata
-   - Helps diagnose sync issues
-
-3. **TODO: Explore Auto-Generated Documentation**
-   - Generate markdown format docs from directive registry
-   - Create interactive reference for users
-   - Consider CLI command: `npm run docs:generate`
-
-4. **TODO: Regenerate simple-demo audio** - Fix robotic sound quality
-   - Current cached audio has null voice parameters (from pre-cache-fix era)
-   - Run: `rm -rf tutorials/simple-demo/output/audio && TUTORIAL=simple-demo npm run build:full`
-   - Will generate fresh audio with consistent quality
-
-5. Consider adding `@background-video:` support (similar to `@image-prompt:`)
-6. Add more examples to `tutorials/examples/`
-7. Explore additional RevealJS features (vertical slides, speaker notes view, auto-animate)
+3. **TODO: Regenerate simple-demo audio** - Fix robotic sound quality
 
 ---
 
