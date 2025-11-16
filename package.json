@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "bash -c 'node dist/cli/index.js dev -i tutorials/${TUTORIAL:-full-demo}/presentation.md'",
+    "dev": "bash -c 'if [ -f \"tutorials/${TUTORIAL:-comprehensive}.md\" ]; then node dist/cli/index.js dev -i \"tutorials/${TUTORIAL:-comprehensive}.md\"; else node dist/cli/index.js dev -i \"tutorials/${TUTORIAL:-comprehensive}/presentation.md\"; fi'",
     "dev:auto": "npm run dev -- --auto",
     "tutorial:fast": "bash scripts/build-tutorial.sh fast",
     "tutorial:full": "bash scripts/build-tutorial.sh full",

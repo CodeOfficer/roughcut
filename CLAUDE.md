@@ -49,8 +49,9 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 ```
 
 **Always produces TWO outputs:**
-1. `tutorials/<name>/output/presentation/index.html` - Interactive RevealJS
-2. `tutorials/<name>/output/tutorial.mp4` - Video with narration
+1. `tutorials/.<name>/presentation/index.html` - Interactive RevealJS (flat .md files)
+2. `tutorials/.<name>/tutorial.mp4` - Video with narration (flat .md files)
+   - Or: `tutorials/<name>/output/...` for directory-based tutorials (.template)
 
 **Key modules:**
 - `src/core/` - Parser, types, logger
@@ -66,8 +67,10 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 **ALWAYS follow these patterns:**
 
 ### 1. Tutorial Management
-- ✅ Create tutorials in: `tutorials/<name>/`
-- ✅ Outputs go in: `tutorials/<name>/output/`
+- ✅ Create tutorials as: `tutorials/<name>.md` (flat .md files)
+- ✅ Outputs go in: `tutorials/.<name>/` (hidden directories)
+- ✅ Test tutorials use prefix: `test-<feature>.md`
+- ✅ Directory-based tutorials (like `.template/`) use: `tutorials/<name>/presentation.md`
 - ❌ Never put tutorial files in root
 
 ### 2. Documentation Updates
@@ -101,11 +104,11 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 **What's Working:**
 - ✅ Build: `npm run build` (zero errors)
-- ✅ Tests: 284 passing (52 linting tests, 45 parser tests, + integration tests)
+- ✅ Tests: 325 passing (52 linting tests, 41 config tests, 45 parser tests, + integration tests)
 - ✅ Pipeline: **Lint** → Parse → Images → Audio (cached) → HTML → Timeline → Record → Assemble
 - ✅ Outputs: Interactive HTML + MP4 video (both, always)
 - ✅ AI Features: Image generation, TTS narration (with caching), browser automation
-- ✅ Demos: `tutorials/simple-demo` (8 slides), `tutorials/full-demo` (21 slides)
+- ✅ Tutorials: `minimal.md` (5 slides), `comprehensive.md` (29 slides), 4 test tutorials
 - ✅ Audio: Multi-line format with SHA256 fingerprinting for incremental TTS
 - ✅ Linting: Strict validation with helpful error messages (fail-fast before expensive operations)
 
@@ -412,7 +415,6 @@ Status tracking: `phase3-status.md`
 **Backlog Items** (lower priority):
 1. **TODO: Fix Google/Gemini Image Generation** - Make @image-prompt work with Gemini
 2. **TODO: Export Timeline JSON** - Add timeline.json to output for debugging
-3. **TODO: Regenerate simple-demo audio** - Fix robotic sound quality
 
 ---
 
@@ -422,33 +424,34 @@ Status tracking: `phase3-status.md`
 
 **Dev Server** (interactive testing):
 ```bash
-# Manual mode (defaults to full-demo, override with TUTORIAL env var)
+# Manual mode (defaults to comprehensive, override with TUTORIAL env var)
 npm run dev
 npm run dev:auto  # Auto-advance with visible browser
 
 # With specific tutorial
-TUTORIAL=simple-demo npm run dev
-TUTORIAL=my-presentation npm run dev:auto
+TUTORIAL=minimal npm run dev
+TUTORIAL=test-vertical npm run dev:auto
 ```
 
 **Build Scripts** (use with any tutorial via TUTORIAL env var):
 ```bash
 # Fast build (skip images & audio) - saves API costs!
-TUTORIAL=simple-demo npm run tutorial:fast
-TUTORIAL=my-presentation npm run tutorial:fast
+TUTORIAL=minimal npm run tutorial:fast
+TUTORIAL=comprehensive npm run tutorial:fast
 
 # Full build (uses TTS + Gemini credits!)
-TUTORIAL=full-demo npm run tutorial:full
+TUTORIAL=comprehensive npm run tutorial:full
 
 # HTML only (no video recording)
-TUTORIAL=simple-demo npm run tutorial:html
+TUTORIAL=minimal npm run tutorial:html
+TUTORIAL=test-config npm run tutorial:html
 ```
 
 **Development Tools**:
 ```bash
 # Code Quality
 npm run build          # TypeScript compilation (must pass!)
-npm test               # Run all tests (284 passing)
+npm test               # Run all tests (325 passing)
 npm run test:watch     # Auto-rerun tests on file changes (TDD mode)
 npm run test:coverage  # Generate coverage report
 npm run lint           # ESLint checks
@@ -460,9 +463,9 @@ npm run voices         # List available ElevenLabs voices
 ```
 
 **Pattern:**
-- All tutorials: `tutorials/<name>/presentation.md`
-- Outputs: `tutorials/<name>/output/`
-- Helper: `scripts/build-tutorial.sh <mode>` (requires TUTORIAL env var)
+- Flat tutorials: `tutorials/<name>.md` → Output: `tutorials/.<name>/`
+- Directory tutorials: `tutorials/<name>/presentation.md` → Output: `tutorials/<name>/output/`
+- Helper: `scripts/build-tutorial.sh <mode>` (auto-detects format, requires TUTORIAL env var)
 
 ---
 
@@ -482,9 +485,14 @@ npm run voices         # List available ElevenLabs voices
 genai-tutorial-factory/
 ├── src/                    # Source code
 ├── tutorials/              # All tutorials & outputs
-│   ├── .template/         # Template for new presentations
-│   ├── demo/              # Demo presentation (canonical example)
-│   └── examples/          # Additional examples
+│   ├── .template/         # Template for new presentations (directory-based)
+│   ├── minimal.md         # Bare essentials tutorial (5 slides, HTML-only)
+│   ├── comprehensive.md   # Complete feature showcase (29 slides, full production)
+│   ├── test-config.md     # Config validation test
+│   ├── test-vertical.md   # Vertical slides test
+│   ├── test-phase1.md     # Phase 1 features test
+│   ├── test-theme.md      # Theme responsiveness test
+│   └── .<name>/           # Build outputs (hidden directories, auto-generated)
 ├── docs/                   # All documentation
 │   ├── architecture/      # Design docs
 │   ├── archive/           # Historical docs
@@ -498,10 +506,11 @@ genai-tutorial-factory/
 ## 🔧 Build & Test
 
 ```bash
-npm run build                        # TypeScript compilation (must pass!)
-npm test                             # Run all tests (284 tests)
+npm run build                          # TypeScript compilation (must pass!)
+npm test                               # Run all tests (325 tests)
 TUTORIAL=<name> npm run tutorial:fast  # Fast build (most common)
 TUTORIAL=<name> npm run tutorial:full  # Full build with AI
+TUTORIAL=<name> npm run tutorial:html  # HTML only (no video)
 ```
 
 ---
@@ -523,11 +532,15 @@ All strategic decisions are recorded in:
 ## 💡 Notes for Future Sessions
 
 - AI image generation fully integrated (`@image-prompt:` works end-to-end)
-- Demo presentation is the canonical example (shows ALL features)
-- Test suite is comprehensive (13 test files, 226 tests)
+- `comprehensive.md` is the canonical example (29 slides, shows ALL features)
+- `minimal.md` is for quick start (5 slides, bare essentials, HTML-only)
+- Test tutorials prefixed with `test-` (test-config, test-vertical, test-phase1, test-theme)
+- Test suite is comprehensive (325 tests across 13 test files)
 - Build is strict (all TypeScript errors must be resolved)
 - Documentation is now single-source-of-truth (no duplication)
-- NPM scripts are the interface (no standalone scripts like run-demo.mjs)
-- make sure you ask and commit your changes at milestone task completion  in our plan
+- NPM scripts are the interface (no standalone scripts)
+- Tutorial structure is flat .md files with hidden output directories (tutorials/.<name>/)
+- Build scripts auto-detect flat .md vs directory-based tutorials
+- make sure you ask and commit your changes at milestone task completion in our plan
 - please commit all changes when you tell me a task is done
-- please make sure you are always cleaning up processses you spin up
+- please make sure you are always cleaning up processes you spin up

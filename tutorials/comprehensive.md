@@ -1,8 +1,9 @@
 ---
-title: "RevealJS Tutorial Factory - Full Feature Demo"
+title: "RevealJS Tutorial Factory - Comprehensive Feature Showcase"
 theme: dracula
 voice: J0AK45UHW1Wo9rJ0p4y8
 resolution: 1920x1080
+preset: video-recording
 ---
 
 # RevealJS Tutorial Factory
@@ -11,8 +12,8 @@ resolution: 1920x1080
 @background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
 
 @audio: Welcome to the RevealJS Tutorial Factory.
-@audio: This comprehensive demo showcases all available features.
-@audio: Let's explore what you can build.
+@audio: This comprehensive showcase demonstrates all available features.
+@audio: Let's explore everything you can build.
 
 **A powerful system for creating**
 **interactive video presentations**
@@ -36,18 +37,20 @@ resolution: 1920x1080
 @transition: fade
 @duration: 10s
 
-@audio: The system supports ten different directives.
+@audio: The system supports twenty different directives.
 @audio: Each directive controls a specific aspect of your presentation.
 
-**Frontmatter:**
+**Frontmatter (8):**
 - `title`, `theme`, `voice`, `resolution`
+- `preset`, `config`, `customCSS`, `customStyles`
 
-**Slide-level:**
+**Slide-level (11):**
 - `@duration`, `@pause-after`, `@transition`
 - `@background`, `@image-prompt`, `@notes`
-- `@audio`, `@playwright`
+- `@audio`, `@playwright`, `@vertical-slide`
+- `@background-video`, `@background-video-loop`, `@background-video-muted`
 
-**Inline:**
+**Inline (1):**
 - `@fragment`
 
 ---
@@ -62,7 +65,7 @@ resolution: 1920x1080
 
 - Multi-line format (recommended)
 - Intelligent TTS caching
-- Character-level timestamps
+- Character-level timestamps from ElevenLabs API
 - Pause markers like 1s or 2.5s intervals
 
 ---
@@ -90,7 +93,7 @@ resolution: 1920x1080
 @background: #1a1a2e
 @transition: slide
 
-@audio: Customize slide backgrounds with colors, gradients, or images.
+@audio: Customize slide backgrounds with colors, gradients, images, or videos.
 
 This slide uses a dark hex color: `#1a1a2e`
 
@@ -100,6 +103,7 @@ This slide uses a dark hex color: `#1a1a2e`
 - Named colors: `black`, `white`, etc.
 - Gradients: `linear-gradient(...)`
 - Image URLs: `https://...`
+- Video files: see video backgrounds slide
 
 ---
 
@@ -143,22 +147,146 @@ The AI will create custom visuals for your slides!
 
 ---
 
+# Configuration Presets
+
+@transition: fade
+@background: #2a2a4e
+
+@audio: Use configuration presets for common scenarios.
+@audio: Four presets are available to simplify your workflow.
+
+**Available presets:**
+
+- `video-recording` - Optimized for video production
+- `manual-presentation` - Interactive presentations with controls
+- `auto-demo` - Automated demos with smooth navigation
+- `speaker-mode` - Presentations with speaker notes
+
+Set with `preset: video-recording` in frontmatter.
+
+---
+
+# Advanced Configuration
+
+@audio: Fine-tune your presentation with sixty plus RevealJS options.
+@audio: Control navigation, transitions, display, and behavior.
+
+**Example config options:**
+
+```yaml
+config:
+  controls: true
+  progress: true
+  slideNumber: 'c/t'
+  center: true
+  transition: fade
+  transitionSpeed: default
+  viewDistance: 3
+```
+
+See documentation for complete list!
+
+---
+
+# Vertical Slides (Part 1)
+
+@transition: slide
+
+@audio: Create two-dimensional navigation with vertical slides.
+@audio: Perfect for organizing related content in groups.
+
+**This slide group demonstrates vertical navigation.**
+
+Press ↓ to go down, → to go right.
+
+@vertical-slide:
+## Vertical Slide 2
+
+@audio: This is the second slide in the vertical group.
+
+Navigate with arrow keys:
+- ↓ Next vertical slide
+- ↑ Previous vertical slide
+- → Next horizontal section
+
+@vertical-slide:
+## Vertical Slide 3
+
+@audio: This is the last slide in the vertical group.
+@audio: Press the right arrow to continue to the next section.
+
+**End of vertical group.**
+
+Press → to continue horizontally.
+
+---
+
+# Video Backgrounds
+
+@background-video: path/to/video.mp4
+@background-video-loop: true
+@background-video-muted: true
+
+@audio: Add video backgrounds to create dynamic, engaging slides.
+@audio: Control looping and audio with dedicated directives.
+
+**Video background directives:**
+
+- `@background-video: path/to/video.mp4` - Video file path
+- `@background-video-loop: true/false` - Loop playback
+- `@background-video-muted: true/false` - Mute audio
+
+*Note: This demo uses a placeholder path. Use real video files in production.*
+
+---
+
+# Custom Styling
+
+@background: #0f0f23
+
+@audio: Apply custom CSS to personalize your presentations.
+@audio: Use external stylesheets or inline styles.
+
+**Two approaches:**
+
+1. **External CSS:**
+   ```yaml
+   customCSS: styles/custom.css
+   ```
+
+2. **Inline styles:**
+   ```yaml
+   customStyles: |
+     .reveal h1 { color: #00ff00; }
+     .reveal p { font-size: 1.5em; }
+   ```
+
+Full control over presentation appearance!
+
+---
+
 # Build Modes
 
 @transition: fade
 @duration: 8s
 
-@audio: The system supports three build modes for different workflows.
+@audio: The system supports multiple build modes for different workflows.
 
 **Fast Mode:**
 ```bash
-TUTORIAL=my-presentation npm run build:fast
+TUTORIAL=my-presentation npm run tutorial:fast
 ```
 Skips images and audio - instant rebuilds!
 
+**HTML Only:**
+```bash
+TUTORIAL=my-presentation npm run tutorial:html
+```
+Generates presentation without video recording.
+
 **Full Mode:**
 ```bash
-TUTORIAL=my-presentation npm run build:full
+TUTORIAL=my-presentation npm run tutorial:full
 ```
 Generates everything - production-ready output.
 
@@ -173,6 +301,7 @@ Generates everything - production-ready output.
 **Cache features:**
 
 - Per-line audio fingerprinting
+- Voice parameter tracking (voiceId, model, stability)
 - Character-level timestamp storage
 - Alignment data preservation
 - Hit/miss ratio reporting
@@ -211,6 +340,8 @@ Audio Cache: 0 hits, 2 misses (0.0% hit rate)
 
 Both are written to your output directory.
 
+Tail logs in real-time: `tail -f output/debug.txt`
+
 ---
 
 # Markdown Linting
@@ -224,7 +355,7 @@ Both are written to your output directory.
 **Linting validates:**
 
 - Required frontmatter fields
-- Directive syntax and values
+- All 20 directive types (syntax and values)
 - Pause marker format
 - Fragment usage (must be on bullet lists!)
 - Unknown directives with typo suggestions
@@ -240,8 +371,10 @@ Both are written to your output directory.
 - File path and line number
 - Current (incorrect) value
 - Expected format with examples
-- Suggestions for common typos
+- Suggestions for common typos using Levenshtein distance
 - Migration guide reference
+
+Fail-fast approach saves time and API costs!
 
 ---
 
@@ -251,11 +384,14 @@ Both are written to your output directory.
 
 **Test coverage:**
 
-- 231 total tests across the codebase
+- 325 total tests across the codebase
 - 52 linting validation tests
+- 41 configuration validation tests
 - Parser tests for all directive types
 - Audio caching and generation tests
 - Integration tests for full pipeline
+
+All tests passing on every commit!
 
 ---
 
@@ -265,10 +401,34 @@ Both are written to your output directory.
 
 **Optimization strategies:**
 
-- Use `build:fast` during development @fragment
+- Use `tutorial:fast` during development @fragment
+- Use `tutorial:html` to skip video recording @fragment
 - Only run full builds for final export @fragment
 - Multi-line audio format improves caching @fragment
 - Skip images if not needed with `--skip-images` @fragment
+
+---
+
+# Dev Mode
+
+@transition: convex
+
+@audio: Test presentations interactively with dev mode.
+@audio: Two modes available for different workflows.
+
+**Manual mode:**
+```bash
+TUTORIAL=my-presentation npm run dev
+```
+Open browser, control with keyboard/mouse.
+
+**Auto mode:**
+```bash
+TUTORIAL=my-presentation npm run dev:auto
+```
+Watch orchestrator automation (no recording).
+
+Perfect for debugging timing and fragment issues!
 
 ---
 
@@ -286,25 +446,42 @@ Both are written to your output directory.
 3. Images - Generate AI visuals (optional)
 4. Audio - Generate TTS narration (cached)
 5. HTML - Create interactive RevealJS presentation
-6. Timeline - Calculate slide timings
+6. Timeline - Calculate slide and fragment timings
 7. Recording - Capture video with Playwright
-8. Assembly - Combine video and audio with FFmpeg
+8. Assembly - Combine video and audio with timestamp-based sync
 
 ---
 
-# Future Possibilities
+# Audio/Video Sync
 
-@audio: Many exciting features are planned for future releases.
+@audio: Perfect audio-video synchronization with timestamp-based assembly.
+@audio: No timing drift, even with fragments and variable delays.
 
-**Potential additions:**
+**How it works:**
 
-- Vertical slides
-- Speaker notes view
-- Background videos
-- Auto-animate transitions
-- LaTeX math support
-- Code syntax highlighting
-- Custom CSS themes
+- Orchestrator records ACTUAL timestamps when audio starts
+- Exports `recording-timeline.json` with exact timing
+- Assembler uses real timestamps for silence padding
+- Result: Perfect sync throughout entire presentation
+
+Slides drive audio, not the other way around!
+
+---
+
+# Future Roadmap
+
+@audio: Exciting features are planned for upcoming releases.
+
+**Coming soon:**
+
+- Speaker notes view (Phase 3)
+- Auto-animate transitions (Phase 3)
+- LaTeX math support (Phase 3)
+- Code syntax highlighting themes
+- Embedded iframes and web content
+- PDF export mode
+
+Phase 3 is currently 50% complete!
 
 ---
 
@@ -317,7 +494,7 @@ Both are written to your output directory.
 
 1. Copy the template: `tutorials/.template/`
 2. Edit `presentation.md` with your content
-3. Run `TUTORIAL=my-name npm run build:fast`
+3. Run `TUTORIAL=my-name npm run tutorial:fast`
 4. Test and iterate quickly
 5. Run full build for final video
 

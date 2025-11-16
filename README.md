@@ -116,26 +116,26 @@ description: Learn something amazing
 - Wait 2s
 ```
 
-See `tutorials/demo/presentation.md` for a complete example with all supported features.
+See `tutorials/comprehensive.md` for a complete example with all supported features, or `tutorials/minimal.md` for a bare-bones starter.
 
 ### 4. Build Your Tutorial
 
 ```bash
-# Method 1: Generic build scripts (recommended)
+# Generic build scripts (recommended)
 # Fast build (skip AI - saves costs!)
-TUTORIAL=my-tutorial npm run build:fast
+TUTORIAL=my-tutorial npm run tutorial:fast
 
 # Full build (with TTS + images)
-TUTORIAL=my-tutorial npm run build:full
+TUTORIAL=my-tutorial npm run tutorial:full
 
 # HTML only (no video)
-TUTORIAL=my-tutorial npm run build:html
+TUTORIAL=my-tutorial npm run tutorial:html
 
-# Method 2: Low-level CLI (advanced)
-npm run tutorial:build -- -i tutorials/my-tutorial/presentation.md -o tutorials/my-tutorial/output
+# Low-level CLI (advanced)
+npm run tutorial:build -- -i tutorials/my-tutorial.md -o tutorials/.my-tutorial
 ```
 
-**Note**: Place your presentation at `tutorials/<name>/presentation.md`
+**Note**: Save your tutorial as `tutorials/<name>.md` (flat file format)
 
 ### 5. View Your Outputs
 
@@ -157,20 +157,20 @@ Every build produces TWO outputs:
 **Generic Scripts** (use with any tutorial):
 ```bash
 # Fast build (skip images & audio) - saves API costs!
-TUTORIAL=<name> npm run build:fast
+TUTORIAL=<name> npm run tutorial:fast
 
 # Full build (uses TTS + Gemini credits!)
-TUTORIAL=<name> npm run build:full
+TUTORIAL=<name> npm run tutorial:full
 
 # HTML only (no video recording)
-TUTORIAL=<name> npm run build:html
+TUTORIAL=<name> npm run tutorial:html
 ```
 
-**Demo Shortcuts**:
+**Examples**:
 ```bash
-npm run demo       # Fast: skip images & audio
-npm run demo:full  # Full: with all AI features
-npm run demo:html  # HTML only, no video
+TUTORIAL=minimal npm run tutorial:html       # Quick start
+TUTORIAL=comprehensive npm run tutorial:full  # Full showcase
+TUTORIAL=test-vertical npm run tutorial:fast  # Test build
 ```
 
 ### Low-Level CLI
@@ -186,8 +186,8 @@ npm run tutorial:build -- -i <input-file> -o <output-dir> [options]
 ```
 
 **Outputs**:
-- Interactive HTML: `tutorials/<name>/output/presentation/index.html`
-- Video file: `tutorials/<name>/output/tutorial.mp4` (unless --no-video)
+- Interactive HTML: `tutorials/.<name>/presentation/index.html`
+- Video file: `tutorials/.<name>/tutorial.mp4` (unless --no-video)
 
 ## Tutorial Script Format
 
@@ -280,7 +280,7 @@ The **multi-line format** is more readable and Git-friendly:
 - Press: Enter
 ```
 
-See `demo-presentation.md` for complete examples.
+See `tutorials/comprehensive.md` for complete examples.
 
 ## Configuration
 
@@ -433,8 +433,9 @@ If you have tutorials in the original format (pre-v2.0.0), see `MIGRATION.md` fo
 ## Next Steps
 
 1. Set up your environment (`.envrc` file)
-2. Write a markdown tutorial (see `demo-presentation.md`)
-3. Run `npm run tutorial:build your-file.md`
-4. View HTML at `output/presentation/index.html`
-5. Watch video at `output/tutorial.mp4`
-6. Share your tutorial!
+2. Study the examples: `tutorials/minimal.md` (basics) or `tutorials/comprehensive.md` (all features)
+3. Create your tutorial: `tutorials/my-tutorial.md`
+4. Build it: `TUTORIAL=my-tutorial npm run tutorial:fast` (or `:full` for AI features)
+5. View HTML at `tutorials/.my-tutorial/presentation/index.html`
+6. Watch video at `tutorials/.my-tutorial/tutorial.mp4`
+7. Share your tutorial!
