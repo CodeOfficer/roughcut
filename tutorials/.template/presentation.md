@@ -1,6 +1,8 @@
 ---
 title: "Your Tutorial Title"
+description: "Brief description of what this tutorial covers"
 theme: black
+voice: adam
 resolution: 1920x1080
 ---
 
