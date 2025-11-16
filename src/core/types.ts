@@ -342,6 +342,29 @@ export interface SlideTimelineEntry {
  * Reveal.js initialization configuration
  */
 export interface RevealConfig {
+  // ============================================================================
+  // PRESENTATION SIZING (responsive layout)
+  // ============================================================================
+
+  /** Presentation width in pixels (default: 1200) */
+  width?: number;
+
+  /** Presentation height in pixels (default: 900) */
+  height?: number;
+
+  /** Factor of display size to use as margin around content (default: 0.1 = 10%) */
+  margin?: number;
+
+  /** Minimum scale bounds for auto-scaling (default: 0.2) */
+  minScale?: number;
+
+  /** Maximum scale bounds for auto-scaling (default: 1.5) */
+  maxScale?: number;
+
+  // ============================================================================
+  // CORE BEHAVIOR
+  // ============================================================================
+
   /** Auto-slide interval in ms (0 = disabled, Playwright controls timing) */
   autoSlide: number;
 
@@ -486,6 +509,14 @@ export const DEFAULT_SLIDE_METADATA: SlideMetadata = {
  * Default reveal.js configuration
  */
 export const DEFAULT_REVEAL_CONFIG: RevealConfig = {
+  // Presentation sizing (responsive, content-friendly defaults)
+  width: 1200,
+  height: 900,
+  margin: 0.1,
+  minScale: 0.2,
+  maxScale: 1.5,
+
+  // Core behavior
   autoSlide: 0, // Disabled - Playwright controls timing
   hash: true,
   history: true,

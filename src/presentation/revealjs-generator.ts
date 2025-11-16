@@ -392,6 +392,14 @@ ${this.indentContent(slide.notes, 10)}
   private generateConfig(config: RevealConfig | RevealJSConfig): string {
     // Build config options array
     const options: string[] = [
+      // Presentation sizing (ensure content fits viewport)
+      `width: ${config.width ?? 1200}`,
+      `height: ${config.height ?? 900}`,
+      `margin: ${config.margin ?? 0.1}`,
+      `minScale: ${config.minScale ?? 0.2}`,
+      `maxScale: ${config.maxScale ?? 1.5}`,
+
+      // Core behavior
       `autoSlide: ${config.autoSlide}`,
       `hash: ${config.hash}`,
       `history: ${config.history}`,
