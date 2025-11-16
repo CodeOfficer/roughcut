@@ -195,8 +195,8 @@ export class AudioSyncOrchestrator {
           percentage: (i / timeline.slides.length) * 100,
         });
 
-        // Navigate to slide
-        await this.controller.slide(entry.slideIndex, 0);
+        // Navigate to slide (Phase 3: Now uses 2D navigation with h,v indices)
+        await this.controller.slide(entry.h, entry.v);
 
         // Wait for slide transition to complete (RevealJS default transition: ~300ms)
         await this.controller.wait(350);

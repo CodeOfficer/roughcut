@@ -27,8 +27,22 @@ export class RevealTimelineBuilder {
     const entries: SlideTimelineEntry[] = [];
     let cumulativeTime = 0;
 
+    // Phase 3: Track 2D navigation indices for vertical slides
+    let currentH = -1; // Horizontal index (increments for each horizontal slide)
+    let currentV = 0;  // Vertical index (resets for each horizontal slide)
+
     for (const slide of presentation.slides) {
       const audioResult = audioResults.get(slide.id);
+
+      // Phase 3: Calculate 2D navigation indices (h, v)
+      if (slide.isVertical) {
+        // Vertical slide: increment v within current h group
+        currentV++;
+      } else {
+        // Horizontal slide: increment h, reset v to 0
+        currentH++;
+        currentV = 0;
+      }
 
       // Determine audio duration
       let audioDuration = 0;
@@ -58,6 +72,8 @@ export class RevealTimelineBuilder {
       const entry: SlideTimelineEntry = {
         slideId: slide.id,
         slideIndex: slide.index,
+        h: currentH,
+        v: currentV,
         audioPath,
         audioDuration,
         pauseAfter,
@@ -76,7 +92,7 @@ export class RevealTimelineBuilder {
       cumulativeTime += totalSlideDuration;
 
       logger.debug(
-        `Timeline entry for ${slide.id}: ${entry.startTime.toFixed(2)}s - ${entry.endTime.toFixed(2)}s (audio: ${audioDuration.toFixed(2)}s, pause: ${pauseAfter.toFixed(2)}s)`
+        `Timeline entry for ${slide.id} (h:${currentH}, v:${currentV}): ${entry.startTime.toFixed(2)}s - ${entry.endTime.toFixed(2)}s (audio: ${audioDuration.toFixed(2)}s, pause: ${pauseAfter.toFixed(2)}s)`
       );
     }
 

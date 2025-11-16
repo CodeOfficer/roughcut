@@ -276,6 +276,12 @@ export interface SlideTimelineEntry {
   /** Slide index (0-based) */
   slideIndex: number;
 
+  /** Phase 3: Horizontal index for 2D navigation (RevealJS h coordinate) */
+  h: number;
+
+  /** Phase 3: Vertical index for 2D navigation (RevealJS v coordinate) */
+  v: number;
+
   /** Path to audio file (null if no audio) */
   audioPath: string | null;
 
