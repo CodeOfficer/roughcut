@@ -36,16 +36,19 @@
 - [ ] Controller: Sync main and speaker windows
 - [ ] Documentation: Speaker view usage guide
 
-### 4. Custom CSS Injection
-**Status**: NOT STARTED
+### 3. Custom CSS Injection ✅ **COMPLETE**
+**Status**: ✅ DONE (2025-11-16)
 **Description**: Per-presentation CSS customization
 **Requirements**:
-- [ ] Frontmatter: Support `customCSS` (external file path)
-- [ ] Frontmatter: Support `customStyles` (inline CSS)
-- [ ] Parser: Extract CSS directives from frontmatter
-- [ ] Generator: Inject `<link>` or `<style>` tags
-- [ ] Asset copying: Copy custom CSS files to output
-- [ ] Linting: Validate CSS file paths
+- ✅ Frontmatter: Support `customCSS` (external file path)
+- ✅ Frontmatter: Support `customStyles` (inline CSS with YAML | syntax)
+- ✅ Parser: Extract CSS directives from frontmatter
+- ✅ Generator: Inject `<link>` or `<style>` tags
+- ✅ Directive Registry: Added customCSS and customStyles definitions
+- ⏳ Asset copying: TODO (files currently referenced but not copied)
+- ⏳ Linting: TODO (path validation not yet implemented)
+**Commits**:
+  - ed024df: custom CSS injection - core implementation
 
 ### 5. Math Plugin (`@math:` directive)
 **Status**: NOT STARTED
