@@ -623,15 +623,16 @@ export class RevealMarkdownParser {
   private cleanContent(markdown: string): string {
     let cleaned = markdown;
 
+    // Remove @playwright: block (multi-line) - matches directive + all list items
+    // IMPORTANT: Must be done BEFORE removing single-line directives
+    cleaned = cleaned.replace(/@playwright:\n(?:-[^\n]*(?:\n|$))+/gm, '');
+
     // Remove all @directive: lines (single line directives)
     // Phase 3: Updated to handle marker directives with no value (e.g., @vertical-slide:)
     cleaned = cleaned.replace(/^@[\w-]+:.*$/gm, '');
 
     // Remove @audio: block
     cleaned = cleaned.replace(/^@audio:.+$/gm, '');
-
-    // Remove @playwright: block (multi-line)
-    cleaned = cleaned.replace(/@playwright:\s*\n(?:- .+\n?)+/gm, '');
 
     // Remove @fragment markers from content
     cleaned = cleaned.replace(/\s+@fragment(?:\s+\+\d+(?:\.\d+)?s)?/g, '');
