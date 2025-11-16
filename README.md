@@ -150,6 +150,87 @@ Every build produces TWO outputs:
    - Recorded video with synchronized narration
    - Ready to upload to video platforms
 
+## Development Workflow
+
+Understanding when to use each command is key to an efficient workflow:
+
+### **Development Mode** (Use Most Often)
+
+Fast iteration with **no API costs**:
+
+```bash
+# Manual control - navigate with keyboard
+TUTORIAL=minimal npm run dev
+
+# Auto-advance - watch automation
+TUTORIAL=comprehensive npm run dev:auto
+```
+
+**When to use:**
+- ✅ Writing a new tutorial
+- ✅ Testing timing and transitions
+- ✅ Debugging fragment reveals
+- ✅ Checking if slides look right
+- ✅ Iterating quickly (FREE - no AI costs!)
+
+**What it does:**
+- Reads your markdown
+- Generates HTML on the fly
+- Opens browser with dev server
+- **Manual**: You control navigation
+- **Auto**: Watch the automation run
+
+### **Production Builds** (Final Output)
+
+Generate deliverable assets:
+
+```bash
+# HTML only (no video, no AI) - fastest preview
+TUTORIAL=minimal npm run tutorial:html
+
+# Fast build (skip AI, include video recording)
+TUTORIAL=comprehensive npm run tutorial:fast
+
+# Full build (TTS + images + video) - costs API credits!
+TUTORIAL=comprehensive npm run tutorial:full
+```
+
+**When to use:**
+- ✅ Done iterating, need final output
+- ✅ Need the MP4 video file
+- ✅ Deploying HTML somewhere
+- ✅ Ready to spend TTS/image credits
+
+### Recommended Workflow
+
+```bash
+# 1. Start with dev mode while writing
+TUTORIAL=my-tutorial npm run dev
+# ... edit markdown, refresh browser, repeat ...
+
+# 2. Test auto-advance when ready
+TUTORIAL=my-tutorial npm run dev:auto
+# ... verify timing and fragments ...
+
+# 3. Generate HTML preview (no AI costs)
+TUTORIAL=my-tutorial npm run tutorial:html
+# ... verify everything looks good ...
+
+# 4. FINAL: Generate full production build
+TUTORIAL=my-tutorial npm run tutorial:full
+# ... now you have video + audio! ...
+```
+
+### Build Outputs
+
+All builds create outputs in `tutorials/.<name>/`:
+
+- **presentation/index.html** - Interactive RevealJS presentation
+- **tutorial.mp4** - Video with synchronized audio (unless `--no-video`)
+- **debug.txt** - Detailed build logs with timestamps
+- **build-summary.txt** - User-friendly summary with optimization tips
+- **audio/** - Generated TTS files (cached for reuse)
+
 ## CLI Commands
 
 ### Quick Start Scripts
