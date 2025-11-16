@@ -84,6 +84,14 @@ export class RevealMarkdownParser {
       presentation.config = resolveConfig(frontMatter.config, frontMatter.preset);
     }
 
+    // Phase 3: Custom CSS Injection
+    if (frontMatter.customCSS) {
+      presentation.customCSS = frontMatter.customCSS;
+    }
+    if (frontMatter.customStyles) {
+      presentation.customStyles = frontMatter.customStyles;
+    }
+
     return presentation;
   }
 
@@ -119,19 +127,33 @@ export class RevealMarkdownParser {
     const frontMatterText = match[1];
     const content = markdown.slice(match[0].length);
 
-    // Parse front matter lines (with support for nested config)
+    // Parse front matter lines (with support for nested config and multiline customStyles)
     const lines = frontMatterText.split('\n');
     const frontMatter: Partial<PresentationFrontMatter> = {};
     let currentSection: string | null = null;
+    const customStylesLines: string[] = [];
 
     for (const line of lines) {
-      // Skip empty lines
-      if (!line.trim()) continue;
+      // Skip empty lines (except in customStyles section)
+      if (!line.trim() && currentSection !== 'customStyles') continue;
 
-      // Check if this is a nested section (e.g., "config:")
-      if (line.match(/^[a-zA-Z]+:\s*$/) && line.startsWith('config:')) {
-        currentSection = 'config';
-        frontMatter.config = {};
+      // Check if this is a nested section (e.g., "config:" or "customStyles: |")
+      if (line.match(/^[a-zA-Z]+:\s*(\|)?$/)) {
+        if (line.startsWith('config:')) {
+          currentSection = 'config';
+          frontMatter.config = {};
+          continue;
+        } else if (line.startsWith('customStyles:')) {
+          currentSection = 'customStyles';
+          customStylesLines.length = 0; // Reset
+          continue;
+        }
+      }
+
+      // Parse indented lines under customStyles section (multiline CSS)
+      if (currentSection === 'customStyles' && line.match(/^\s+/)) {
+        // Remove leading indentation but preserve relative indentation
+        customStylesLines.push(line.replace(/^\s{2}/, ''));
         continue;
       }
 
@@ -161,10 +183,15 @@ export class RevealMarkdownParser {
       const [key, ...valueParts] = line.split(':');
       if (key && valueParts.length > 0 && !currentSection) {
         const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
-        if (key.trim() !== 'config') {
+        if (key.trim() !== 'config' && key.trim() !== 'customStyles') {
           frontMatter[key.trim() as keyof PresentationFrontMatter] = value as any;
         }
       }
+    }
+
+    // Phase 3: Finalize customStyles if any were collected
+    if (customStylesLines.length > 0) {
+      frontMatter.customStyles = customStylesLines.join('\n');
     }
 
     if (!frontMatter.title) {

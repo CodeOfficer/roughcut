@@ -157,6 +157,28 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
   slideNumber: 'c/t'`,
     notes: 'Phase 2: Supports 60+ RevealJS options. See docs/architecture/revealjs/CONFIGURATION.md',
   },
+  {
+    name: 'customCSS',
+    context: DirectiveContext.FRONTMATTER,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.STRING,
+    required: false,
+    description: 'Path to external custom CSS file (relative to markdown file)',
+    example: 'customCSS: ./styles/custom.css',
+    notes: 'Phase 3: Custom CSS Injection. Path is relative to presentation markdown file.',
+  },
+  {
+    name: 'customStyles',
+    context: DirectiveContext.FRONTMATTER,
+    format: DirectiveFormat.MULTI_LINE,
+    valueType: DirectiveValueType.MULTILINE_TEXT,
+    required: false,
+    description: 'Inline custom CSS styles',
+    example: `customStyles: |
+  .custom-highlight { color: #ff0; }
+  .special-slide { background: linear-gradient(to right, #667eea 0%, #764ba2 100%); }`,
+    notes: 'Phase 3: Custom CSS Injection. Use YAML multiline syntax (|) for multiple lines.',
+  },
 
   // ========================================================================
   // SLIDE-LEVEL DIRECTIVES (Single-line)

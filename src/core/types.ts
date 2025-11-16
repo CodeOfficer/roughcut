@@ -39,6 +39,18 @@ export interface RevealPresentation {
 
   /** Optional RevealJS configuration overrides from frontmatter (Phase 2: 60+ options) */
   config?: Partial<RevealJSConfig>;
+
+  /**
+   * Path to external custom CSS file
+   * Phase 3: Custom CSS Injection
+   */
+  customCSS?: string;
+
+  /**
+   * Inline custom CSS styles
+   * Phase 3: Custom CSS Injection
+   */
+  customStyles?: string;
 }
 
 /**
@@ -399,6 +411,20 @@ export interface PresentationFrontMatter {
 
   /** Optional RevealJS configuration overrides (Phase 2: Now supports 60+ options) */
   config?: Partial<RevealJSConfig>;
+
+  /**
+   * Path to external custom CSS file (relative to presentation markdown file)
+   * Phase 3: Custom CSS Injection
+   * Example: './styles/custom.css'
+   */
+  customCSS?: string;
+
+  /**
+   * Inline custom CSS styles
+   * Phase 3: Custom CSS Injection
+   * Example: '.custom-highlight { color: #ff0; }'
+   */
+  customStyles?: string;
 }
 
 /**

@@ -97,6 +97,9 @@ export class RevealHTMLGenerator {
     /* Phase 1: Removed hardcoded font sizes - using theme CSS variables instead */
     /* Themes define: --r-main-font-size, --r-heading1-size, --r-heading2-size, --r-heading3-size */
   </style>
+
+  <!-- Phase 3: Custom CSS Injection -->
+${this.generateCustomCSSIncludes(presentation)}
 </head>
 <body>
   <div class="reveal">
@@ -147,6 +150,9 @@ ${this.generateAudioControllerScript()}
     /* Phase 1: Removed hardcoded font sizes - using theme CSS variables instead */
     /* Themes define: --r-main-font-size, --r-heading1-size, --r-heading2-size, --r-heading3-size */
   </style>
+
+  <!-- Phase 3: Custom CSS Injection -->
+${this.generateCustomCSSIncludes(presentation)}
 </head>
 <body>
   <div class="reveal">
@@ -447,6 +453,34 @@ ${this.indentContent(slide.notes, 10)}
     };
 
     return text.replace(/[&<>"']/g, (char) => map[char] || char);
+  }
+
+  /**
+   * Generate custom CSS includes (Phase 3: Custom CSS Injection)
+   * Supports both external CSS files and inline styles
+   */
+  private generateCustomCSSIncludes(presentation: RevealPresentation): string {
+    const includes: string[] = [];
+
+    // External CSS file
+    if (presentation.customCSS) {
+      includes.push(`  <link rel="stylesheet" href="${presentation.customCSS}">`);
+    }
+
+    // Inline styles
+    if (presentation.customStyles) {
+      includes.push('  <style>');
+      includes.push('    /* Custom user styles */');
+      // Indent each line of custom styles
+      const indentedStyles = presentation.customStyles
+        .split('\n')
+        .map(line => line.trim() ? `    ${line}` : '')
+        .join('\n');
+      includes.push(indentedStyles);
+      includes.push('  </style>');
+    }
+
+    return includes.length > 0 ? includes.join('\n') : '';
   }
 
   /**
