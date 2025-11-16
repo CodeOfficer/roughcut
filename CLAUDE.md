@@ -15,7 +15,7 @@
 |------|-------|---------|
 | **Source code** | `src/` | All TypeScript modules |
 | **Tests** | `src/**/__tests__/` | Unit & integration tests |
-| **Tutorials** | `tutorials/` | Example presentations & outputs |
+| **Tutorials** | `tutorials/` | Tutorial directories with presentations |
 | **Documentation** | `docs/` | All reference docs |
 | **Architecture** | `docs/architecture/` | Design decisions & plans |
 | **User guides** | `docs/MIGRATION.md` | How-to guides |
@@ -49,9 +49,8 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 ```
 
 **Always produces TWO outputs:**
-1. `tutorials/.<name>/presentation/index.html` - Interactive RevealJS (flat .md files)
-2. `tutorials/.<name>/tutorial.mp4` - Video with narration (flat .md files)
-   - Or: `tutorials/<name>/output/...` for directory-based tutorials (.template)
+1. `tutorials/<name>/.build/presentation/index.html` - Interactive RevealJS presentation
+2. `tutorials/<name>/.build/tutorial.mp4` - Video with narration
 
 **Key modules:**
 - `src/core/` - Parser, types, logger
@@ -67,11 +66,13 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 **ALWAYS follow these patterns:**
 
 ### 1. Tutorial Management
-- ✅ Create tutorials as: `tutorials/<name>.md` (flat .md files)
-- ✅ Outputs go in: `tutorials/.<name>/` (hidden directories)
-- ✅ Test tutorials use prefix: `test-<feature>.md`
-- ✅ Directory-based tutorials (like `.template/`) use: `tutorials/<name>/presentation.md`
+- ✅ Create tutorials as directories: `tutorials/<name>/presentation.md`
+- ✅ User assets go alongside: `tutorials/<name>/*.png`, `tutorials/<name>/*.mp4`, etc.
+- ✅ Build outputs go in: `tutorials/<name>/.build/` (hidden subdirectory)
+- ✅ Test tutorials use prefix: `test-<feature>/`
+- ✅ Assets are automatically copied from tutorial dir to `.build/presentation/assets/`
 - ❌ Never put tutorial files in root
+- ❌ Never use flat `.md` files (deprecated as of v2.1)
 
 ### 2. Documentation Updates
 - ✅ Record decisions in: `docs/architecture/revealjs/DECISIONS.md`
@@ -91,7 +92,7 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 
 ---
 
-## 🚀 Current Status (Updated: 2025-11-12)
+## 🚀 Current Status (Updated: 2025-11-16)
 
 **✅ COMPLETE - Major Milestones:**
 1. **Codebase Reorganization** - Cleaned root, created docs/ structure, single source of truth
@@ -101,6 +102,7 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 5. **Documentation** - All planning docs updated in `docs/architecture/revealjs/DECISIONS.md`
 6. **Multi-line Audio & TTS Caching** - Readable format with intelligent caching (2025-11-11)
 7. **Markdown Linting System** - Comprehensive validation before build (2025-11-11)
+8. **Directory-Based Tutorials with Asset Support** - User-provided assets alongside presentation.md (2025-11-16)
 
 **What's Working:**
 - ✅ Build: `npm run build` (zero errors)
@@ -108,9 +110,10 @@ markdown → Parse → Images → Audio → HTML → Timeline → Record → Ass
 - ✅ Pipeline: **Lint** → Parse → Images → Audio (cached) → HTML → Timeline → Record → Assemble
 - ✅ Outputs: Interactive HTML + MP4 video (both, always)
 - ✅ AI Features: Image generation, TTS narration (with caching), browser automation
-- ✅ Tutorials: `minimal.md` (5 slides), `comprehensive.md` (29 slides), 4 test tutorials
+- ✅ Tutorials: `minimal/` (5 slides), `comprehensive/` (29 slides), 4 test tutorials
 - ✅ Audio: Multi-line format with SHA256 fingerprinting for incremental TTS
 - ✅ Linting: Strict validation with helpful error messages (fail-fast before expensive operations)
+- ✅ Assets: User-provided images/videos automatically copied to build output
 
 **Current Development Status:**
 
@@ -198,22 +201,25 @@ npm run voices         # List available ElevenLabs voices
 
 ```
 genai-tutorial-factory/
-├── src/                    # Source code
-├── tutorials/              # All tutorials & outputs
-│   ├── .template/         # Template for new presentations (directory-based)
-│   ├── minimal.md         # Bare essentials tutorial (5 slides, HTML-only)
-│   ├── comprehensive.md   # Complete feature showcase (29 slides, full production)
-│   ├── test-config.md     # Config validation test
-│   ├── test-vertical.md   # Vertical slides test
-│   ├── test-phase1.md     # Phase 1 features test
-│   ├── test-theme.md      # Theme responsiveness test
-│   └── .<name>/           # Build outputs (hidden directories, auto-generated)
-├── docs/                   # All documentation
-│   ├── architecture/      # Design docs
-│   ├── archive/           # Historical docs
-│   └── MIGRATION.md       # v1 → v2 guide
-├── README.md              # User setup & usage
-└── CLAUDE.md              # This file (Claude context)
+├── src/                         # Source code
+├── tutorials/                   # All tutorials
+│   ├── .template/              # Template for new presentations
+│   ├── minimal/                # Bare essentials tutorial (5 slides, HTML-only)
+│   │   ├── presentation.md
+│   │   └── .build/             # Build outputs (auto-generated, gitignored)
+│   ├── comprehensive/          # Complete feature showcase (29 slides)
+│   │   ├── presentation.md
+│   │   └── .build/
+│   ├── test-config/            # Config validation test
+│   ├── test-vertical/          # Vertical slides test
+│   ├── test-phase1/            # Phase 1 features test
+│   └── test-theme/             # Theme responsiveness test
+├── docs/                        # All documentation
+│   ├── architecture/           # Design docs
+│   ├── archive/                # Historical docs
+│   └── MIGRATION.md            # v1 → v2 guide
+├── README.md                   # User setup & usage
+└── CLAUDE.md                   # This file (Claude context)
 ```
 
 ---

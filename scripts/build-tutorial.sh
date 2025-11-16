@@ -24,22 +24,17 @@ if [ -z "$TUTORIAL_NAME" ]; then
   exit 1
 fi
 
-# Auto-detect input format: flat .md file or directory/presentation.md
-if [ -f "tutorials/${TUTORIAL_NAME}.md" ]; then
-  # Flat .md file (new style)
-  INPUT="tutorials/${TUTORIAL_NAME}.md"
-  OUTPUT="tutorials/.${TUTORIAL_NAME}"
-elif [ -f "tutorials/${TUTORIAL_NAME}/presentation.md" ]; then
-  # Directory-based (old style, for .template)
+# Check for directory-based tutorial structure
+if [ -f "tutorials/${TUTORIAL_NAME}/presentation.md" ]; then
+  # Directory-based tutorial (standard structure)
   INPUT="tutorials/${TUTORIAL_NAME}/presentation.md"
-  OUTPUT="tutorials/${TUTORIAL_NAME}/output"
+  OUTPUT="tutorials/${TUTORIAL_NAME}/.build"
 else
   echo "Error: Tutorial not found: $TUTORIAL_NAME"
   echo ""
+  echo "Expected: tutorials/${TUTORIAL_NAME}/presentation.md"
+  echo ""
   echo "Available tutorials:"
-  echo "  Flat files:"
-  find tutorials -maxdepth 1 -name "*.md" -not -name "README.md" | sed 's|tutorials/||' | sed 's|.md||'
-  echo "  Directories:"
   find tutorials -mindepth 2 -maxdepth 2 -name "presentation.md" -exec dirname {} \; | sed 's|tutorials/||'
   exit 1
 fi

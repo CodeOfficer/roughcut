@@ -86,7 +86,15 @@ This will display a formatted list of voices grouped by category (Premade, Profe
 
 ### 3. Write Your Tutorial Script
 
-Create a markdown file (e.g., `my-tutorial.md`) using RevealJS format:
+Create a tutorial directory with `presentation.md`:
+
+```bash
+# Create tutorial directory
+mkdir -p tutorials/my-tutorial
+
+# Create your tutorial script
+# tutorials/my-tutorial/presentation.md
+```
 
 ```markdown
 ---
@@ -116,7 +124,26 @@ description: Learn something amazing
 - Wait 2s
 ```
 
-See `tutorials/comprehensive.md` for a complete example with all supported features, or `tutorials/minimal.md` for a bare-bones starter.
+**Adding Your Own Assets:**
+
+Place any images, videos, or other assets alongside `presentation.md`:
+```
+tutorials/my-tutorial/
+├── presentation.md
+├── screenshot.png     # Your custom images
+├── demo-video.mp4     # Your custom videos
+└── diagram.svg        # Any files you need
+```
+
+Reference them in your markdown using relative paths:
+```markdown
+@background: ./screenshot.png
+@background-video: ./demo-video.mp4
+```
+
+Assets are automatically copied to the build output and made available to your presentation.
+
+See `tutorials/comprehensive/presentation.md` for a complete example with all supported features, or `tutorials/minimal/presentation.md` for a bare-bones starter.
 
 ### 4. Build Your Tutorial
 
@@ -132,22 +159,21 @@ TUTORIAL=my-tutorial npm run tutorial:full
 TUTORIAL=my-tutorial npm run tutorial:html
 
 # Low-level CLI (advanced)
-npm run tutorial:build -- -i tutorials/my-tutorial.md -o tutorials/.my-tutorial
+npm run tutorial:build -- -i tutorials/my-tutorial/presentation.md -o tutorials/my-tutorial/.build
 ```
-
-**Note**: Save your tutorial as `tutorials/<name>.md` (flat file format)
 
 ### 5. View Your Outputs
 
-Every build produces TWO outputs:
+Every build produces TWO outputs in `tutorials/<name>/.build/`:
 
-1. **Interactive HTML**: `output/presentation/index.html`
+1. **Interactive HTML**: `tutorials/my-tutorial/.build/presentation/index.html`
    - Open in browser for manual navigation
    - Press 'S' for speaker notes
    - Navigate with arrow keys or space
 
-2. **Video File**: `output/tutorial.mp4`
+2. **Video File**: `tutorials/my-tutorial/.build/tutorial.mp4`
    - Recorded video with synchronized narration
+   - Includes all generated audio and transitions
    - Ready to upload to video platforms
 
 ## Development Workflow

@@ -25,6 +25,7 @@ import { createBuildSummaryGenerator, type BuildSummaryData, type StageTiming } 
 import { lintMarkdown } from '../../core/linter.js';
 import { logger } from '../../core/logger.js';
 import type { RevealPresentation } from '../../core/types.js';
+import { createAssetCopier } from '../../presentation/asset-copier.js';
 
 // ============================================================================
 // TYPES
@@ -256,6 +257,38 @@ export class RevealBuildCommand {
         }
       }
 
+      // Phase 1.7: Copy user-provided assets
+      await debugLogger.startOperation('copy_assets');
+      this.reportProgress({
+        phase: 'parsing',
+        percentage: 14.5,
+        message: 'Copying user assets...',
+      });
+
+      const assetCopier = createAssetCopier();
+      const sourceDir = path.dirname(options.input); // Directory containing presentation.md
+      const assetResult = await assetCopier.copyAssets({
+        sourceDir,
+        outputDir: options.output,
+      });
+
+      const assetsDuration = await debugLogger.endOperation('copy_assets', {
+        count: assetResult.filesCopied,
+      });
+      stages.push({
+        name: 'copy_assets',
+        durationMs: assetsDuration,
+        metadata: { count: assetResult.filesCopied },
+      });
+
+      if (assetResult.filesCopied > 0) {
+        this.reportProgress({
+          phase: 'parsing',
+          percentage: 15,
+          message: `Copied ${assetResult.filesCopied} user asset(s)`,
+        });
+      }
+
       // Phase 2: Generate audio (if not skipped)
       let audioResults: Map<string, any> | null = null;
 
@@ -264,7 +297,7 @@ export class RevealBuildCommand {
 
         this.reportProgress({
           phase: 'audio_generation',
-          percentage: 15,
+          percentage: 16,
           message: 'Generating audio narration...',
         });
 
