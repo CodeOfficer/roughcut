@@ -3,6 +3,8 @@
  * Validates markdown presentations against directive registry before build
  */
 
+import path from 'path';
+import fs from 'fs';
 import {
   DirectiveContext,
   DirectiveFormat,
@@ -190,6 +192,11 @@ export class MarkdownLinter {
         );
       }
 
+      // Validate asset file existence for customCSS
+      if (fieldName === 'customCSS') {
+        this.validateAssetFile(fieldName, fieldValue, lineNumber, result);
+      }
+
       foundFields.add(fieldName);
     }
 
@@ -368,6 +375,9 @@ export class MarkdownLinter {
           );
         }
 
+        // Validate asset file existence for specific directives
+        this.validateAssetFile(directiveName, directiveValue, lineNumber, result);
+
         foundDirectives.add(directiveName);
       } else {
         // End audio block if we hit non-directive content
@@ -418,6 +428,67 @@ export class MarkdownLinter {
     // Check if slide has content
     if (!hasContent) {
       result.addError(ErrorFactories.emptySlide(slideNumber, startLineNumber));
+    }
+  }
+
+  /**
+   * Validate asset file existence for directives that reference local files
+   */
+  private validateAssetFile(
+    directiveName: string,
+    directiveValue: string,
+    lineNumber: number,
+    result: LintingResult
+  ): void {
+    // Directives that reference local asset files
+    const assetDirectives = ['background', 'background-video', 'customCSS', 'image-prompt'];
+
+    // Only validate if this is an asset directive and value looks like a local path
+    if (!assetDirectives.includes(directiveName)) {
+      return;
+    }
+
+    // Skip validation for:
+    // - URLs (http://, https://)
+    // - Colors (hex, rgb, etc.)
+    // - Gradients
+    // - AI-generated images (@image-prompt:)
+    if (
+      directiveValue.startsWith('http://') ||
+      directiveValue.startsWith('https://') ||
+      directiveValue.startsWith('#') ||
+      directiveValue.startsWith('rgb') ||
+      directiveValue.startsWith('hsl') ||
+      directiveValue.includes('gradient') ||
+      directiveName === 'image-prompt'
+    ) {
+      return;
+    }
+
+    // Check if this looks like a local file path
+    if (!directiveValue.startsWith('./') && !directiveValue.startsWith('../')) {
+      return;
+    }
+
+    // Resolve the file path relative to the markdown file
+    const markdownDir = path.dirname(result.filePath);
+    const assetPath = path.resolve(markdownDir, directiveValue);
+
+    // Check if file exists
+    if (!fs.existsSync(assetPath)) {
+      result.addError(
+        new LintingError(
+          ErrorSeverity.WARNING,
+          ErrorCategory.INVALID_VALUE,
+          `Asset file not found: ${directiveValue}`,
+          lineNumber,
+          {
+            currentValue: directiveValue,
+            example: 'Run: TUTORIAL=<name> npm run generate-assets',
+            suggestions: ['Check the file path', 'Generate placeholder assets'],
+          }
+        )
+      );
     }
   }
 
