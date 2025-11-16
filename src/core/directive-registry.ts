@@ -358,19 +358,21 @@ export const VALUE_VALIDATORS: Record<
   },
 
   [DirectiveValueType.COLOR]: (value: string) => {
-    // Support hex colors, rgb/rgba, hsl/hsla, CSS named colors, gradients, and URLs
+    // Support hex colors, rgb/rgba, hsl/hsla, CSS named colors, gradients, URLs, and local files
     const hexPattern = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
     const rgbPattern = /^rgba?\([\d\s,./]+\)$/;
     const hslPattern = /^hsla?\([\d\s,./%]+\)$/;
     const gradientPattern = /^(linear|radial)-gradient\(/;
     const urlPattern = /^url\(|^https?:\/\//;
+    const localFilePattern = /^\.\.?\/.*\.(png|jpg|jpeg|gif|svg|webp)$/i;
 
     if (
       hexPattern.test(value) ||
       rgbPattern.test(value) ||
       hslPattern.test(value) ||
       gradientPattern.test(value) ||
-      urlPattern.test(value)
+      urlPattern.test(value) ||
+      localFilePattern.test(value)
     ) {
       return { valid: true };
     }
@@ -398,7 +400,7 @@ export const VALUE_VALIDATORS: Record<
 
     return {
       valid: false,
-      error: 'Invalid color format. Use hex (#1e1e1e), rgb(r,g,b), CSS color name, gradient, or image URL',
+      error: 'Invalid color format. Use hex (#1e1e1e), rgb(r,g,b), CSS color name, gradient, image URL, or local file path (./image.png)',
     };
   },
 

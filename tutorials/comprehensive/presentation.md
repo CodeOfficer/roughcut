@@ -221,9 +221,26 @@ Press → to continue horizontally.
 
 ---
 
+# Image Backgrounds
+
+@background: ./background-image.png
+
+@audio: Use custom images as slide backgrounds for visual impact.
+@audio: Place image files alongside your presentation file.
+
+**To use image backgrounds:**
+
+- Place image in tutorial directory
+- Reference with `./filename.png`
+- Image auto-scales to fit screen
+
+*This slide uses `background-image.png` as a demonstration.*
+
+---
+
 # Video Backgrounds
 
-@background-video: path/to/video.mp4
+@background-video: ./background-video.mp4
 @background-video-loop: true
 @background-video-muted: true
 
@@ -232,11 +249,11 @@ Press → to continue horizontally.
 
 **Video background directives:**
 
-- `@background-video: path/to/video.mp4` - Video file path
+- `@background-video: ./background-video.mp4` - Video file path (relative to presentation.md)
 - `@background-video-loop: true/false` - Loop playback
 - `@background-video-muted: true/false` - Mute audio
 
-*Note: This demo uses a placeholder path. Use real video files in production.*
+*Note: Place video files alongside presentation.md and reference with `./filename.mp4`*
 
 ---
 
