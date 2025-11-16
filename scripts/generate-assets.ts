@@ -50,6 +50,14 @@ const videoPath = path.join(tutorialDir, 'background-video.mp4');
  * Generate placeholder background image (1920x1080)
  */
 async function generatePlaceholderImage(): Promise<void> {
+  // Check if image already exists
+  if (fs.existsSync(imagePath)) {
+    const stats = fs.statSync(imagePath);
+    console.log(chalk.yellow(`⊘ Skipping background-image.png (already exists, ${Math.round(stats.size / 1024)}KB)`));
+    console.log(chalk.gray(`  To regenerate, delete: ${imagePath}`));
+    return;
+  }
+
   console.log(chalk.cyan('Generating background-image.png...'));
 
   // Create a blue gradient background with text
@@ -104,6 +112,14 @@ async function generatePlaceholderImage(): Promise<void> {
  * Generate placeholder background video (5 seconds, 1920x1080)
  */
 function generatePlaceholderVideo(): void {
+  // Check if video already exists
+  if (fs.existsSync(videoPath)) {
+    const stats = fs.statSync(videoPath);
+    console.log(chalk.yellow(`⊘ Skipping background-video.mp4 (already exists, ${Math.round(stats.size / 1024)}KB)`));
+    console.log(chalk.gray(`  To regenerate, delete: ${videoPath}`));
+    return;
+  }
+
   console.log(chalk.cyan('Generating background-video.mp4...'));
 
   // Check if ffmpeg is available
@@ -151,19 +167,42 @@ function generatePlaceholderVideo(): void {
  */
 async function main() {
   try {
+    const imageExisted = fs.existsSync(imagePath);
+    const videoExisted = fs.existsSync(videoPath);
+
     // Generate image
     await generatePlaceholderImage();
 
     // Generate video
     generatePlaceholderVideo();
 
-    console.log(chalk.green(`\n✓ Successfully generated placeholder assets for ${TUTORIAL}`));
-    console.log(chalk.blue(`\nAssets created:`));
-    console.log(chalk.gray(`  - ${imagePath}`));
-    console.log(chalk.gray(`  - ${videoPath}`));
-    console.log(chalk.blue(`\nYou can now use these in your presentation:`));
+    // Count what was actually generated
+    const imageGenerated = !imageExisted && fs.existsSync(imagePath);
+    const videoGenerated = !videoExisted && fs.existsSync(videoPath);
+    const generatedCount = (imageGenerated ? 1 : 0) + (videoGenerated ? 1 : 0);
+    const skippedCount = (imageExisted ? 1 : 0) + (videoExisted ? 1 : 0);
+
+    console.log(chalk.green(`\n✓ Asset generation complete for ${TUTORIAL}`));
+
+    if (generatedCount > 0) {
+      console.log(chalk.blue(`\nGenerated ${generatedCount} asset${generatedCount > 1 ? 's' : ''}:`));
+      if (imageGenerated) console.log(chalk.gray(`  ✓ ${imagePath}`));
+      if (videoGenerated) console.log(chalk.gray(`  ✓ ${videoPath}`));
+    }
+
+    if (skippedCount > 0) {
+      console.log(chalk.yellow(`\nSkipped ${skippedCount} existing asset${skippedCount > 1 ? 's' : ''}:`));
+      if (imageExisted) console.log(chalk.gray(`  ⊘ ${imagePath}`));
+      if (videoExisted) console.log(chalk.gray(`  ⊘ ${videoPath}`));
+    }
+
+    console.log(chalk.blue(`\nYou can use these in your presentation:`));
     console.log(chalk.gray(`  @background: ./background-image.png`));
     console.log(chalk.gray(`  @background-video: ./background-video.mp4`));
+
+    if (skippedCount > 0) {
+      console.log(chalk.gray(`\nTo regenerate existing assets, delete them first and run again.`));
+    }
   } catch (error) {
     console.error(chalk.red('\n✗ Error generating assets:'));
     console.error(error);
