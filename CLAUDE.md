@@ -370,13 +370,42 @@ config:
 ---
 ```
 
-**Next: Phase 3** - Advanced Features
-- Vertical slides (`@vertical-slide:` directive)
-- Video backgrounds (`@background-video:` directive)
-- Speaker view mode
-- Custom CSS injection
-- Math plugin (`@math:` directive)
-- Full details: See migration plan sections 251-404
+### Phase 3: Advanced Features 🚧 **IN PROGRESS** (50% complete - 3/6 tasks)
+
+**✅ Completed** (2025-11-16):
+1. ✅ **Vertical Slides** (`@vertical-slide:` directive) - 2D navigation with up/down arrows
+   - Commits: cfc80b2, 4921a96, ceef30c
+   - Parser detects vertical groups, generator creates nested sections
+   - Orchestrator supports 2D navigation (h, v indices)
+
+2. ✅ **Video Backgrounds** (`@background-video:` directive) - Video playback on slides
+   - Commit: 34ec159
+   - Directives: @background-video, @background-video-loop, @background-video-muted
+   - Generator adds data-background-video-* attributes
+
+3. ✅ **Custom CSS Injection** - Per-presentation styling
+   - Commit: ed024df
+   - Frontmatter fields: `customCSS` (external file), `customStyles` (inline with | syntax)
+   - Generator injects <link> or <style> tags in HTML head
+
+**🚧 Remaining** (3/6 tasks):
+4. **Math Plugin** (`@math:` directive) - LaTeX equation rendering
+5. **Speaker View Mode** - Two-window presentation with notes
+6. **Auto-Animate Showcase** - Demo tutorial for auto-animate feature
+
+**Also Fixed** (2025-11-16):
+- ✅ @playwright block removal regex (commit 360b081) - Fixed regex pattern and execution order
+
+**Test Status**: All 325 tests passing ✅
+
+**Next Session - Resume Here**:
+Continue Phase 3 implementation. Remaining tasks in suggested order:
+1. Auto-Animate Showcase (easiest - create demo tutorial)
+2. Math Plugin (medium - add RevealJS Math plugin support)
+3. Speaker View Mode (hardest - two-window sync with HTTP server)
+
+Full details: `docs/architecture/revealjs/MIGRATION-TO-BEST-PRACTICES.md` sections 251-404
+Status tracking: `phase3-status.md`
 
 ---
 
