@@ -272,6 +272,42 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
     example: '@vertical-slide:',
     notes: 'Phase 3: Enables 2D navigation. Vertical slides group under previous horizontal slide. Use arrow keys: left/right for horizontal, up/down for vertical.',
   },
+
+  // ========================================================================
+  // VIDEO BACKGROUND DIRECTIVES (Phase 3: Advanced Features)
+  // ========================================================================
+  {
+    name: 'background-video',
+    context: DirectiveContext.SLIDE,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.STRING,
+    required: false,
+    description: 'Video background for slide (local path or URL)',
+    example: '@background-video: ./assets/background.mp4',
+    notes: 'Phase 3: Supports .mp4, .webm, .ogg formats. Can be local path or URL.',
+  },
+  {
+    name: 'background-video-loop',
+    context: DirectiveContext.SLIDE,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.ENUM,
+    validValues: ['true', 'false'],
+    required: false,
+    description: 'Loop video background',
+    example: '@background-video-loop: true',
+    notes: 'Phase 3: Set to true to loop video continuously.',
+  },
+  {
+    name: 'background-video-muted',
+    context: DirectiveContext.SLIDE,
+    format: DirectiveFormat.SINGLE_LINE,
+    valueType: DirectiveValueType.ENUM,
+    validValues: ['true', 'false'],
+    required: false,
+    description: 'Mute video background audio',
+    example: '@background-video-muted: true',
+    notes: 'Phase 3: Set to true to mute video audio (recommended when using @audio narration).',
+  },
 ];
 
 /**

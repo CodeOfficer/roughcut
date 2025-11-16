@@ -322,6 +322,23 @@ export class RevealMarkdownParser {
       metadata.imagePrompt = directives.get('image-prompt')!;
     }
 
+    // Phase 3: @background-video: ./assets/video.mp4
+    if (directives.has('background-video')) {
+      metadata.backgroundVideo = directives.get('background-video')!;
+    }
+
+    // Phase 3: @background-video-loop: true
+    if (directives.has('background-video-loop')) {
+      const value = directives.get('background-video-loop')!;
+      metadata.backgroundVideoLoop = value === 'true';
+    }
+
+    // Phase 3: @background-video-muted: true
+    if (directives.has('background-video-muted')) {
+      const value = directives.get('background-video-muted')!;
+      metadata.backgroundVideoMuted = value === 'true';
+    }
+
     return metadata;
   }
 

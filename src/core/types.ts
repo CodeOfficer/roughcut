@@ -221,6 +221,15 @@ export interface SlideMetadata {
 
   /** Whether auto-animate is enabled */
   autoAnimate?: boolean;
+
+  /** Phase 3: Video background path (from @background-video) */
+  backgroundVideo?: string;
+
+  /** Phase 3: Loop video background (from @background-video-loop) */
+  backgroundVideoLoop?: boolean;
+
+  /** Phase 3: Mute video background (from @background-video-muted) */
+  backgroundVideoMuted?: boolean;
 }
 
 /**

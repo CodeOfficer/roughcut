@@ -290,6 +290,21 @@ ${notes}
       }
     }
 
+    // Phase 3: Video background
+    if (slide.metadata.backgroundVideo) {
+      attrs.push(`data-background-video="${slide.metadata.backgroundVideo}"`);
+
+      // Video loop
+      if (slide.metadata.backgroundVideoLoop !== undefined) {
+        attrs.push(`data-background-video-loop="${slide.metadata.backgroundVideoLoop}"`);
+      }
+
+      // Video muted
+      if (slide.metadata.backgroundVideoMuted !== undefined) {
+        attrs.push(`data-background-video-muted="${slide.metadata.backgroundVideoMuted}"`);
+      }
+    }
+
     // Auto-animate
     if (slide.metadata.autoAnimate) {
       attrs.push('data-auto-animate');
