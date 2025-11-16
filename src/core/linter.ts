@@ -338,17 +338,20 @@ export class MarkdownLinter {
           continue;
         }
 
-        // Validate single-line directive has value
+        // Validate single-line directive has value (Phase 3: skip for MARKER directives)
         if (directive.format === DirectiveFormat.SINGLE_LINE && directiveValue.length === 0) {
-          result.addError(
-            ErrorFactories.invalidSyntax(
-              directiveName,
-              lineNumber,
-              `@${directiveName}: value`,
-              directive.example
-            )
-          );
-          continue;
+          // Phase 3: MARKER directives (like @vertical-slide:) should have no value
+          if (directive.valueType !== 'marker') {
+            result.addError(
+              ErrorFactories.invalidSyntax(
+                directiveName,
+                lineNumber,
+                `@${directiveName}: value`,
+                directive.example
+              )
+            );
+            continue;
+          }
         }
 
         // Validate value

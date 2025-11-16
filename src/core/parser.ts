@@ -186,14 +186,35 @@ export class RevealMarkdownParser {
 
   /**
    * Split markdown into slides using --- delimiter
+   * Phase 3: Also splits on @vertical-slide: markers within blocks
    * Must be on own line: \n---\n
    */
   private splitIntoSlides(content: string): string[] {
-    // Split on --- with newlines before/after
-    const slides = content.split(/\n---\n/);
+    // First split on --- to get major blocks
+    const blocks = content.split(/\n---\n/);
 
-    // Filter out empty slides
-    return slides.filter((slide) => slide.trim().length > 0);
+    const allSlides: string[] = [];
+
+    for (const block of blocks) {
+      if (block.trim().length === 0) continue;
+
+      // Phase 3: Check if block contains @vertical-slide: markers
+      if (block.includes('@vertical-slide:')) {
+        // Split on @vertical-slide: to get individual slides
+        const parts = block.split(/(?=@vertical-slide:)/);
+
+        for (const part of parts) {
+          if (part.trim().length > 0) {
+            allSlides.push(part.trim());
+          }
+        }
+      } else {
+        // Regular horizontal slide
+        allSlides.push(block);
+      }
+    }
+
+    return allSlides.filter((slide) => slide.trim().length > 0);
   }
 
   // ============================================================================
