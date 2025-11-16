@@ -38,7 +38,7 @@ async function runDev(options: any): Promise<void> {
   const inputDir = path.dirname(inputPath);
   const outputDir = options.output
     ? path.resolve(options.output)
-    : path.join(inputDir, 'output');
+    : path.join(inputDir, '.build');
 
   const htmlPath = path.join(outputDir, 'presentation', 'index.html');
 
