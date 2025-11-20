@@ -31,9 +31,7 @@ tmp/
 /debug.txt
 
 # Tutorial outputs (keep structure, ignore generated content)
-**/.build/  # Build outputs for all tutorials
-tutorials/.*/  # Legacy flat file outputs (e.g., .minimal/, .comprehensive/)
-!tutorials/.template/  # But keep the template directory
+tutorials/*/.build/
 
 # Browsers
 browsers/
