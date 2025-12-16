@@ -519,6 +519,8 @@ ${this.indentContent(slide.notes, 10)}
 
       let currentAudio = null;
       let audioEnabled = false;
+      let isPaused = false;
+      let wasAutoSliding = false;
 
       // Enable audio on first user interaction
       function enableAudio() {
@@ -537,9 +539,119 @@ ${this.indentContent(slide.notes, 10)}
         enableAudio();
       }
 
+      // Toggle pause/resume for audio and auto-slide
+      function togglePause() {
+        if (isPaused) {
+          // Resume
+          isPaused = false;
+          logWithTime('▶️  Resumed - continuing playback');
+
+          // Resume audio if we have one
+          if (currentAudio && currentAudio.paused && currentAudio.currentTime > 0) {
+            currentAudio.play().then(() => {
+              logWithTime('🔊 Audio resumed');
+            }).catch(err => {
+              logWithTime(\`⚠️ Audio resume failed: \${err.message}\`);
+            });
+          }
+
+          // Resume auto-slide if it was running before pause
+          if (wasAutoSliding) {
+            Reveal.configure({ autoSlide: Reveal.getConfig().autoSlide || 5000 });
+            logWithTime('⏩ Auto-slide resumed');
+          }
+
+          // Update pause indicator
+          updatePauseIndicator(false);
+        } else {
+          // Pause
+          isPaused = true;
+          logWithTime('⏸️  Paused - press Space to resume');
+
+          // Pause audio (but don't reset position)
+          if (currentAudio && !currentAudio.paused) {
+            currentAudio.pause();
+            logWithTime(\`🔇 Audio paused at \${currentAudio.currentTime.toFixed(2)}s\`);
+          }
+
+          // Check if auto-slide is active and pause it
+          const config = Reveal.getConfig();
+          wasAutoSliding = config.autoSlide > 0;
+          if (wasAutoSliding) {
+            Reveal.configure({ autoSlide: 0 });
+            logWithTime('⏹️  Auto-slide paused');
+          }
+
+          // Update pause indicator
+          updatePauseIndicator(true);
+        }
+
+        return isPaused;
+      }
+
+      // Create and update pause indicator overlay
+      function updatePauseIndicator(show) {
+        let indicator = document.getElementById('pause-indicator');
+
+        if (show) {
+          if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'pause-indicator';
+            indicator.innerHTML = '⏸️ PAUSED <span style="font-size: 14px; opacity: 0.8;">(Press Space to resume)</span>';
+            indicator.style.cssText = \`
+              position: fixed;
+              top: 20px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: rgba(0, 0, 0, 0.85);
+              color: #fff;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-family: system-ui, sans-serif;
+              font-size: 18px;
+              font-weight: bold;
+              z-index: 10001;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+              animation: fadeIn 0.2s ease;
+            \`;
+            document.body.appendChild(indicator);
+
+            // Add animation keyframes if not already present
+            if (!document.getElementById('pause-indicator-styles')) {
+              const style = document.createElement('style');
+              style.id = 'pause-indicator-styles';
+              style.textContent = \`
+                @keyframes fadeIn {
+                  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+                @keyframes fadeOut {
+                  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                  to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+                }
+              \`;
+              document.head.appendChild(style);
+            }
+          }
+          indicator.style.display = 'block';
+          indicator.style.animation = 'fadeIn 0.2s ease';
+        } else if (indicator) {
+          indicator.style.animation = 'fadeOut 0.2s ease';
+          setTimeout(() => {
+            if (indicator) indicator.style.display = 'none';
+          }, 200);
+        }
+      }
+
       // Load and play audio for a slide
       function playSlideAudio(slide) {
         logWithTime(\`🎵 playSlideAudio called (audioEnabled=\${audioEnabled}, slide=\${slide?.id})\`);
+
+        // If paused, don't start new audio
+        if (isPaused) {
+          logWithTime('🔇 Skipping audio - presentation is paused');
+          return;
+        }
 
         // Stop any currently playing audio
         stopCurrentAudio();
@@ -597,9 +709,26 @@ ${this.indentContent(slide.notes, 10)}
         logWithTime(\`⌨️  User pressed: \${e.key}\`);
       });
 
-      // Enable audio on any user interaction
+      // Spacebar pause/resume handler
+      document.addEventListener('keydown', (e) => {
+        // Only handle spacebar (code 32 or key ' ')
+        if (e.code === 'Space' || e.key === ' ') {
+          // Prevent default spacebar behavior (scrolling, etc.)
+          e.preventDefault();
+
+          // Enable audio if not yet enabled (first interaction)
+          if (!audioEnabled) {
+            enableAudio();
+            return;
+          }
+
+          // Toggle pause state
+          togglePause();
+        }
+      });
+
+      // Enable audio on any user interaction (except spacebar which has its own handler)
       document.addEventListener('click', enableAudio, { once: true });
-      document.addEventListener('keydown', enableAudio, { once: true });
 
       // Listen for slide changes
       Reveal.on('slidechanged', event => {
@@ -624,7 +753,7 @@ ${this.indentContent(slide.notes, 10)}
 
       // Try to play audio for initial slide after reveal is ready
       Reveal.on('ready', event => {
-        logWithTime('✅ Presentation ready - click anywhere to enable audio');
+        logWithTime('✅ Presentation ready - click anywhere to enable audio, Space to pause/resume');
         playSlideAudio(event.currentSlide);
       });
 
@@ -633,7 +762,9 @@ ${this.indentContent(slide.notes, 10)}
         play: () => playSlideAudio(Reveal.getCurrentSlide()),
         stop: stopCurrentAudio,
         getCurrentAudio: () => currentAudio,
-        enable: enableAudio
+        enable: enableAudio,
+        togglePause: togglePause,
+        isPaused: () => isPaused
       };
     })();
   </script>`;

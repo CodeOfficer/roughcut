@@ -1,0 +1,218 @@
+/* SATL Stakeholder Demo - Custom Theme
+   Color Palette: Blues and Whites with #5678DE accent
+*/
+
+:root {
+  --satl-primary: #5678DE;
+  --satl-primary-light: #8BA4E8;
+  --satl-primary-dark: #3D5AAF;
+  --satl-accent: #4169E1;
+  --satl-bg-light: #f8faff;
+  --satl-bg-white: #ffffff;
+  --satl-text-dark: #1a1a2e;
+  --satl-text-muted: #4a5568;
+}
+
+/* Override theme defaults for consistency */
+.reveal {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  color: var(--satl-primary-dark);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+.reveal h1 {
+  font-size: 2.2em;
+}
+
+.reveal h2 {
+  font-size: 1.6em;
+}
+
+.reveal h3 {
+  font-size: 1.3em;
+}
+
+/* Slides with gradient backgrounds get white text */
+.reveal section[data-background-gradient] h1,
+.reveal section[data-background-gradient] h2,
+.reveal section[data-background-gradient] h3,
+.reveal section[data-background-gradient] p,
+.reveal section[data-background-gradient] li,
+.reveal section[data-background-gradient] strong,
+.reveal section[data-background-gradient] em {
+  color: #ffffff !important;
+}
+
+/* Code blocks styling */
+.reveal pre {
+  font-size: 0.55em;
+  box-shadow: 0 4px 20px rgba(86, 120, 222, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(86, 120, 222, 0.2);
+}
+
+.reveal code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.reveal pre code {
+  padding: 1em;
+  max-height: 450px;
+}
+
+/* Inline code */
+.reveal p code,
+.reveal li code {
+  background: var(--satl-bg-light);
+  color: var(--satl-primary-dark);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Lists - tight and clean */
+.reveal ul,
+.reveal ol {
+  margin-left: 0;
+}
+
+.reveal li {
+  margin-bottom: 0.4em;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.reveal li::marker {
+  color: var(--satl-primary);
+}
+
+/* Fragment highlights */
+.reveal .fragment.highlight-current-blue.current-fragment {
+  color: var(--satl-primary);
+}
+
+/* Strong/bold text accent */
+.reveal strong {
+  color: var(--satl-primary-dark);
+  font-weight: 600;
+}
+
+/* Blockquotes */
+.reveal blockquote {
+  background: var(--satl-bg-light);
+  border-left: 4px solid var(--satl-primary);
+  padding: 0.5em 1em;
+  margin: 0.5em 0;
+  font-style: normal;
+}
+
+/* Progress bar */
+.reveal .progress {
+  color: var(--satl-primary);
+  height: 4px;
+}
+
+/* Slide numbers */
+.reveal .slide-number {
+  color: var(--satl-text-muted);
+  font-size: 14px;
+  right: 15px;
+  bottom: 15px;
+}
+
+/* Controls */
+.reveal .controls {
+  color: var(--satl-primary);
+}
+
+/* Section divider slides */
+.reveal section.section-divider h1 {
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Vertical slide indicators */
+.reveal .controls .controls-arrow {
+  color: var(--satl-primary);
+}
+
+/* Image styling */
+.reveal img {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Transition polish */
+.reveal .slides section {
+  padding: 20px;
+}
+
+/* Ensure content doesn't overflow */
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal .slides > section,
+.reveal .slides > section > section {
+  padding: 20px 40px;
+}
+
+/* Center title slides */
+.reveal section:first-of-type,
+.reveal section[data-background-gradient] {
+  text-align: center;
+}
+
+/* Nested list styling */
+.reveal ul ul {
+  font-size: 0.9em;
+  margin-top: 0.3em;
+  color: var(--satl-text-muted);
+}
+
+/* File tree / directory styling in code blocks */
+.reveal pre code .hljs-string {
+  color: var(--satl-primary);
+}
+
+/* Scenario cards styling */
+.reveal section h2 + p {
+  font-size: 0.9em;
+  color: var(--satl-text-muted);
+}
+
+/* Pipeline/flow emphasis */
+.reveal section .pipeline-stage {
+  display: inline-block;
+  background: var(--satl-bg-light);
+  border: 2px solid var(--satl-primary);
+  border-radius: 8px;
+  padding: 0.3em 0.8em;
+  margin: 0.2em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .reveal h1 {
+    font-size: 1.8em;
+  }
+
+  .reveal h2 {
+    font-size: 1.4em;
+  }
+
+  .reveal li {
+    font-size: 0.8em;
+  }
+
+  .reveal pre {
+    font-size: 0.5em;
+  }
+}
