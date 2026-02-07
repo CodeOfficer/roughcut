@@ -1,6 +1,6 @@
 # Features & Directives Reference
 
-Complete reference for all 20 supported directives in the GenAI Tutorial Factory.
+Complete reference for all 21 supported directives in the GenAI Tutorial Factory.
 
 ## Table of Contents
 

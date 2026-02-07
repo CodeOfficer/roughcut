@@ -1,7 +1,7 @@
 # Project Decisions & Requirements - Reveal.js Integration
 
 **Date Started**: 2025-11-06
-**Branch**: `feat/revealjs-presentation`
+**Branch**: `main` (migration complete)
 
 ---
 
@@ -495,9 +495,8 @@ Not implementing initially, but architecture supports:
 
 ## Current Status
 
-**Branch**: `feat/revealjs-presentation` (created)
-**Phase**: Planning complete, ready to begin implementation
-**Next Step**: Step 1 - Install dependencies
+**Branch**: `main`
+**Phase**: Production-ready (Phases 1-3 complete). Phase 4 (Polish & Export) available for future work.
 
 ---
 
@@ -958,6 +957,6 @@ config:
 9. **NEW**: Original system deprecated - RevealJS is THE system (not "new" system)
 10. **NEW**: Refer users to MIGRATION.md for format conversion
 
-**Current working directory**: `/Users/rjones/auditboard/genai-tutorial-factory`
+**Current working directory**: `/Users/rjones/Github/genai-tutorial-factory`
 **Planning folder**: `/planning/revealjs-integration/`
 **Current version**: 2.0.0 (post-deprecation)

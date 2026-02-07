@@ -179,11 +179,9 @@ preset: manual-presentation
 
 **Common issues:**
 
-| Issue | Solution |
-|-------|----------|
-| [Problem 1] | [Solution 1] |
-| [Problem 2] | [Solution 2] |
-| [Problem 3] | [Solution 3] |
+- **[Problem 1]** — [Solution 1]
+- **[Problem 2]** — [Solution 2]
+- **[Problem 3]** — [Solution 3]
 
 ---
 
