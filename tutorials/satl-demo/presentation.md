@@ -2,12 +2,15 @@
 title: "SATL: Shared AI Tooling Layer"
 theme: white
 voice: 4YYIPFl9wE5c4L2eu2Gb
+resolution: 1920x1080
 preset: manual-presentation
 config:
   controls: true
   progress: true
   slideNumber: 'c/t'
   hash: true
+  transition: fade
+  transitionSpeed: default
 customCSS: ./styles/custom.css
 ---
 
@@ -19,16 +22,21 @@ customCSS: ./styles/custom.css
 
 @audio: Welcome to SATL.
 @audio: The Shared AI Tooling Layer.
-@audio: One knowledge base. Every AI coding tool.
+@audio: One knowledge base. [1s] Every AI coding tool.
+
+@notes: Opening slide — pause for effect before advancing.
 
 **Shared AI Tooling Layer**
+
+*One knowledge base. Every AI coding tool.*
 
 ---
 
 # The Problem
 
 @transition: fade
-@duration: 12s
+@duration: 15s
+@background: #ffffff
 
 @audio: Today, teams face a significant challenge.
 @audio: Every AI coding tool has its own configuration format.
@@ -37,85 +45,172 @@ customCSS: ./styles/custom.css
 @audio: Copilot uses instructions and prompts.
 @audio: Maintaining consistency across all three is a nightmare.
 
-- Claude Code: skills, commands, hooks
-- Cursor: .mdc rules, hooks
-- Copilot: instructions, prompts, agents
-- **Result:** Duplicated configs everywhere
+@notes: Emphasize the pain — three different config formats for the same intent.
+
+**Every AI tool speaks a different language**
+
+- Claude Code: skills, commands, hooks @fragment
+- Cursor: .mdc rules, hooks @fragment +1s
+- Copilot: instructions, prompts, agents @fragment +2s
+- **Result:** Duplicated configs everywhere @fragment +3s
+
+---
+
+# The Cost
+
+@transition: fade
+@background: #f8faff
+
+@audio: The cost of fragmentation is real.
+@audio: Teams spend hours maintaining parallel configurations.
+@audio: Standards drift between tools.
+@audio: New developers get inconsistent guidance.
+
+@notes: This is the "why should I care" slide.
+
+- Hours spent on parallel configs @fragment
+- Standards drift between tools @fragment +1s
+- Inconsistent developer experience @fragment +2s
+- No single source of truth @fragment +3s
 
 ---
 
 # The Solution
 
 @transition: convex
-@background: #f8faff
+@background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 2s
 
 @audio: SATL solves this elegantly.
 @audio: Write your coding standards once.
 @audio: Deploy everywhere.
 
+@notes: Key message — write once, deploy everywhere. Let it land.
+
 **Write once, deploy everywhere**
 
 - Single source of truth @fragment
-- Platform-native experience @fragment
-- Dynamic + Static delivery @fragment
-- Fully extensible @fragment
+- Platform-native experience @fragment +1s
+- Dynamic and static delivery @fragment +2s
+- Fully extensible @fragment +3s
 
 ---
 
 # How SATL Works
 
-@vertical-slide:
+@transition: convex
+@background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
+@pause-after: 1s
 
-## The Architecture
+@audio: Let's explore how SATL works under the hood.
+
+**Architecture deep-dive**
+
+---
+
+# The Architecture
 
 @transition: fade
 @background: #ffffff
 
-@audio: Let's explore the architecture.
 @audio: At the top sits your Knowledge Base in YAML format.
 @audio: This defines your namespaces, guidance, commands, and agents.
+@audio: The SATL core transforms these into platform-native artifacts.
 
 @image-prompt: Clean architectural diagram showing a layered system. Top layer labeled "Knowledge Base" with document icons, middle layer labeled "SATL Core" with gear icons, bottom layer showing three boxes for "Claude", "Cursor", and "Copilot". Modern minimal style with blue gradient accents on white background.
 
+@notes: Walk through each layer top-to-bottom.
+
+---
+
+# The Flow
+
 @vertical-slide:
 
-## The Flow
+## Step 1: Define
 
-@transition: slide
+@transition: fade
+@background: #ffffff
+
+@audio: First, define your standards in YAML.
+@audio: One file per namespace, one file per set of rules.
+
+```yaml
+# knowledge-base/frontend/namespace.yaml
+id: frontend
+name: Frontend
+globs:
+  - "frontend/**"
+  - "**/*.gts"
+  - "**/*.hbs"
+```
+
+@vertical-slide:
+
+## Step 2: Generate
+
+@transition: fade
 @background: #f8faff
 
-@audio: The flow is simple.
-@audio: Define your standards in YAML.
-@audio: Generate platform-native artifacts.
-@audio: Install to your target project.
-@audio: AI tools automatically receive guidance.
+@audio: Then generate platform-native artifacts.
+@audio: One command creates files for all three tools.
 
-- **Define** - Write standards in YAML @fragment
-- **Generate** - Create platform files @fragment
-- **Install** - Deploy to project @fragment
-- **Use** - AI receives guidance @fragment +1s
+```bash
+pnpm generate:all
+# Creates:
+#   artifacts/claude/
+#   artifacts/cursor/
+#   artifacts/copilot/
+```
+
+@vertical-slide:
+
+## Step 3: Install
+
+@transition: fade
+@background: #ffffff
+
+@audio: Install to your target project.
+@audio: Path placeholders get resolved automatically.
+@audio: Hooks become executable.
+
+```bash
+export SATL_TARGET_DIR=/path/to/project
+pnpm install:all
+```
+
+@vertical-slide:
+
+## Step 4: Use
+
+@transition: fade
+@background: #f8faff
+@pause-after: 2s
+
+@audio: Now your AI tools automatically receive guidance.
+@audio: Every tool speaks the same standards. [1s] Natively.
+
+@notes: This is the payoff — everything just works.
+
+- AI receives context-specific rules @fragment
+- Consistent across all tools @fragment +1s
+- Zero manual sync needed @fragment +2s
 
 ---
 
 # Four Primitives
 
-@transition: zoom
+@transition: convex
 @background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 1s
 
-@audio: SATL uses four core primitives.
-@audio: These model all AI coding guidance.
+@audio: SATL models all AI coding guidance with four primitives.
 
-**The building blocks of SATL**
+**The building blocks**
 
 ---
 
 # Namespace
-
-@vertical-slide:
-
-## What is a Namespace?
 
 @transition: fade
 @background: #ffffff
@@ -135,36 +230,22 @@ globs:
   - "**/*.hbs"
 ```
 
-@vertical-slide:
-
-## Platform Delivery
-
-@transition: slide
-@background: #f8faff
-
-@audio: Each platform receives namespaces differently.
-@audio: Claude Code gets Skills.
-@audio: Cursor gets M-D-C rule files.
-@audio: Copilot gets instructions.
-
-- **Claude Code:** `.claude/skills/`
-- **Cursor:** `.cursor/rules/*.mdc`
-- **Copilot:** `.github/instructions/`
+- **Claude Code:** `.claude/skills/` @fragment
+- **Cursor:** `.cursor/rules/*.mdc` @fragment +1s
+- **Copilot:** `.github/instructions/` @fragment +2s
 
 ---
 
 # Guidance
 
-@vertical-slide:
-
-## What is Guidance?
-
 @transition: fade
-@background: #ffffff
+@background: #f8faff
 
 @audio: Guidance contains your actual rules and patterns.
-@audio: These are the coding standards your team follows.
 @audio: Each rule has a type, severity, and content.
+@audio: The AI enforces these automatically.
+
+@notes: Show both the rule definition and the platform-native output.
 
 **Rules, patterns, and policies**
 
@@ -177,110 +258,48 @@ globs:
     instead of @action decorator
 ```
 
-@vertical-slide:
-
-## Example Rule
-
-@transition: slide
-@background: #f8faff
-
-@audio: Here's a real example.
-@audio: This rule enforces using G-T-S format for new components.
-@audio: It triggers on JavaScript and TypeScript files.
-
-```yaml
-- id: use-gts-format
-  name: Use GTS Format
-  type: rule
-  severity: error
-  globs:
-    - "frontend/**/*.js"
-    - "frontend/**/*.ts"
-```
-
 ---
 
 # Command
-
-@vertical-slide:
-
-## What is a Command?
 
 @transition: fade
 @background: #ffffff
 
 @audio: Commands are user-invoked workflows.
-@audio: They provide consistent operations across tools.
 @audio: Type slash commit and get conventional commits.
+@audio: Same workflow, every tool.
 
 **User-invoked workflows**
 
-- `/satl:commit` - Create commits
-- `/satl:review-branch` - Review changes
-- `/satl:get-context` - Get guidance
-
-@vertical-slide:
-
-## Platform Delivery
-
-@transition: slide
-@background: #f8faff
-
-@audio: Commands map to each platform's native format.
-@audio: Claude Code uses slash commands.
-@audio: Copilot uses prompt files.
-@audio: Cursor leverages M-C-P or rules.
-
-- **Claude:** `.claude/commands/`
-- **Copilot:** `.github/prompts/`
-- **Cursor:** via MCP or rules
+- `/satl:commit` — Create commits @fragment
+- `/satl:review-branch` — Review changes @fragment +1s
+- `/satl:get-context` — Get guidance @fragment +2s
 
 ---
 
 # Agent
 
-@vertical-slide:
-
-## What is an Agent?
-
 @transition: fade
-@background: #ffffff
+@background: #f8faff
 
 @audio: Agents are AI personas for specific tasks.
 @audio: Think specialized assistants with focused expertise.
-@audio: A Playwright generator knows testing patterns.
 
 **AI personas for specific tasks**
 
-- Playwright test generator
-- Security reviewer
-- Code reviewer
-
-@vertical-slide:
-
-## Platform Delivery
-
-@transition: slide
-@background: #f8faff
-
-@audio: Agents are documented in AGENTS dot M-D.
-@audio: Copilot has dedicated agent files.
-@audio: All platforms can reference agent definitions.
-
-- **Shared:** `AGENTS.md`
-- **Copilot:** `.github/agents/`
-- **All:** MCP server queries
+- Playwright test generator @fragment
+- Security reviewer @fragment +1s
+- Code reviewer @fragment +2s
 
 ---
 
-# Generated Files
+# Generated Output
 
-@transition: zoom
+@transition: convex
 @background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 1s
 
-@audio: Let's see what gets generated.
-@audio: Each platform receives native configuration.
+@audio: Let's see what gets generated for each platform.
 
 **Platform-native artifacts**
 
@@ -290,11 +309,12 @@ globs:
 
 @transition: fade
 @background: #ffffff
+@duration: 10s
 
-@audio: For Claude Code, SATL generates 17 files.
-@audio: Skills provide domain guidance.
-@audio: Commands enable workflows.
-@audio: Hooks inject context automatically.
+@audio: For Claude Code, SATL generates skills, commands, hooks, and M-C-P config.
+@audio: Everything maps to Claude's native format.
+
+@notes: 17 files total across skills, commands, hooks, and MCP.
 
 ```
 artifacts/claude/
@@ -313,10 +333,8 @@ artifacts/claude/
 @transition: fade
 @background: #f8faff
 
-@audio: Cursor receives 10 files.
-@audio: M-D-C rules with glob patterns.
-@audio: Hooks for prompt augmentation.
-@audio: M-C-P server configuration.
+@audio: Cursor receives M-D-C rules with glob patterns.
+@audio: Plus hooks and M-C-P server configuration.
 
 ```
 artifacts/cursor/
@@ -334,10 +352,8 @@ artifacts/cursor/
 @transition: fade
 @background: #ffffff
 
-@audio: Copilot gets 13 files.
-@audio: Instructions with apply-to patterns.
-@audio: Prompt files for workflows.
-@audio: Agent definitions for specialized tasks.
+@audio: Copilot gets instructions, prompt files, and agent definitions.
+@audio: All using GitHub's native format.
 
 ```
 artifacts/copilot/
@@ -352,7 +368,7 @@ artifacts/copilot/
 
 # MCP Server
 
-@transition: zoom
+@transition: convex
 @background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 1s
 
@@ -374,29 +390,30 @@ artifacts/copilot/
 @audio: Retrieve detailed agent configurations.
 
 - `satl_get_guidance` @fragment
-- `satl_list_task_types` @fragment
-- `satl_list_agents` @fragment
-- `satl_get_agent` @fragment
+- `satl_list_task_types` @fragment +1s
+- `satl_list_agents` @fragment +1s
+- `satl_get_agent` @fragment +2s
 
 ---
 
 # How MCP Works
 
-@transition: slide
+@transition: fade
 @background: #f8faff
 
 @audio: When you open a file, the AI tool queries SATL.
-@audio: SATL resolves matching namespaces.
-@audio: It merges guidance from core, frontend, and security.
-@audio: The AI receives context-specific rules.
+@audio: SATL resolves matching namespaces and merges guidance.
+@audio: The AI receives context-specific rules instantly.
 
 @image-prompt: Flow diagram showing an AI tool icon on the left sending a query arrow to an MCP Server box in the middle, which connects to a Knowledge Base cylinder on the right. Return arrow shows "merged guidance" flowing back. Clean minimal style with blue accents on white.
+
+@notes: Emphasize the real-time nature — no build step needed for MCP queries.
 
 ---
 
 # Hooks
 
-@transition: zoom
+@transition: fade
 @background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 1s
 
@@ -407,103 +424,52 @@ artifacts/copilot/
 
 ---
 
-# Claude Code Hooks
+# Hook Events
 
 @transition: fade
 @background: #ffffff
 
-@audio: Claude Code supports two hook events.
-@audio: Session Start displays the SATL intro.
-@audio: User Prompt Submit reminds about M-C-P tools.
+@audio: Claude Code supports Session Start and User Prompt Submit hooks.
+@audio: Cursor uses before-submit prompt hooks.
+@audio: These inject SATL context automatically.
 
-- **SessionStart** @fragment
-  - Display SATL introduction
-  - List available MCP tools
-- **UserPromptSubmit** @fragment +1s
-  - Remind to use satl_get_guidance
-  - Inject context prompts
+@notes: Copilot has no hook support yet — mention this if asked.
 
----
-
-# Cursor Hooks
-
-@transition: slide
-@background: #f8faff
-
-@audio: Cursor uses before submit prompt hooks.
-@audio: These inject SATL reminders before each query.
-@audio: Copilot doesn't support hooks yet.
-
-- **beforeSubmitPrompt**
-  - Remind about SATL MCP tools
-  - Inject guidance context
-
-**Note:** Copilot has no hook support
+- **SessionStart** — Display SATL intro @fragment
+- **UserPromptSubmit** — Inject guidance reminders @fragment +1s
+- **beforeSubmitPrompt** — Cursor equivalent @fragment +2s
 
 ---
 
-# Installation
-
-@transition: zoom
-@background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
-@pause-after: 1s
-
-@audio: Let's see the installation workflow.
-@audio: It's designed to be simple and repeatable.
-
-**Deploy to any project**
-
----
-
-# Installation Steps
+# Background Video Demo
 
 @transition: fade
-@background: #ffffff
+@background-video: ./assets/loop.mp4
+@background-video-loop: true
+@background-video-muted: true
 
-@audio: First, install dependencies and build.
-@audio: Then generate artifacts for all platforms.
-@audio: Finally, install to your target project.
+@audio: SATL also supports rich media.
+@audio: This slide demonstrates a background video.
+@audio: Video loops silently behind the content.
 
-```bash
-# Build SATL
-pnpm install
-pnpm -r build
-pnpm generate:all
+@notes: This slide tests @background-video, @background-video-loop, and @background-video-muted directives.
 
-# Install to project
-export SATL_TARGET_DIR=/path/to/project
-pnpm install:all
-```
+**Rich media backgrounds**
+
+*Video loops behind slide content*
 
 ---
 
-# What Gets Installed
+# Live Demo
 
-@transition: slide
-@background: #f8faff
-
-@audio: The install script handles everything.
-@audio: It copies platform-specific artifacts.
-@audio: It resolves path placeholders.
-@audio: It makes hooks executable.
-
-- Copies platform artifacts @fragment
-- Resolves path placeholders @fragment
-- Makes hooks executable @fragment
-- Creates environment config @fragment
-
----
-
-# Demo Time
-
-@transition: zoom
+@transition: fade
 @background: linear-gradient(135deg, #5678DE 0%, #1a1a2e 100%)
 @pause-after: 2s
 
 @audio: Let's see SATL in action.
-@audio: We'll demonstrate the end-to-end workflow.
+@audio: We'll walk through the end-to-end workflow.
 
-**Live demonstration**
+**End-to-end demonstration**
 
 ---
 
@@ -512,7 +478,7 @@ pnpm install:all
 @transition: fade
 @background: #ffffff
 
-@audio: First, we define our coding standards.
+@audio: First, we define our coding standards in YAML.
 @audio: This YAML defines the frontend namespace.
 @audio: It applies to all G-T-S and H-B-S files.
 
@@ -530,12 +496,12 @@ globs:
 
 # Demo: Add Guidance
 
-@transition: slide
+@transition: fade
 @background: #f8faff
 
 @audio: Next, we add guidance rules.
-@audio: This enforces arrow functions for handlers.
-@audio: The A-I will suggest this pattern.
+@audio: This enforces arrow functions for event handlers.
+@audio: The AI will suggest this pattern when editing matching files.
 
 ```yaml
 - id: use-arrow-handlers
@@ -549,14 +515,14 @@ globs:
 
 ---
 
-# Demo: Generate & Install
+# Demo: Generate and Install
 
 @transition: fade
 @background: #ffffff
 
 @audio: Now we generate and install.
 @audio: One command creates all platform artifacts.
-@audio: Another deploys to our project.
+@audio: Another deploys to your project.
 
 ```bash
 # Generate for all platforms
@@ -572,26 +538,46 @@ pnpm install:copilot
 
 # Demo: AI Receives Guidance
 
-@transition: convex
+@transition: fade
 @background: #f8faff
 
-@audio: Finally, the A-I receives our guidance.
+@audio: Finally, the AI receives our guidance.
 @audio: When editing frontend code, it knows our patterns.
 @audio: It suggests arrow functions automatically.
 
 @image-prompt: Screenshot-style mockup of a code editor with an AI suggestion popup showing "Replace @action with arrow function" advice. Clean IDE interface with blue accent highlights. Modern tech aesthetic.
 
+@notes: This is the "aha" moment — standards flow from YAML to the AI automatically.
+
+---
+
+# Playwright Automation
+
+@transition: fade
+@background: #ffffff
+
+@audio: For advanced demos, SATL presentations support browser automation.
+@audio: Playwright directives can drive live interactions.
+
+@playwright:
+- Wait: 1s
+- Screenshot: playwright-demo
+
+@notes: This slide tests the @playwright directive. In production, you'd add clicks, typing, and screenshots.
+
+**Browser automation for live demos**
+
 ---
 
 # Summary
 
-@transition: zoom
+@transition: fade
 @background: linear-gradient(135deg, #5678DE 0%, #8BA4E8 100%)
 @pause-after: 1s
 
 @audio: Let's recap what SATL provides.
 
-**Key benefits**
+**Key takeaways**
 
 ---
 
@@ -601,31 +587,29 @@ pnpm install:copilot
 @background: #ffffff
 
 @audio: SATL eliminates duplicate configurations.
-@audio: It ensures consistent coding standards.
+@audio: It ensures consistent coding standards across every AI tool.
 @audio: It automates maintenance and deployment.
-@audio: It provides real-time guidance via M-C-P.
+@audio: And it provides real-time guidance via M-C-P.
 
 - Duplicate configs across tools @fragment
-- Inconsistent standards @fragment
-- Manual maintenance burden @fragment
-- No real-time guidance @fragment
+- Inconsistent standards @fragment +1s
+- Manual maintenance burden @fragment +2s
+- No real-time guidance @fragment +3s
 
 ---
 
 # Key Benefits
 
-@transition: slide
+@transition: fade
 @background: #f8faff
 
-@audio: With SATL, you get consistency.
-@audio: You get maintainability.
-@audio: You get flexibility and extensibility.
-@audio: And your developers get a native experience.
+@audio: With SATL, you get consistency, maintainability, flexibility, and extensibility.
+@audio: Your developers get a native experience in every tool.
 
-- **Consistency** - Same standards everywhere @fragment
-- **Maintainability** - Update once @fragment
-- **Flexibility** - Static plus dynamic @fragment
-- **Extensibility** - Add new platforms @fragment
+- **Consistency** — Same standards everywhere @fragment
+- **Maintainability** — Update once, deploy everywhere @fragment +1s
+- **Flexibility** — Static plus dynamic delivery @fragment +2s
+- **Extensibility** — Add new platforms easily @fragment +3s
 
 ---
 
@@ -633,11 +617,14 @@ pnpm install:copilot
 
 @transition: fade
 @background: #ffffff
+@pause-after: 2s
 
 @audio: Ready to get started?
 @audio: Explore the knowledge base YAML files.
 @audio: Add your team's coding standards.
-@audio: Generate and deploy.
+@audio: Generate and deploy. [1s] It's that simple.
+
+@notes: Direct people to the repo and docs.
 
 - Explore knowledge-base YAML
 - Add your team's standards

@@ -362,7 +362,7 @@ describe('RevealHTMLGenerator', () => {
 
       const html = generator.generateHTML(presentation, './node_modules/reveal.js');
 
-      expect(html).toContain('data-background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"');
+      expect(html).toContain('data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"');
     });
 
     it('should apply auto-animate data attribute', () => {

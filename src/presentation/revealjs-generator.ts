@@ -286,10 +286,10 @@ ${notes}
         attrs.push(`data-background-color="${slide.metadata.background}"`);
       } else if (
         slide.metadata.background.includes('linear-gradient') ||
-        slide.metadata.background.includes('radial-gradient')
+        slide.metadata.background.includes('radial-gradient') ||
+        slide.metadata.background.includes('conic-gradient')
       ) {
-        // Use generic data-background for gradients
-        attrs.push(`data-background="${slide.metadata.background}"`);
+        attrs.push(`data-background-gradient="${slide.metadata.background}"`);
       } else {
         // Assume it's an image URL
         attrs.push(`data-background-image="${slide.metadata.background}"`);

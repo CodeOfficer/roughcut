@@ -47,9 +47,14 @@ const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.avi', '.mkv'];
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a'];
 
 /**
+ * Style extensions
+ */
+const STYLE_EXTENSIONS = ['.css'];
+
+/**
  * All supported asset extensions
  */
-const ASSET_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS];
+const ASSET_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...STYLE_EXTENSIONS];
 
 /**
  * Copies user-provided assets from tutorial directory to build output
@@ -65,39 +70,52 @@ export class AssetCopier {
     const assetsOutputDir = path.join(outputDir, 'presentation', 'assets');
     await fs.mkdir(assetsOutputDir, { recursive: true });
 
-    // Read source directory
-    const files = await fs.readdir(sourceDir);
-
+    // Recursively find and copy asset files, preserving directory structure
     const copiedFiles: string[] = [];
+    const presentationDir = path.join(outputDir, 'presentation');
 
-    for (const file of files) {
-      // Skip presentation.md and hidden files/directories
-      if (file === 'presentation.md' || file.startsWith('.')) {
-        continue;
+    const copyDir = async (dir: string, relPath: string = '') => {
+      const entries = await fs.readdir(dir);
+
+      for (const entry of entries) {
+        // Skip presentation.md and hidden files/directories
+        if (entry === 'presentation.md' || entry.startsWith('.')) {
+          continue;
+        }
+
+        const sourcePath = path.join(dir, entry);
+        const stat = await fs.stat(sourcePath);
+        const entryRelPath = relPath ? path.join(relPath, entry) : entry;
+
+        if (stat.isDirectory()) {
+          await copyDir(sourcePath, entryRelPath);
+          continue;
+        }
+
+        // Check if it's an asset we should copy
+        const ext = path.extname(entry).toLowerCase();
+        if (!ASSET_EXTENSIONS.includes(ext)) {
+          logger.debug(`Skipping non-asset file: ${entryRelPath}`);
+          continue;
+        }
+
+        // Copy to both assets/ (flat) and preserve relative path for direct references
+        const flatDestPath = path.join(assetsOutputDir, entry);
+        await fs.copyFile(sourcePath, flatDestPath);
+
+        // Also copy preserving directory structure for relative path references (e.g., customCSS)
+        if (relPath) {
+          const structuredDestPath = path.join(presentationDir, entryRelPath);
+          await fs.mkdir(path.dirname(structuredDestPath), { recursive: true });
+          await fs.copyFile(sourcePath, structuredDestPath);
+        }
+
+        copiedFiles.push(entryRelPath);
+        logger.debug(`Copied asset: ${entryRelPath}`);
       }
+    };
 
-      const sourcePath = path.join(sourceDir, file);
-      const stat = await fs.stat(sourcePath);
-
-      // Only copy files (not directories)
-      if (!stat.isFile()) {
-        continue;
-      }
-
-      // Check if it's an asset we should copy
-      const ext = path.extname(file).toLowerCase();
-      if (!ASSET_EXTENSIONS.includes(ext)) {
-        logger.debug(`Skipping non-asset file: ${file}`);
-        continue;
-      }
-
-      // Copy the file
-      const destPath = path.join(assetsOutputDir, file);
-      await fs.copyFile(sourcePath, destPath);
-      copiedFiles.push(file);
-
-      logger.debug(`Copied asset: ${file} -> assets/${file}`);
-    }
+    await copyDir(sourceDir);
 
     if (copiedFiles.length > 0) {
       logger.info(`Copied ${copiedFiles.length} user asset(s) to presentation/assets/`);

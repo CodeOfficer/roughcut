@@ -37,7 +37,7 @@ preset: manual-presentation
 # Section 1: Topic One
 
 @background: #1a1a2e
-@transition: slide
+@transition: fade
 
 @audio: Let's start with the first topic.
 @audio: This is a fundamental concept to understand.
@@ -52,6 +52,7 @@ preset: manual-presentation
 
 # With AI-Generated Image
 
+@transition: fade
 @image-prompt: Modern tech visualization with connected nodes and data flowing between them. Blue and purple gradient, professional aesthetic.
 @duration: 12s
 
@@ -62,6 +63,7 @@ preset: manual-presentation
 
 # Code Example
 
+@transition: fade
 @duration: 15s
 
 @audio: Here's how you implement this in practice.
@@ -81,6 +83,7 @@ def process_data(items: list) -> dict:
 
 # Vertical Slide Groups
 
+@transition: fade
 @audio: Some topics require deeper exploration.
 @audio: Use vertical slides for related content.
 
@@ -112,6 +115,7 @@ def process_data(items: list) -> dict:
 
 # Fragment Timing Control
 
+@transition: fade
 @duration: 12s
 
 @audio: Fragments can have custom timing.
@@ -140,7 +144,7 @@ def process_data(items: list) -> dict:
 # Key Takeaways
 
 @background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%)
-@transition: zoom
+@transition: fade
 @pause-after: 2s
 
 @audio: You now understand the core concepts.
@@ -157,6 +161,7 @@ def process_data(items: list) -> dict:
 
 # Next Steps
 
+@transition: fade
 @duration: 8s
 
 @audio: Ready to continue learning?

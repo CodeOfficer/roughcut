@@ -154,11 +154,6 @@
   padding: 20px;
 }
 
-/* Ensure content doesn't overflow */
-.reveal .slides {
-  text-align: left;
-}
-
 .reveal .slides > section,
 .reveal .slides > section > section {
   padding: 20px 40px;

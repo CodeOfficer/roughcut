@@ -82,6 +82,7 @@ export class MarkdownLinter {
     const frontmatterLines = lines.slice(1, endLine);
     const foundFields = new Set<string>();
     let inConfigSection = false;
+    let inCustomStylesSection = false;
 
     for (let i = 0; i < frontmatterLines.length; i++) {
       const line = frontmatterLines[i];
@@ -89,9 +90,26 @@ export class MarkdownLinter {
 
       const lineNumber = i + 2; // +1 for array index, +1 for opening ---
 
-      // Skip empty lines and comments
+      // Skip empty lines and comments (except in customStyles section where blank lines are valid CSS)
       if (line.trim().length === 0 || line.trim().startsWith('#')) {
         continue;
+      }
+
+      // Check if this is a customStyles section start (customStyles: |)
+      if (line.match(/^customStyles:\s*\|?\s*$/)) {
+        inCustomStylesSection = true;
+        foundFields.add('customStyles');
+        continue;
+      }
+
+      // Skip indented lines under customStyles section (multiline CSS content)
+      if (inCustomStylesSection && line.match(/^\s+/)) {
+        continue;
+      }
+
+      // If we hit a non-indented line after customStyles section, exit it
+      if (inCustomStylesSection && !line.match(/^\s+/)) {
+        inCustomStylesSection = false;
       }
 
       // Check if this is a config section start
@@ -324,6 +342,38 @@ export class MarkdownLinter {
             audioBlockStartLine = lineNumber;
           }
           audioBlockLines.push(directiveValue);
+          foundDirectives.add(directiveName);
+          continue;
+        }
+
+        // Special handling for @playwright: (multi-line list on subsequent lines)
+        if (directiveName === 'playwright') {
+          // Collect list items from subsequent lines
+          const playwrightLines: string[] = [];
+          let j = i + 1;
+          while (j < lines.length) {
+            const nextLine = lines[j];
+            if (nextLine && nextLine.trim().startsWith('- ')) {
+              playwrightLines.push(nextLine.trim());
+              j++;
+            } else {
+              break;
+            }
+          }
+          if (playwrightLines.length === 0) {
+            const playwrightDef = getDirectiveDefinition(directiveName, DirectiveContext.SLIDE)!;
+            result.addError(
+              ErrorFactories.invalidValue(
+                directiveName,
+                '',
+                lineNumber,
+                'Multi-line list cannot be empty',
+                playwrightDef
+              )
+            );
+          }
+          // Skip the list item lines we already consumed
+          i = j - 1;
           foundDirectives.add(directiveName);
           continue;
         }

@@ -141,13 +141,42 @@ Use these curated gradients for visual variety between sections:
 - **Calm/Neutral:** `linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)` — lavender-pink, soft
 - **Dark accent:** `#1a1a2e` — near-black with blue tint, good for code sections
 
-### Transition Strategy
+### Transition Strategy — The 70-20-10 Rule
 
-- **Title slides:** `zoom` — dramatic entrance
-- **Content slides:** `fade` — smooth, default choice
-- **Section breaks:** `convex` or `concave` — visual separation
-- **Code slides:** `slide` — clean horizontal movement
-- **Conclusion:** `zoom` — bookend with the title
+Apply transitions with discipline, not variety:
+
+- **70% `fade`** — All content slides (default, smooth, professional)
+- **20% `convex`** — Section dividers only (visual separation between major sections)
+- **10% `zoom`** — Title slide and final slide only (bookends the presentation)
+
+**Never** use `slide` or `concave` in generated presentations — they add visual chaos without value. Never specify a different transition on every slide.
+
+### Design System Principles
+
+Consistent visual rhythm makes a presentation feel professional:
+
+- **Color palette:** Pick 3 colors from the topic/brand and use them everywhere. Don't introduce new colors mid-presentation.
+- **Background rhythm:** Alternate solid backgrounds (content slides) with gradients (section dividers). This creates predictable visual "chapters."
+- **Never put gradients on content-heavy slides** — gradients are for titles, section breaks, and conclusion. Code, bullets, and diagrams go on solid backgrounds.
+- **`center: false` is almost never correct** — RevealJS defaults to centered content for good reason. Only override this if you have a specific layout need.
+
+### Readability on Gradient Backgrounds
+
+Gradient slides must have high-contrast text:
+
+- Always use white text on medium-to-dark gradients
+- Keep text minimal — short title + optional subtitle, not bullet lists
+- Never put code blocks on gradient backgrounds
+- The custom CSS should include this rule (generated templates already do):
+  ```css
+  .reveal section[data-background-gradient] h1,
+  .reveal section[data-background-gradient] h2,
+  .reveal section[data-background-gradient] p,
+  .reveal section[data-background-gradient] strong,
+  .reveal section[data-background-gradient] em {
+    color: #ffffff !important;
+  }
+  ```
 
 ---
 
@@ -169,7 +198,9 @@ customCSS: ./styles/custom.css # Optional: external CSS file
 ---
 ```
 
-**Important:** Do NOT use `customStyles` with inline YAML (`|` pipe syntax) — it causes linter issues. Use `customCSS` with an external CSS file instead.
+**Styling options:**
+- `customCSS: ./styles/custom.css` — External CSS file (recommended for larger stylesheets)
+- `customStyles: |` — Inline CSS in YAML pipe syntax (fine for small overrides, 1-5 rules)
 
 ### Key Directives (Most Used)
 
@@ -262,6 +293,17 @@ These are the top issues that cause linting failures:
 5. **Missing required frontmatter** — Both `title` and `theme` are required.
 
 The linter catches all of these with helpful error messages and typo suggestions. Run the build and read the output.
+
+### Design Anti-Patterns
+
+Avoid these patterns that make presentations look unprofessional:
+
+1. **Transition soup** — Every slide uses a different transition. Apply the 70-20-10 rule instead.
+2. **Gradient overload** — More than 30% of slides have gradient backgrounds. Gradients are for section breaks, not content.
+3. **Dark text on dark gradient** — Always ensure white text on gradient backgrounds via CSS.
+4. **`center: false` without explicit reason** — This pushes content to the top-left. RevealJS centering is correct for nearly all presentations.
+5. **Feature showcase syndrome** — Using every directive on every slide to "demonstrate" capabilities. A good presentation is invisible — the audience notices the content, not the effects.
+6. **Inconsistent backgrounds with no rhythm** — Random alternation of colors. Use a consistent pattern: solid for content, gradient for dividers.
 
 ---
 
