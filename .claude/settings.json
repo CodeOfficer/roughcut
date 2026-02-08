@@ -3,20 +3,8 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "enabledPlugins": {
-    "feature-dev@claude-plugins-official": true
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-git-commit.js"
-          }
-        ]
-      }
-    ]
+    "feature-dev@claude-plugins-official": true,
+    "git-commit-conversation-context@codeofficer-marketplace": true
   },
   "plansDirectory": "./.claude/plans"
 }
