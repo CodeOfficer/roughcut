@@ -1,7 +1,7 @@
 ---
 title: "Vertical Slides Test"
 theme: dracula
-voice: adam
+voice: J0AK45UHW1Wo9rJ0p4y8
 resolution: 1920x1080
 ---
 
