@@ -64,6 +64,21 @@ customStyles: |
 
 ---
 
+# Guidance, Not Enforcement
+
+@transition: fade
+
+@audio: Before we go further — an important distinction. SATL is a guidance layer, not an enforcement layer.
+@audio: AI models are non-deterministic by nature. We can't guarantee that an AI assistant will always follow a rule exactly as written — and no tool can.
+@audio: What SATL does is ensure the right guidance is consistently available in every tool, every session. Our organization has separate tooling for enforcement and compliance. SATL makes sure the AI knows what good looks like.
+
+- AI models are non-deterministic by nature @fragment
+- No tool can guarantee perfect compliance @fragment +1s
+- SATL ensures guidance is always present @fragment +2s
+- Separate tooling handles enforcement @fragment +3s
+
+---
+
 # One Knowledge Base, Every Tool
 
 @transition: convex
