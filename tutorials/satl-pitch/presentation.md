@@ -27,10 +27,10 @@ customStyles: |
 @background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
 @pause-after: 2s
 
-@audio: SATL — the Shared AI Tooling Layer.
-@audio: Write your AI guidance once, and deploy it everywhere.
+@audio: ... SATL — the Shared AI Tooling Layer.
+@audio: Capture your organization's institutional knowledge and deploy it to every AI coding tool.
 
-**Unified guidance for Claude Code, Cursor, and Copilot**
+**Institutional knowledge for Claude Code, Cursor, and Copilot**
 
 ---
 
@@ -38,7 +38,7 @@ customStyles: |
 
 @transition: fade
 
-@audio: Our engineering teams adopted multiple AI coding assistants — Claude Code, Cursor, and GitHub Copilot.
+@audio: Our engineering teams have adopted multiple AI coding assistants — Claude Code, Cursor, and GitHub Copilot.
 @audio: The problem is that each tool stores its guidance differently — different file formats, different folder structures, different frontmatter.
 @audio: Every rule and every coding standard has to be written and maintained three separate times.
 
@@ -69,9 +69,9 @@ customStyles: |
 @transition: convex
 @background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)
 
-@audio: SATL — the Shared AI Tooling Layer — solves this by giving teams a single knowledge base.
-@audio: You write a rule once in plain Markdown with a YAML header, and SATL generates the correct artifact for each tool automatically.
-@audio: The whole system lives in git, so you get pull requests, code review, and a full audit trail for free.
+@audio: SATL — the Shared AI Tooling Layer — solves this by giving your organization a single place to record and maintain its institutional knowledge.
+@audio: Security practices, coding standards, architectural decisions — captured once in plain Markdown and deployed to every tool automatically.
+@audio: The whole system lives in git, so your institutional knowledge is versioned, reviewable, and never lost.
 
 - Write guidance once in Markdown @fragment
 - Auto-generate tool-specific artifacts @fragment +1s
@@ -84,13 +84,28 @@ customStyles: |
 @transition: fade
 
 @audio: The workflow is simple. An author writes a knowledge base item — say, a security rule — in Markdown with a small YAML header.
-@audio: One CLI command triggers three adapters that each produce the right file format.
-@audio: Same content, three native formats — delivered automatically.
+@audio: Sensible defaults handle most frontmatter fields, but authors can provide adapter-specific overrides when a particular tool needs different metadata.
+@audio: One CLI command triggers three adapters that each produce the right file format — same content, three native formats.
 
 - Author a KB item in Markdown @fragment
-- Run one CLI command to generate @fragment +1s
-- Adapters produce native outputs @fragment +2s
+- Defaults apply; adapter overrides when needed @fragment +1s
+- One CLI command, three native outputs @fragment +2s
 - Deploy to all three tools instantly @fragment +3s
+
+---
+
+# The SATL CLI
+
+@transition: fade
+
+@audio: The CLI is how developers interact with SATL day to day. It's designed around choice — you pick which tools you use, and SATL only generates what you need.
+@audio: Global and repo-specific primitives install automatically — they're mandatory. But beyond that, users subscribe to the team and individual primitives that are useful to them.
+@audio: Teams can develop and share primitives that are proven to help their members. Individual users can share useful primitives with colleagues without publishing them broadly. Every repo gets its own configuration, so artifacts are tailored to the project you're working in.
+
+- Choose your tools — only generate what you use @fragment
+- Global and repo primitives install automatically @fragment +1s
+- Subscribe to team primitives that help your workflow @fragment +2s
+- Share individual primitives with colleagues @fragment +3s
 
 ---
 
@@ -116,7 +131,7 @@ customStyles: |
 
 @audio: Not all guidance applies everywhere. SATL's four-tier scope system lets security rules apply globally while repo-specific conventions stay local.
 @audio: Teams can share workflows within their group, and individuals can add personal customizations.
-@audio: More specific scopes override broader ones — so a team can refine a global rule without breaking it for everyone else.
+@audio: Global and repo primitives are mandatory — they can't be overridden. Team and user primitives layer on top, adding guidance without weakening what's enforced from above.
 
 - **Global** — security and architecture standards @fragment
 - **Repo** — project-specific conventions @fragment +1s
@@ -131,12 +146,12 @@ customStyles: |
 
 @audio: Each adapter understands its target tool's native format.
 @audio: Claude gets standard Markdown rules. Cursor gets its custom MDC format with globs and auto-attach metadata. Copilot gets instructions files with its own frontmatter.
-@audio: The generation is fully deterministic — same inputs always produce identical outputs, so there's no drift between runs.
+@audio: Critically, generated artifacts live alongside each user's local configuration — no conflicts. The CLI tracks a manifest of what it generated, so SATL-managed files and user files coexist cleanly. It also saves your install selections as defaults for successive runs.
 
 - **Claude Code** — .claude/ directory artifacts @fragment
 - **Cursor** — .cursor/ with .mdc format @fragment +1s
 - **Copilot** — .github/ instructions @fragment +2s
-- Same input, deterministic output @fragment +3s
+- No conflicts — manifest tracks generated files @fragment +3s
 
 ---
 
@@ -145,14 +160,14 @@ customStyles: |
 @transition: convex
 @background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%)
 
-@audio: SATL is fully operational today.
-@audio: We have thirty-four knowledge base items — including twenty-four security and architecture rules — that generate sixty-six tool-specific artifacts in a single command.
-@audio: The system is backed by forty test files, and the CLI covers the full lifecycle: install, update, uninstall, validate, doctor, list, and shell completion.
+@audio: SATL is working today — early alpha, built in close collaboration with our security team.
+@audio: We've prototyped the system with a dozen custom rules that generate native artifacts for all three tools in a single command.
+@audio: The CLI, MCP server, adapters, and core libraries are all covered by a growing test suite.
 
-- **34** KB items ready to deploy @fragment
-- **66** artifacts across three tools @fragment +1s
-- **40** test files ensuring correctness @fragment +2s
-- **7** CLI commands for full lifecycle @fragment +3s
+- Early alpha — prototyped with security team @fragment
+- A dozen rules generating native artifacts @fragment +1s
+- CLI, MCP, adapters, and core all tested @fragment +2s
+- Full lifecycle: install, update, validate, doctor @fragment +3s
 
 ---
 
@@ -161,13 +176,13 @@ customStyles: |
 @transition: fade
 
 @audio: The core win is straightforward — what used to require three separate updates now takes one.
-@audio: Schema validation using Zod catches misconfigurations before they ever reach a tool.
-@audio: Git provides the audit trail — who wrote the rule, who reviewed it, when it was approved. Manual synchronization is eliminated entirely.
+@audio: Today, users pull the SATL repo locally and run satl install to sync their rules. It's a manual step by design — we want real feedback before automating further.
+@audio: Schema validation catches misconfigurations early, and git gives you the full audit trail for free.
 
-- One update propagates to all tools @fragment
-- Schema validation catches errors early @fragment +1s
-- Git history provides full audit trail @fragment +2s
-- Zero manual synchronization needed @fragment +3s
+- One update replaces three @fragment
+- Local install — pull repo, run `satl install` @fragment +1s
+- Schema validation catches errors early @fragment +2s
+- Tighter integration planned as adoption grows @fragment +3s
 
 ---
 
@@ -176,28 +191,43 @@ customStyles: |
 @transition: fade
 
 @audio: Security governance is where this really shines.
-@audio: Twelve security rules — covering SQL injection, XSS prevention, secrets handling, and input validation — are automatically deployed to every AI tool in your workflow.
-@audio: Combined with CODEOWNERS and PR-based review, you get consistent security enforcement with a full paper trail.
+@audio: We prototyped the initial rule set with our security team — covering areas like SQL injection, XSS prevention, and secrets handling.
+@audio: Now that security can author rules directly, we'll continue refining and expanding this set of primitives together. CODEOWNERS and PR-based review keep everything governed.
 
-- 12 security rules enforced everywhere @fragment
-- 3 architecture standards applied globally @fragment +1s
+- Initial security rules prototyped with security team @fragment
+- Security team now authoring rules directly @fragment +1s
 - CODEOWNERS controls rule modifications @fragment +2s
 - Every change peer-reviewed via PR @fragment +3s
 
 ---
 
-# Why Not Maintain Manually?
+# Why Not Store Rules in Each Repo?
 
 @transition: fade
 
-@audio: The obvious alternative is to just maintain each tool's config files by hand. This works until it doesn't — and it breaks silently.
-@audio: There's no validation to catch mistakes, no schema contract ensuring consistency.
-@audio: As you add more tools or more teams, the maintenance cost grows linearly. SATL keeps it constant.
+@audio: The obvious alternative is to commit guidance directly into each repository. This works at first, but changes get tied to each repo's release cycle.
+@audio: Updates are slow to iterate on — a single rule change means pull requests across every repo that uses it.
+@audio: Worse, institutional knowledge gets fragmented and can be lost entirely when repos are archived or teams move on.
 
-- Manual sync breaks silently at scale @fragment
-- No validation or schema contracts @fragment +1s
-- Version history scattered across tools @fragment +2s
-- Cost grows with each new tool @fragment +3s
+- Rule changes tied to each repo's lifecycle @fragment
+- Slow iteration — PRs across every repo @fragment +1s
+- Institutional knowledge fragments over time @fragment +2s
+- Knowledge lost when repos are archived @fragment +3s
+
+---
+
+# A Dedicated Knowledge Base
+
+@transition: fade
+
+@audio: Having all primitives in their own repo is a fundamental design choice. This is where your institutional knowledge lives — not scattered across application repos where it gets stale, forgotten, or lost.
+@audio: You can analyze and improve your organization's entire body of guidance in one place. The feedback loop is short — update once, reinstall everywhere — no application release cycles in the way.
+@audio: When tools evolve — say Claude Code adds a new frontmatter field for agents — you handle it in a single knowledge-base migration rather than chasing changes across hundreds of repos.
+
+- Analyze all guidance org-wide in one place @fragment
+- Shorter feedback loop — no app release cycles @fragment +1s
+- Share primitives across teams effortlessly @fragment +2s
+- Tool changes handled in one migration @fragment +3s
 
 ---
 
@@ -216,19 +246,35 @@ customStyles: |
 
 ---
 
+# MCP Server: Queryable Knowledge
+
+@transition: convex
+@background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+
+@audio: The SATL MCP server makes your entire knowledge base queryable from inside any AI coding tool. Today it requires a manual MCP configuration pointing to the SATL repo, but once connected, any tool can search across all your primitives.
+@audio: Your AI assistant can answer questions like — do any of our rules cover this? What primitives exist for this frontmatter field? Has another team already built a skill for this workflow?
+@audio: Looking ahead, the MCP server could let you reference a locally created rule or skill and open a pull request upstream with the proper scoping — turning everyday discoveries into shared institutional knowledge.
+
+- Any AI tool can query the full knowledge base @fragment
+- "Do any rules cover this?" — answered instantly @fragment +1s
+- Discover team skills and shared workflows @fragment +2s
+- Future: PR upstream from local discoveries @fragment +3s
+
+---
+
 # What's Next
 
 @transition: zoom
 @background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%)
 @pause-after: 3s
 
-@audio: Looking ahead, we're building an import workflow that captures effective prompts from any tool back into the knowledge base.
-@audio: A promotion pipeline will let rules flow from user scope up through team and global with review gates at every step.
+@audio: Looking ahead, we're exploring new primitive types beyond rules, commands, agents, and skills.
+@audio: Hooks are tool-specific and not supported everywhere, but they're worth investigating. Tool settings — think settings dot json — could standardize editor configuration. And managed MCP configurations would let us define a default set of MCP servers available across the org.
 @audio: Schedule a demo to see SATL generate artifacts live, and let's identify pilot teams to measure the impact.
 
-- MCP server adds semantic search @fragment
-- Import workflow captures good prompts @fragment +1s
-- Promotion pipeline: user to global @fragment +2s
+- **Hooks** — tool-specific, not yet universal @fragment
+- **Tool settings** — standardized editor config @fragment +1s
+- **MCP configs** — default servers org-wide @fragment +2s
 - **Schedule a demo today** @fragment +3s
 
 @notes: Call to action — offer live demo, identify 2-3 pilot teams, review security rules with security team
