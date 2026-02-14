@@ -48,7 +48,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "tutorials",
+    "examples",
+    "templates",
     "tmp",
     "**/__tests__/**",
     "**/*.test.ts",

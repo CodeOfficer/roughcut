@@ -10,7 +10,7 @@ import { existsSync } from 'fs';
 import { ElevenLabsClient } from './elevenlabs.js';
 import { getAudioDuration } from '../utils/timing.js';
 import { logger } from '../core/logger.js';
-import { env } from '../config/env.js';
+import { config } from '../config/config-manager.js';
 import {
   loadCacheManifest,
   saveCacheManifest,
@@ -69,10 +69,11 @@ export class RevealSpeechGenerator {
 
       try {
         // Get voice parameters (same defaults as used during generation)
-        const voiceId = presentation.voice || env.ELEVENLABS_VOICE_ID;
-        const model = env.ELEVENLABS_MODEL;
-        const stability = env.ELEVENLABS_STABILITY;
-        const similarityBoost = env.ELEVENLABS_SIMILARITY_BOOST;
+        const elevenLabsConfig = config.requireElevenLabs();
+        const voiceId = presentation.voice || elevenLabsConfig.voiceId;
+        const model = elevenLabsConfig.model;
+        const stability = elevenLabsConfig.stability;
+        const similarityBoost = elevenLabsConfig.similarityBoost;
 
         // Compute hash of audio content + voice parameters
         const audioHash = hashAudioText(

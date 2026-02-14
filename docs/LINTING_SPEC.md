@@ -3,7 +3,7 @@
 **Version:** 2.0.0
 **Last Updated:** 2025-11-11
 
-This document is the **source of truth** for valid markdown presentation format in the RevealJS Tutorial Factory. All presentations must pass linting before the build can proceed.
+This document is the **source of truth** for valid markdown presentation format in roughcut. All presentations must pass linting before the build can proceed.
 
 ---
 

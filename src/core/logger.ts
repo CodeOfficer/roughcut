@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { env } from '../config/env.js';
 
 /**
  * Log levels in order of severity
@@ -128,7 +127,8 @@ class Logger {
 /**
  * Default logger instance configured from environment
  */
-export const logger = new Logger(env.LOG_LEVEL);
+const defaultLevel = (process.env['LOG_LEVEL'] as LogLevel) || 'info';
+export const logger = new Logger(defaultLevel);
 
 /**
  * Create a new logger instance with custom level

@@ -1,5 +1,5 @@
 import { writeFile } from 'fs/promises';
-import { env } from '../config/env.js';
+import { config } from '../config/config-manager.js';
 import { logger } from '../core/logger.js';
 import type { ElevenLabsTextToSpeechRequest, AudioWithTimestampsResponse, CharacterAlignment } from './types.js';
 
@@ -11,7 +11,7 @@ export class ElevenLabsClient {
   private baseUrl = 'https://api.elevenlabs.io/v1';
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || env.ELEVENLABS_API_KEY;
+    this.apiKey = apiKey || config.requireElevenLabs().apiKey;
   }
 
   /**
@@ -27,9 +27,10 @@ export class ElevenLabsClient {
       similarityBoost?: number;
     }
   ): Promise<{ alignment?: CharacterAlignment; normalizedAlignment?: CharacterAlignment; durationSeconds: number }> {
-    const model = options?.model || env.ELEVENLABS_MODEL;
-    const stability = options?.stability ?? env.ELEVENLABS_STABILITY;
-    const similarityBoost = options?.similarityBoost ?? env.ELEVENLABS_SIMILARITY_BOOST;
+    const elevenLabsConfig = config.requireElevenLabs();
+    const model = options?.model || elevenLabsConfig.model;
+    const stability = options?.stability ?? elevenLabsConfig.stability;
+    const similarityBoost = options?.similarityBoost ?? elevenLabsConfig.similarityBoost;
 
     logger.debug(`Generating speech with voice ${voiceId}, model ${model}`);
 

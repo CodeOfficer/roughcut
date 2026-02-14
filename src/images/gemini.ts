@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { writeFile } from 'fs/promises';
-import { env } from '../config/env.js';
+import { config } from '../config/config-manager.js';
 import { logger } from '../core/logger.js';
 
 /**
@@ -11,9 +11,10 @@ export class GeminiClient {
   private model: string;
 
   constructor(apiKey?: string, model?: string) {
-    const key = apiKey || env.GEMINI_API_KEY;
+    const geminiConfig = config.requireGemini();
+    const key = apiKey || geminiConfig.apiKey;
     this.client = new GoogleGenerativeAI(key);
-    this.model = model || env.GEMINI_MODEL;
+    this.model = model || geminiConfig.model;
   }
 
   /**
@@ -284,7 +285,7 @@ export class GeminiClient {
    * Parse resolution string (e.g., "1920x1080") into [width, height]
    */
   private parseResolution(resolution?: string): [number, number] {
-    const defaultResolution = resolution || env.GEMINI_IMAGE_RESOLUTION || '1920x1080';
+    const defaultResolution = resolution || config.get().geminiImageResolution || '1920x1080';
     const parts = defaultResolution.split('x').map(Number);
     const width = parts[0] || 1920;
     const height = parts[1] || 1080;

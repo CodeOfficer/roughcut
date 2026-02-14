@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
+import * as path from 'path';
 import { Command } from 'commander';
+import { config } from '../config/config-manager.js';
 import { logger } from '../core/logger.js';
 import {
   createBuildCommand,
   type BuildOptions,
 } from './commands/index.js';
 import { createDevCommand } from './commands/dev.js';
+import { createInitCommand } from './commands/init.js';
+import { createLintCommand } from './commands/lint.js';
+import { createDoctorCommand } from './commands/doctor.js';
+import { createVoicesCommand } from './commands/voices.js';
 
 /**
  * Main CLI program
@@ -14,9 +20,21 @@ import { createDevCommand } from './commands/dev.js';
 const program = new Command();
 
 program
-  .name('genai-tutorial-factory')
-  .description('Generate reveal.js presentations with video from markdown')
-  .version('2.0.0');
+  .name('roughcut')
+  .description('Generate RevealJS presentations and videos from markdown')
+  .version('3.0.0');
+
+/**
+ * Load config before any command runs.
+ * Uses the input file's directory for project config discovery.
+ */
+program.hook('preAction', (thisCommand) => {
+  const opts = thisCommand.opts();
+  const inputPath = opts['input'] as string | undefined;
+  const projectDir = inputPath ? path.dirname(path.resolve(inputPath)) : process.cwd();
+  config.load(opts, projectDir);
+  logger.setLevel(config.get().logLevel);
+});
 
 /**
  * Build reveal.js presentation
@@ -25,14 +43,23 @@ program
   .command('build')
   .description('Build reveal.js presentation from markdown')
   .requiredOption('-i, --input <path>', 'Input markdown file')
-  .requiredOption('-o, --output <path>', 'Output directory')
+  .option('-o, --output <path>', 'Output directory (default: .build/ next to input)')
   .option('--no-video', 'Skip video generation')
   .option('--skip-audio', 'Skip audio generation (reuse existing audio files)')
   .option('--skip-images', 'Skip image generation (reuse existing images)')
   .option('--bundle', 'Bundle reveal.js assets')
   .option('--voice <id>', 'ElevenLabs voice ID')
+  .option('--log-level <level>', 'Log level (debug, info, warn, error)')
   .action(async (options: BuildOptions) => {
     try {
+      // Default output to .build/ next to input file
+      if (!options.output) {
+        options.output = path.join(
+          path.dirname(path.resolve(options.input)),
+          '.build'
+        );
+      }
+
       const command = createBuildCommand();
 
       // Report progress
@@ -68,6 +95,14 @@ program
  * Dev mode - interactive presentation testing
  */
 program.addCommand(createDevCommand());
+
+/**
+ * Additional commands
+ */
+program.addCommand(createInitCommand());
+program.addCommand(createLintCommand());
+program.addCommand(createDoctorCommand());
+program.addCommand(createVoicesCommand());
 
 // Parse command line arguments
 program.parse();

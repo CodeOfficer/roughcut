@@ -5,5 +5,9 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    env: {
+      ELEVENLABS_API_KEY: 'test-key',
+      GEMINI_API_KEY: 'test-key',
+    },
   },
 });

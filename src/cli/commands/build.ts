@@ -38,8 +38,8 @@ export interface BuildOptions {
   /** Path to input markdown file */
   input: string;
 
-  /** Output directory for generated files */
-  output: string;
+  /** Output directory for generated files (defaults to .build/ next to input) */
+  output: string; // Set by CLI before execute() is called
 
   /** Whether to generate video (default: true) */
   video?: boolean;

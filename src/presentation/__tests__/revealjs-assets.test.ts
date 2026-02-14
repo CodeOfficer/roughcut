@@ -310,9 +310,12 @@ describe('RevealAssetBundler', () => {
 
 describe('Utility Functions', () => {
   describe('getDefaultRevealJsPath', () => {
-    it('should return default path', () => {
-      const path = getDefaultRevealJsPath();
-      expect(path).toBe('./node_modules/reveal.js');
+    it('should return an absolute path to reveal.js', () => {
+      const revealPath = getDefaultRevealJsPath();
+      expect(revealPath).toContain('node_modules');
+      expect(revealPath).toContain('reveal.js');
+      // Should be absolute (resolved via import.meta.url)
+      expect(revealPath.startsWith('/')).toBe(true);
     });
   });
 

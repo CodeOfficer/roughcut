@@ -1,45 +1,56 @@
 {
-  "name": "genai-tutorial-factory",
-  "version": "2.0.0",
-  "description": "Generate interactive RevealJS presentations and videos from markdown with AI narration",
+  "name": "roughcut",
+  "version": "3.0.0",
+  "description": "Generate RevealJS presentations and videos from markdown with AI narration",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "roughcut": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "dev": "bash -c 'if [ -f \"tutorials/${TUTORIAL:-comprehensive}.md\" ]; then node dist/cli/index.js dev -i \"tutorials/${TUTORIAL:-comprehensive}.md\" \"$@\"; else node dist/cli/index.js dev -i \"tutorials/${TUTORIAL:-comprehensive}/presentation.md\" \"$@\"; fi' -- ",
-    "dev:auto": "npm run dev -- --auto",
-    "tutorial:fast": "bash scripts/build-tutorial.sh fast",
-    "tutorial:full": "bash scripts/build-tutorial.sh full",
-    "tutorial:html": "bash scripts/build-tutorial.sh html",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "type-check": "tsc --noEmit",
-    "voices": "direnv exec . tsx scripts/list-voices.ts",
-    "generate-assets": "tsx scripts/generate-assets.ts"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
-    "tutorial",
-    "video",
     "presentation",
     "revealjs",
     "slides",
-    "automation",
+    "video",
+    "narration",
+    "markdown",
+    "cli",
+    "tts",
     "elevenlabs",
     "playwright",
     "ffmpeg",
-    "typescript",
-    "ai"
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
+  "homepage": "https://github.com/soxhub/roughcut",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soxhub/roughcut.git"
+  },
+  "bugs": {
+    "url": "https://github.com/soxhub/roughcut/issues"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
-    "dotenv": "^16.4.5",
     "fluent-ffmpeg": "^2.1.3",
     "playwright": "^1.42.1",
     "reveal.js": "^5.2.1",

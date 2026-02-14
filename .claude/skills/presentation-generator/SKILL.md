@@ -1,17 +1,17 @@
 ---
 name: presentation-generator
-description: Interactively create RevealJS presentations from topics, notes, or outlines. Guides the user through topic research, design choices (theme, style, audience, length), outline preview, and section-by-section generation using the GenAI Tutorial Factory's custom markdown format with 21 directives. Triggers on "create a presentation", "turn these notes into slides", "generate a tutorial on Y", or "make a slideshow about Z".
+description: Interactively create RevealJS presentations from topics, notes, or outlines. Guides the user through topic research, design choices (theme, style, audience, length), outline preview, and section-by-section generation using roughcut's custom markdown format with 21 directives. Triggers on "create a presentation", "turn these notes into slides", "generate a tutorial on Y", or "make a slideshow about Z".
 ---
 
 # Presentation Generator
 
 ## What This Skill Produces
 
-Complete `tutorials/<name>/presentation.md` files that build successfully into:
+Complete `<name>/presentation.md` files that build successfully into:
 - Interactive RevealJS HTML presentations
 - MP4 videos with TTS narration (when using full build)
 
-The GenAI Tutorial Factory uses a **custom markdown format** — not standard RevealJS syntax. This skill is the expert in that format.
+roughcut uses a **custom markdown format** — not standard RevealJS syntax. This skill is the expert in that format.
 
 ## Interactive Workflow
 

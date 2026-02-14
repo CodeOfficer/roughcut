@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { env } from '../config/env.js';
+import { config } from '../config/config-manager.js';
 import { logger } from '../core/logger.js';
 
 const execAsync = promisify(exec);
@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
  */
 export async function getAudioDuration(filePath: string): Promise<number> {
   try {
-    const ffmpegPath = env.FFMPEG_PATH;
+    const ffmpegPath = config.get().ffmpegPath;
     const command = `"${ffmpegPath}" -i "${filePath}" 2>&1 | grep "Duration"`;
 
     const { stdout } = await execAsync(command);

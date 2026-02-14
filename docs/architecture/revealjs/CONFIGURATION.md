@@ -20,7 +20,7 @@
 
 ## Overview
 
-The GenAI Tutorial Factory now supports **60+ RevealJS configuration options** through frontmatter. You can customize every aspect of your presentation's behavior, from navigation controls to transition effects.
+roughcut supports **60+ RevealJS configuration options** through frontmatter. You can customize every aspect of your presentation's behavior, from navigation controls to transition effects.
 
 ### Configuration Priority
 

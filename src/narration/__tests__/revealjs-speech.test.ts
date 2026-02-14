@@ -11,6 +11,27 @@ import type { RevealPresentation, RevealSlide } from '../../core/types.js';
 vi.mock('../elevenlabs.js');
 vi.mock('../../utils/timing.js');
 vi.mock('fs/promises');
+vi.mock('../../config/config-manager.js', () => ({
+  config: {
+    requireElevenLabs: vi.fn().mockReturnValue({
+      apiKey: 'test-key',
+      voiceId: 'adam',
+      model: 'eleven_monolingual_v1',
+      stability: 0.75,
+      similarityBoost: 0.75,
+    }),
+    get: vi.fn().mockReturnValue({
+      logLevel: 'info',
+      elevenLabsVoiceId: 'adam',
+      elevenLabsModel: 'eleven_monolingual_v1',
+      elevenLabsStability: 0.75,
+      elevenLabsSimilarityBoost: 0.75,
+      ffmpegPath: 'ffmpeg',
+    }),
+    load: vi.fn(),
+    reset: vi.fn(),
+  },
+}));
 
 // Import mocked modules
 import { ElevenLabsClient } from '../elevenlabs.js';

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides best practices and guidelines for writing presentations using the GenAI Tutorial Factory. Follow these recommendations to create professional, compatible presentations that render correctly across all screen sizes.
+This guide provides best practices and guidelines for writing presentations using roughcut. Follow these recommendations to create professional, compatible presentations that render correctly across all screen sizes.
 
 ---
 

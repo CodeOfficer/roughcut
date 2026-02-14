@@ -1,6 +1,6 @@
 # Development Workflow Guide
 
-Complete guide to creating presentations with the GenAI Tutorial Factory.
+Complete guide to creating presentations with roughcut.
 
 ## Table of Contents
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Version 2.0.0 of GenAI Tutorial Factory transitioned from a video-only system to a RevealJS-based system that produces both interactive HTML presentations and videos. This guide helps you convert tutorials written in the original format to the new RevealJS format.
+Version 2.0.0 of roughcut transitioned from a video-only system to a RevealJS-based system that produces both interactive HTML presentations and videos. This guide helps you convert tutorials written in the original format to the new RevealJS format.
 
 ## Why Migrate?
 

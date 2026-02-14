@@ -1,6 +1,6 @@
 # Cross-Project Presentation Content Export
 
-Generate structured presentation content from any Claude Code project, formatted for consumption by the GenAI Tutorial Factory's `/presentation-generator` skill.
+Generate structured presentation content from any Claude Code project, formatted for consumption by roughcut's `/presentation-generator` skill.
 
 ## Usage
 

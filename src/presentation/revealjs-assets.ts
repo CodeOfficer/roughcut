@@ -10,6 +10,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 // ============================================================================
 // TYPES
@@ -284,7 +285,11 @@ export function createRevealAssetBundler(): RevealAssetBundler {
  * Get default reveal.js source path
  */
 export function getDefaultRevealJsPath(): string {
-  return './node_modules/reveal.js';
+  // Resolve relative to this package's installation, not CWD.
+  // This ensures reveal.js is found when roughcut is installed globally.
+  const __filename = fileURLToPath(import.meta.url);
+  const packageRoot = path.join(path.dirname(__filename), '../..');
+  return path.join(packageRoot, 'node_modules', 'reveal.js');
 }
 
 /**
