@@ -3,10 +3,10 @@
  * Verifies parsing of @directive: syntax, audio blocks, playwright blocks, etc.
  */
 
-import { RevealMarkdownParser } from '../parser.js';
-import { RevealPresentation, RevealSlide } from '../types.js';
+import { RevealMarkdownParser } from "../parser.js";
+import { RevealPresentation, RevealSlide } from "../types.js";
 
-describe('RevealMarkdownParser', () => {
+describe("RevealMarkdownParser", () => {
   let parser: RevealMarkdownParser;
 
   beforeEach(() => {
@@ -17,8 +17,8 @@ describe('RevealMarkdownParser', () => {
   // FRONT MATTER PARSING
   // ==========================================================================
 
-  describe('Front Matter Parsing', () => {
-    it('should parse valid front matter', () => {
+  describe("Front Matter Parsing", () => {
+    it("should parse valid front matter", () => {
       const markdown = `---
 title: "Test Presentation"
 theme: dracula
@@ -32,13 +32,13 @@ Content here
 
       const result = parser.parse(markdown);
 
-      expect(result.title).toBe('Test Presentation');
-      expect(result.theme).toBe('dracula');
-      expect(result.voice).toBe('adam');
-      expect(result.resolution).toBe('1920x1080');
+      expect(result.title).toBe("Test Presentation");
+      expect(result.theme).toBe("dracula");
+      expect(result.voice).toBe("adam");
+      expect(result.resolution).toBe("1920x1080");
     });
 
-    it('should use default resolution if not specified', () => {
+    it("should use default resolution if not specified", () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -50,16 +50,16 @@ voice: adam
 
       const result = parser.parse(markdown);
 
-      expect(result.resolution).toBe('1920x1080');
+      expect(result.resolution).toBe("1920x1080");
     });
 
-    it('should throw error if front matter is missing', () => {
+    it("should throw error if front matter is missing", () => {
       const markdown = `# Slide 1\nContent`;
 
-      expect(() => parser.parse(markdown)).toThrow('Missing front matter');
+      expect(() => parser.parse(markdown)).toThrow("Missing front matter");
     });
 
-    it('should throw error if title is missing', () => {
+    it("should throw error if title is missing", () => {
       const markdown = `---
 theme: black
 voice: adam
@@ -71,7 +71,7 @@ voice: adam
       expect(() => parser.parse(markdown)).toThrow('must include "title"');
     });
 
-    it('should throw error if theme is missing', () => {
+    it("should throw error if theme is missing", () => {
       const markdown = `---
 title: "Test"
 voice: adam
@@ -83,7 +83,7 @@ voice: adam
       expect(() => parser.parse(markdown)).toThrow('must include "theme"');
     });
 
-    it('should allow voice to be optional (falls back to env var)', () => {
+    it("should allow voice to be optional (falls back to env var)", () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -94,8 +94,8 @@ theme: black
 
       const result = parser.parse(markdown);
       expect(result.voice).toBeUndefined();
-      expect(result.title).toBe('Test');
-      expect(result.theme).toBe('black');
+      expect(result.title).toBe("Test");
+      expect(result.theme).toBe("black");
     });
   });
 
@@ -103,8 +103,8 @@ theme: black
   // SLIDE SPLITTING
   // ==========================================================================
 
-  describe('Slide Splitting', () => {
-    it('should split slides on --- delimiter', () => {
+  describe("Slide Splitting", () => {
+    it("should split slides on --- delimiter", () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -128,12 +128,12 @@ Content 3
       const result = parser.parse(markdown);
 
       expect(result.slides).toHaveLength(3);
-      expect(result.slides[0].content).toContain('Slide 1');
-      expect(result.slides[1].content).toContain('Slide 2');
-      expect(result.slides[2].content).toContain('Slide 3');
+      expect(result.slides[0].content).toContain("Slide 1");
+      expect(result.slides[1].content).toContain("Slide 2");
+      expect(result.slides[2].content).toContain("Slide 3");
     });
 
-    it('should filter out empty slides', () => {
+    it("should filter out empty slides", () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -154,7 +154,7 @@ voice: adam
       expect(result.slides).toHaveLength(2);
     });
 
-    it('should assign sequential slide IDs', () => {
+    it("should assign sequential slide IDs", () => {
       const markdown = `---
 title: "Test"
 theme: black
@@ -170,9 +170,9 @@ voice: adam
 
       const result = parser.parse(markdown);
 
-      expect(result.slides[0].id).toBe('slide-001');
+      expect(result.slides[0].id).toBe("slide-001");
       expect(result.slides[0].index).toBe(0);
-      expect(result.slides[1].id).toBe('slide-002');
+      expect(result.slides[1].id).toBe("slide-002");
       expect(result.slides[1].index).toBe(1);
     });
   });
@@ -181,8 +181,8 @@ voice: adam
   // DIRECTIVE PARSING
   // ==========================================================================
 
-  describe('Directive Parsing', () => {
-    it('should parse @duration directive', () => {
+  describe("Directive Parsing", () => {
+    it("should parse @duration directive", () => {
       const slideMarkdown = `# Test Slide
 @duration: 8s
 
@@ -194,7 +194,7 @@ Content here
       expect(slide.metadata.duration).toBe(8);
     });
 
-    it('should parse @duration with decimal seconds', () => {
+    it("should parse @duration with decimal seconds", () => {
       const slideMarkdown = `@duration: 5.5s\n# Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -202,7 +202,7 @@ Content here
       expect(slide.metadata.duration).toBe(5.5);
     });
 
-    it('should parse @pause-after directive', () => {
+    it("should parse @pause-after directive", () => {
       const slideMarkdown = `@pause-after: 3s\n# Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -210,32 +210,34 @@ Content here
       expect(slide.metadata.pauseAfter).toBe(3);
     });
 
-    it('should parse @transition directive', () => {
+    it("should parse @transition directive", () => {
       const slideMarkdown = `@transition: zoom\n# Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.metadata.transition).toBe('zoom');
+      expect(slide.metadata.transition).toBe("zoom");
     });
 
-    it('should parse @background directive', () => {
+    it("should parse @background directive", () => {
       const slideMarkdown = `@background: #ff0000\n# Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.metadata.background).toBe('#ff0000');
+      expect(slide.metadata.background).toBe("#ff0000");
     });
 
-    it('should parse @image-prompt directive', () => {
+    it("should parse @image-prompt directive", () => {
       const slideMarkdown = `@image-prompt: A futuristic data center with glowing servers\n# Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.metadata.imagePrompt).toBe('A futuristic data center with glowing servers');
+      expect(slide.metadata.imagePrompt).toBe(
+        "A futuristic data center with glowing servers",
+      );
       expect(slide.metadata.imagePath).toBeUndefined(); // Set later by generator
     });
 
-    it('should parse multiple directives together', () => {
+    it("should parse multiple directives together", () => {
       const slideMarkdown = `# Test Slide
 @duration: 10s
 @pause-after: 2s
@@ -250,12 +252,12 @@ Content
 
       expect(slide.metadata.duration).toBe(10);
       expect(slide.metadata.pauseAfter).toBe(2);
-      expect(slide.metadata.transition).toBe('fade');
-      expect(slide.metadata.background).toBe('#1e1e1e');
-      expect(slide.metadata.imagePrompt).toBe('Modern office workspace');
+      expect(slide.metadata.transition).toBe("fade");
+      expect(slide.metadata.background).toBe("#1e1e1e");
+      expect(slide.metadata.imagePrompt).toBe("Modern office workspace");
     });
 
-    it('should use default values when directives are missing', () => {
+    it("should use default values when directives are missing", () => {
       const slideMarkdown = `# Test\nContent`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -264,10 +266,12 @@ Content
       expect(slide.metadata.pauseAfter).toBe(1); // Default from DEFAULT_SLIDE_METADATA
     });
 
-    it('should throw error for invalid duration format', () => {
+    it("should throw error for invalid duration format", () => {
       const slideMarkdown = `@duration: invalid\n# Test`;
 
-      expect(() => parser.parseSlide(slideMarkdown, 0)).toThrow('Invalid duration format');
+      expect(() => parser.parseSlide(slideMarkdown, 0)).toThrow(
+        "Invalid duration format",
+      );
     });
   });
 
@@ -275,8 +279,8 @@ Content
   // AUDIO BLOCK PARSING
   // ==========================================================================
 
-  describe('Audio Block Parsing', () => {
-    it('should parse simple audio block without pauses', () => {
+  describe("Audio Block Parsing", () => {
+    it("should parse simple audio block without pauses", () => {
       const slideMarkdown = `# Test
 @audio: Hello world, this is a test.
 `;
@@ -284,24 +288,24 @@ Content
       const slide = parser.parseSlide(slideMarkdown, 0);
 
       expect(slide.audio).not.toBeNull();
-      expect(slide.audio!.rawText).toBe('Hello world, this is a test.');
-      expect(slide.audio!.cleanText).toBe('Hello world, this is a test.');
+      expect(slide.audio!.rawText).toBe("Hello world, this is a test.");
+      expect(slide.audio!.cleanText).toBe("Hello world, this is a test.");
       expect(slide.audio!.pauses).toHaveLength(0);
     });
 
-    it('should parse audio block with single pause marker', () => {
+    it("should parse audio block with single pause marker", () => {
       const slideMarkdown = `@audio: First part [2s] second part`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
       expect(slide.audio).not.toBeNull();
-      expect(slide.audio!.rawText).toBe('First part [2s] second part');
-      expect(slide.audio!.cleanText).toBe('First part  second part');
+      expect(slide.audio!.rawText).toBe("First part [2s] second part");
+      expect(slide.audio!.cleanText).toBe("First part  second part");
       expect(slide.audio!.pauses).toHaveLength(1);
       expect(slide.audio!.pauses[0].durationSeconds).toBe(2);
     });
 
-    it('should parse audio block with multiple pause markers', () => {
+    it("should parse audio block with multiple pause markers", () => {
       const slideMarkdown = `@audio: Part 1 [1s] Part 2 [2.5s] Part 3 [3s] Done`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -311,10 +315,10 @@ Content
       expect(slide.audio!.pauses[0].durationSeconds).toBe(1);
       expect(slide.audio!.pauses[1].durationSeconds).toBe(2.5);
       expect(slide.audio!.pauses[2].durationSeconds).toBe(3);
-      expect(slide.audio!.cleanText).not.toContain('[');
+      expect(slide.audio!.cleanText).not.toContain("[");
     });
 
-    it('should return null when audio block is missing', () => {
+    it("should return null when audio block is missing", () => {
       const slideMarkdown = `# Test\nContent without audio`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -322,7 +326,7 @@ Content
       expect(slide.audio).toBeNull();
     });
 
-    it('should set expectedDuration to null (will be filled after generation)', () => {
+    it("should set expectedDuration to null (will be filled after generation)", () => {
       const slideMarkdown = `@audio: Test`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -330,7 +334,7 @@ Content
       expect(slide.audio!.expectedDuration).toBeNull();
     });
 
-    it('should parse multi-line audio format', () => {
+    it("should parse multi-line audio format", () => {
       const slideMarkdown = `# Test
 @audio: First sentence here.
 @audio: Second sentence here.
@@ -341,12 +345,12 @@ Content
 
       expect(slide.audio).not.toBeNull();
       expect(slide.audio!.lines).toHaveLength(3);
-      expect(slide.audio!.lines![0].text).toBe('First sentence here.');
-      expect(slide.audio!.lines![1].text).toBe('Second sentence here.');
-      expect(slide.audio!.lines![2].text).toBe('Third sentence here.');
+      expect(slide.audio!.lines![0].text).toBe("First sentence here.");
+      expect(slide.audio!.lines![1].text).toBe("Second sentence here.");
+      expect(slide.audio!.lines![2].text).toBe("Third sentence here.");
     });
 
-    it('should join multi-line audio with automatic 1s pauses', () => {
+    it("should join multi-line audio with automatic 1s pauses", () => {
       const slideMarkdown = `@audio: First line.
 @audio: Second line.
 @audio: Third line.
@@ -355,11 +359,15 @@ Content
       const slide = parser.parseSlide(slideMarkdown, 0);
 
       expect(slide.audio).not.toBeNull();
-      expect(slide.audio!.rawText).toBe('First line. [1s] Second line. [1s] Third line.');
-      expect(slide.audio!.cleanText).toBe('First line.  Second line.  Third line.');
+      expect(slide.audio!.rawText).toBe(
+        "First line. [1s] Second line. [1s] Third line.",
+      );
+      expect(slide.audio!.cleanText).toBe(
+        "First line.  Second line.  Third line.",
+      );
     });
 
-    it('should support inline pauses in multi-line format', () => {
+    it("should support inline pauses in multi-line format", () => {
       const slideMarkdown = `@audio: First line [2s] with pause.
 @audio: Second line.
 `;
@@ -367,21 +375,27 @@ Content
       const slide = parser.parseSlide(slideMarkdown, 0);
 
       expect(slide.audio).not.toBeNull();
-      expect(slide.audio!.rawText).toBe('First line [2s] with pause. [1s] Second line.');
+      expect(slide.audio!.rawText).toBe(
+        "First line [2s] with pause. [1s] Second line.",
+      );
       expect(slide.audio!.pauses).toHaveLength(2);
       expect(slide.audio!.pauses[0].durationSeconds).toBe(2);
       expect(slide.audio!.pauses[1].durationSeconds).toBe(1); // Automatic pause
     });
 
-    it('should maintain backwards compatibility with single-line format', () => {
+    it("should maintain backwards compatibility with single-line format", () => {
       const slideMarkdown = `@audio: Single line audio with [2s] pause marker.`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
       expect(slide.audio).not.toBeNull();
       expect(slide.audio!.lines).toHaveLength(1);
-      expect(slide.audio!.lines![0].text).toBe('Single line audio with [2s] pause marker.');
-      expect(slide.audio!.rawText).toBe('Single line audio with [2s] pause marker.');
+      expect(slide.audio!.lines![0].text).toBe(
+        "Single line audio with [2s] pause marker.",
+      );
+      expect(slide.audio!.rawText).toBe(
+        "Single line audio with [2s] pause marker.",
+      );
     });
   });
 
@@ -389,8 +403,8 @@ Content
   // PLAYWRIGHT BLOCK PARSING
   // ==========================================================================
 
-  describe('Playwright Block Parsing', () => {
-    it('should parse playwright block with action instructions', () => {
+  describe("Playwright Block Parsing", () => {
+    it("should parse playwright block with action instructions", () => {
       const slideMarkdown = `@playwright:
 - Action: Click button
 - Action: Type "text"
@@ -400,13 +414,13 @@ Content
 
       expect(slide.playwright).not.toBeNull();
       expect(slide.playwright!.instructions).toHaveLength(2);
-      expect(slide.playwright!.instructions[0].type).toBe('action');
-      expect(slide.playwright!.instructions[0].content).toBe('Click button');
-      expect(slide.playwright!.instructions[1].type).toBe('action');
+      expect(slide.playwright!.instructions[0].type).toBe("action");
+      expect(slide.playwright!.instructions[0].content).toBe("Click button");
+      expect(slide.playwright!.instructions[1].type).toBe("action");
       expect(slide.playwright!.instructions[1].content).toBe('Type "text"');
     });
 
-    it('should parse playwright block with wait instructions', () => {
+    it("should parse playwright block with wait instructions", () => {
       const slideMarkdown = `@playwright:
 - Wait 2s
 - Wait 3.5s
@@ -416,13 +430,13 @@ Content
 
       expect(slide.playwright).not.toBeNull();
       expect(slide.playwright!.instructions).toHaveLength(2);
-      expect(slide.playwright!.instructions[0].type).toBe('wait');
-      expect(slide.playwright!.instructions[0].content).toBe('2s');
-      expect(slide.playwright!.instructions[1].type).toBe('wait');
-      expect(slide.playwright!.instructions[1].content).toBe('3.5s');
+      expect(slide.playwright!.instructions[0].type).toBe("wait");
+      expect(slide.playwright!.instructions[0].content).toBe("2s");
+      expect(slide.playwright!.instructions[1].type).toBe("wait");
+      expect(slide.playwright!.instructions[1].content).toBe("3.5s");
     });
 
-    it('should parse playwright block with screenshot instructions', () => {
+    it("should parse playwright block with screenshot instructions", () => {
       const slideMarkdown = `@playwright:
 - Screenshot: terminal-output
 `;
@@ -431,11 +445,11 @@ Content
 
       expect(slide.playwright).not.toBeNull();
       expect(slide.playwright!.instructions).toHaveLength(1);
-      expect(slide.playwright!.instructions[0].type).toBe('screenshot');
-      expect(slide.playwright!.instructions[0].content).toBe('terminal-output');
+      expect(slide.playwright!.instructions[0].type).toBe("screenshot");
+      expect(slide.playwright!.instructions[0].content).toBe("terminal-output");
     });
 
-    it('should parse playwright block with mixed instructions', () => {
+    it("should parse playwright block with mixed instructions", () => {
       const slideMarkdown = `@playwright:
 - Action: Open tab "https://example.com"
 - Wait 2s
@@ -447,13 +461,13 @@ Content
 
       expect(slide.playwright).not.toBeNull();
       expect(slide.playwright!.instructions).toHaveLength(4);
-      expect(slide.playwright!.instructions[0].type).toBe('action');
-      expect(slide.playwright!.instructions[1].type).toBe('wait');
-      expect(slide.playwright!.instructions[2].type).toBe('action');
-      expect(slide.playwright!.instructions[3].type).toBe('screenshot');
+      expect(slide.playwright!.instructions[0].type).toBe("action");
+      expect(slide.playwright!.instructions[1].type).toBe("wait");
+      expect(slide.playwright!.instructions[2].type).toBe("action");
+      expect(slide.playwright!.instructions[3].type).toBe("screenshot");
     });
 
-    it('should return null when playwright block is missing', () => {
+    it("should return null when playwright block is missing", () => {
       const slideMarkdown = `# Test\nContent`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -466,8 +480,8 @@ Content
   // FRAGMENT PARSING
   // ==========================================================================
 
-  describe('Fragment Parsing', () => {
-    it('should parse @fragment markers without timing', () => {
+  describe("Fragment Parsing", () => {
+    it("should parse @fragment markers without timing", () => {
       const slideMarkdown = `# Test
 - Point 1 @fragment
 - Point 2 @fragment
@@ -478,11 +492,11 @@ Content
 
       expect(slide.metadata.fragments).toHaveLength(3);
       expect(slide.metadata.fragments[0].index).toBe(0);
-      expect(slide.metadata.fragments[0].content).toBe('- Point 1');
+      expect(slide.metadata.fragments[0].content).toBe("- Point 1");
       expect(slide.metadata.fragments[0].timingOffset).toBeUndefined();
     });
 
-    it('should parse @fragment markers with timing offset', () => {
+    it("should parse @fragment markers with timing offset", () => {
       const slideMarkdown = `# Test
 - Point 1 @fragment
 - Point 2 @fragment +2s
@@ -497,7 +511,7 @@ Content
       expect(slide.metadata.fragments[2].timingOffset).toBe(4);
     });
 
-    it('should parse fragments with decimal timing offsets', () => {
+    it("should parse fragments with decimal timing offsets", () => {
       const slideMarkdown = `- Item @fragment +1.5s`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -505,7 +519,7 @@ Content
       expect(slide.metadata.fragments[0].timingOffset).toBe(1.5);
     });
 
-    it('should return empty array when no fragments', () => {
+    it("should return empty array when no fragments", () => {
       const slideMarkdown = `# Test\n- Point 1\n- Point 2`;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
@@ -518,8 +532,8 @@ Content
   // CONTENT CLEANING
   // ==========================================================================
 
-  describe('Content Cleaning', () => {
-    it('should remove all @directive lines from content', () => {
+  describe("Content Cleaning", () => {
+    it("should remove all @directive lines from content", () => {
       const slideMarkdown = `# Test Slide
 @duration: 5s
 @pause-after: 2s
@@ -530,14 +544,14 @@ This is the actual content.
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).not.toContain('@duration');
-      expect(slide.content).not.toContain('@pause-after');
-      expect(slide.content).not.toContain('@transition');
-      expect(slide.content).toContain('Test Slide');
-      expect(slide.content).toContain('actual content');
+      expect(slide.content).not.toContain("@duration");
+      expect(slide.content).not.toContain("@pause-after");
+      expect(slide.content).not.toContain("@transition");
+      expect(slide.content).toContain("Test Slide");
+      expect(slide.content).toContain("actual content");
     });
 
-    it('should remove @audio block from content', () => {
+    it("should remove @audio block from content", () => {
       const slideMarkdown = `# Test
 @audio: Narration here
 
@@ -546,11 +560,11 @@ Content here
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).not.toContain('@audio');
-      expect(slide.content).not.toContain('Narration here');
+      expect(slide.content).not.toContain("@audio");
+      expect(slide.content).not.toContain("Narration here");
     });
 
-    it('should remove @playwright block from content', () => {
+    it("should remove @playwright block from content", () => {
       const slideMarkdown = `# Test
 @playwright:
 - Action: Click
@@ -561,11 +575,11 @@ Content here
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).not.toContain('@playwright');
-      expect(slide.content).not.toContain('Action: Click');
+      expect(slide.content).not.toContain("@playwright");
+      expect(slide.content).not.toContain("Action: Click");
     });
 
-    it('should remove @fragment markers from content', () => {
+    it("should remove @fragment markers from content", () => {
       const slideMarkdown = `# Test
 - Point 1 @fragment
 - Point 2 @fragment +2s
@@ -573,12 +587,12 @@ Content here
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).not.toContain('@fragment');
-      expect(slide.content).toContain('Point 1');
-      expect(slide.content).toContain('Point 2');
+      expect(slide.content).not.toContain("@fragment");
+      expect(slide.content).toContain("Point 1");
+      expect(slide.content).toContain("Point 2");
     });
 
-    it('should preserve markdown formatting in cleaned content', () => {
+    it("should preserve markdown formatting in cleaned content", () => {
       const slideMarkdown = `# Main Title
 @duration: 5s
 
@@ -596,11 +610,11 @@ const code = true;
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).toContain('# Main Title');
-      expect(slide.content).toContain('## Subtitle');
-      expect(slide.content).toContain('- Bullet 1');
-      expect(slide.content).toContain('**Bold text**');
-      expect(slide.content).toContain('```javascript');
+      expect(slide.content).toContain("# Main Title");
+      expect(slide.content).toContain("## Subtitle");
+      expect(slide.content).toContain("- Bullet 1");
+      expect(slide.content).toContain("**Bold text**");
+      expect(slide.content).toContain("```javascript");
     });
   });
 
@@ -608,8 +622,8 @@ const code = true;
   // ADVANCED FEATURES (REVEAL.JS COMMENTS)
   // ==========================================================================
 
-  describe('Advanced Features - Reveal.js Comments', () => {
-    it('should preserve reveal.js slide comments in content', () => {
+  describe("Advanced Features - Reveal.js Comments", () => {
+    it("should preserve reveal.js slide comments in content", () => {
       const slideMarkdown = `# Test Slide
 @duration: 5s
 
@@ -621,11 +635,13 @@ Content here
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).toContain('<!-- .slide: data-auto-animate -->');
-      expect(slide.content).toContain('<!-- .slide: data-background="#ff0000" -->');
+      expect(slide.content).toContain("<!-- .slide: data-auto-animate -->");
+      expect(slide.content).toContain(
+        '<!-- .slide: data-background="#ff0000" -->',
+      );
     });
 
-    it('should preserve reveal.js element comments in content', () => {
+    it("should preserve reveal.js element comments in content", () => {
       const slideMarkdown = `# Test
 
 <!-- .element: class="fragment grow" -->
@@ -637,11 +653,15 @@ This fades up second
 
       const slide = parser.parseSlide(slideMarkdown, 0);
 
-      expect(slide.content).toContain('<!-- .element: class="fragment grow" -->');
-      expect(slide.content).toContain('<!-- .element: class="fragment fade-up" data-fragment-index="2" -->');
+      expect(slide.content).toContain(
+        '<!-- .element: class="fragment grow" -->',
+      );
+      expect(slide.content).toContain(
+        '<!-- .element: class="fragment fade-up" data-fragment-index="2" -->',
+      );
     });
 
-    it('should allow mixing @directives with reveal.js comments', () => {
+    it("should allow mixing @directives with reveal.js comments", () => {
       const slideMarkdown = `# Advanced Slide
 @duration: 8s
 @pause-after: 2s
@@ -664,12 +684,14 @@ Highlighted text
       expect(slide.audio?.pauses).toHaveLength(1);
 
       // Reveal.js comments preserved
-      expect(slide.content).toContain('<!-- .slide: data-auto-animate -->');
-      expect(slide.content).toContain('<!-- .element: class="fragment highlight-red" -->');
+      expect(slide.content).toContain("<!-- .slide: data-auto-animate -->");
+      expect(slide.content).toContain(
+        '<!-- .element: class="fragment highlight-red" -->',
+      );
 
       // Directives removed
-      expect(slide.content).not.toContain('@duration');
-      expect(slide.content).not.toContain('@audio');
+      expect(slide.content).not.toContain("@duration");
+      expect(slide.content).not.toContain("@audio");
     });
   });
 
@@ -677,8 +699,8 @@ Highlighted text
   // INTEGRATION TESTS
   // ==========================================================================
 
-  describe('Full Presentation Parsing', () => {
-    it('should parse complete presentation with multiple slides', () => {
+  describe("Full Presentation Parsing", () => {
+    it("should parse complete presentation with multiple slides", () => {
       const markdown = `---
 title: "Git Tutorial"
 theme: dracula
@@ -723,24 +745,26 @@ Git is a distributed version control system.
       const result = parser.parse(markdown);
 
       // Presentation metadata
-      expect(result.title).toBe('Git Tutorial');
-      expect(result.theme).toBe('dracula');
+      expect(result.title).toBe("Git Tutorial");
+      expect(result.theme).toBe("dracula");
       expect(result.slides).toHaveLength(3);
 
       // Slide 1
-      expect(result.slides[0].id).toBe('slide-001');
+      expect(result.slides[0].id).toBe("slide-001");
       expect(result.slides[0].metadata.duration).toBe(5);
       expect(result.slides[0].metadata.pauseAfter).toBe(2);
       expect(result.slides[0].audio).not.toBeNull();
-      expect(result.slides[0].audio!.cleanText).toBe('Welcome to this tutorial on Git.');
+      expect(result.slides[0].audio!.cleanText).toBe(
+        "Welcome to this tutorial on Git.",
+      );
 
       // Slide 2
-      expect(result.slides[1].id).toBe('slide-002');
+      expect(result.slides[1].id).toBe("slide-002");
       expect(result.slides[1].metadata.fragments).toHaveLength(3);
       expect(result.slides[1].audio!.pauses).toHaveLength(3);
 
       // Slide 3
-      expect(result.slides[2].id).toBe('slide-003');
+      expect(result.slides[2].id).toBe("slide-003");
       expect(result.slides[2].playwright).not.toBeNull();
       expect(result.slides[2].playwright!.instructions).toHaveLength(3);
     });

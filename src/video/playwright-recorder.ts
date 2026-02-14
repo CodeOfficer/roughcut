@@ -5,8 +5,8 @@
  * Integrates with Playwright's built-in video recording
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as fs from "fs/promises";
+import * as path from "path";
 
 // ============================================================================
 // TYPES
@@ -77,7 +77,9 @@ export class PlaywrightVideoRecorder {
   /**
    * Generate context options for Playwright with video recording enabled
    */
-  generateContextOptions(config: VideoRecordingConfig): RecordingContextOptions {
+  generateContextOptions(
+    config: VideoRecordingConfig,
+  ): RecordingContextOptions {
     const width = config.width || 1920;
     const height = config.height || 1080;
 
@@ -101,10 +103,13 @@ export class PlaywrightVideoRecorder {
    */
   async processRecordedVideo(
     videoPath: string,
-    targetFilename?: string
+    targetFilename?: string,
   ): Promise<VideoRecordingResult> {
     // Verify video file exists
-    const exists = await fs.access(videoPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(videoPath)
+      .then(() => true)
+      .catch(() => false);
     if (!exists) {
       throw new Error(`Recorded video not found: ${videoPath}`);
     }
@@ -141,13 +146,18 @@ export class PlaywrightVideoRecorder {
    *
    * Playwright may take a moment to finalize the video after closing
    */
-  async waitForVideoFile(videoDir: string, timeout: number = 10000): Promise<string> {
+  async waitForVideoFile(
+    videoDir: string,
+    timeout: number = 10000,
+  ): Promise<string> {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
       try {
         const files = await fs.readdir(videoDir);
-        const videoFiles = files.filter((f) => f.endsWith('.webm') || f.endsWith('.mp4'));
+        const videoFiles = files.filter(
+          (f) => f.endsWith(".webm") || f.endsWith(".mp4"),
+        );
 
         if (videoFiles.length > 0 && videoFiles[0]) {
           const videoPath = path.join(videoDir, videoFiles[0]);
@@ -182,7 +192,7 @@ export class PlaywrightVideoRecorder {
    * Could be enhanced with ffprobe integration
    */
   private async extractResolution(
-    _videoPath: string
+    _videoPath: string,
   ): Promise<{ width: number; height: number }> {
     // Default to standard HD resolution
     // In production, could use ffprobe to extract actual resolution
@@ -208,12 +218,12 @@ export class PlaywrightVideoRecorder {
     const ext = path.extname(videoPath).toLowerCase();
 
     switch (ext) {
-      case '.webm':
-        return 'webm';
-      case '.mp4':
-        return 'mp4';
+      case ".webm":
+        return "webm";
+      case ".mp4":
+        return "mp4";
       default:
-        return 'unknown';
+        return "unknown";
     }
   }
 
@@ -235,7 +245,7 @@ export class PlaywrightVideoRecorder {
     try {
       const files = await fs.readdir(outputDir);
       const videoFiles = files.filter(
-        (f) => f.endsWith('.webm') || f.endsWith('.mp4')
+        (f) => f.endsWith(".webm") || f.endsWith(".mp4"),
       );
 
       for (const file of videoFiles) {
@@ -250,13 +260,16 @@ export class PlaywrightVideoRecorder {
    * Generate default video filename with timestamp
    */
   generateDefaultFilename(presentationTitle?: string): string {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .slice(0, -5);
 
     if (presentationTitle) {
       const sanitized = presentationTitle
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
 
       return `${sanitized}-${timestamp}`;
     }
@@ -284,16 +297,19 @@ export function createPlaywrightRecorder(): PlaywrightVideoRecorder {
  * Get standard video resolutions
  */
 export const VIDEO_RESOLUTIONS = {
-  '720p': { width: 1280, height: 720 },
-  '1080p': { width: 1920, height: 1080 },
-  '1440p': { width: 2560, height: 1440 },
-  '4K': { width: 3840, height: 2160 },
+  "720p": { width: 1280, height: 720 },
+  "1080p": { width: 1920, height: 1080 },
+  "1440p": { width: 2560, height: 1440 },
+  "4K": { width: 3840, height: 2160 },
 } as const;
 
 /**
  * Parse resolution string to dimensions
  */
-export function parseResolution(resolution: string): { width: number; height: number } {
+export function parseResolution(resolution: string): {
+  width: number;
+  height: number;
+} {
   // Check if it's a preset
   if (resolution in VIDEO_RESOLUTIONS) {
     return VIDEO_RESOLUTIONS[resolution as keyof typeof VIDEO_RESOLUTIONS];
@@ -309,5 +325,5 @@ export function parseResolution(resolution: string): { width: number; height: nu
   }
 
   // Default to 1080p
-  return VIDEO_RESOLUTIONS['1080p'];
+  return VIDEO_RESOLUTIONS["1080p"];
 }

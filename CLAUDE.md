@@ -22,7 +22,9 @@ roughcut build -i path/to/presentation.md --full    # Full build with AI (costs 
 
 **Scaffolding:**
 ```bash
-roughcut init my-talk                               # Creates project with template
+roughcut init my-project                            # Creates workspace
+cd my-project
+roughcut create my-talk                             # Creates presentation subfolder
 ```
 
 ---
@@ -39,13 +41,13 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 2. `.build/tutorial.mp4` - Video with narration
 
 **Key modules:**
-- `src/config/` - ConfigManager (layered config: CLI > env > .roughcutrc.yml > user config > defaults)
+- `src/config/` - ConfigManager (7-layer config: CLI > shell env > workspace .env > .roughcutrc.yml > .roughcut/config.yml > user config > defaults)
 - `src/core/` - Parser, types, linter, directive registry (21 directives)
 - `src/narration/` - ElevenLabs TTS with fingerprint caching
 - `src/images/` - Gemini AI image generation
 - `src/presentation/` - RevealJS HTML generation, Playwright control
 - `src/video/` - Timeline building, recording, FFmpeg assembly
-- `src/cli/` - CLI commands (build, dev, init, lint, doctor, voices)
+- `src/cli/` - CLI commands (build, dev, init, create, lint, doctor, voices)
 
 **Skills:** `.claude/skills/presentation-generator/` - Interactive presentation generation skill
 
@@ -80,7 +82,10 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 ### Configuration
 - API keys are lazy-validated (only required when audio/image pipeline runs)
 - ConfigManager at `src/config/config-manager.ts` — never import `env.ts` (deleted)
-- Project config: `.roughcutrc.yml`
+- Workspace model: `roughcut init` creates `.roughcut/`, `.env`, `.gitignore`, `README.md`
+- Workspace config: `.roughcut/config.yml` (preferences, safe to commit)
+- Workspace secrets: `.env` (API keys, gitignored)
+- Legacy project config: `.roughcutrc.yml` (still supported for backward compat)
 - User config: `~/.config/roughcut/config.yml`
 
 ### Commit Messages
@@ -95,7 +100,8 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 # User-facing commands
 roughcut build -i <file>         # Build presentation (HTML by default)
 roughcut dev -i <file>           # Preview in browser
-roughcut init [dir]              # Scaffold new project
+roughcut init [dir]              # Create workspace (.roughcut/, .env, .gitignore)
+roughcut create <name>           # Create presentation subfolder in workspace
 roughcut lint <file>             # Validate markdown
 roughcut doctor                  # Check prerequisites
 roughcut voices                  # List ElevenLabs voices

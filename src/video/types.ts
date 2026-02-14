@@ -8,7 +8,7 @@
 export interface VideoSettings {
   resolution: string;
   fps: number;
-  transition: 'none' | 'fade' | 'dissolve';
+  transition: "none" | "fade" | "dissolve";
   transitionDuration: number;
 }
 

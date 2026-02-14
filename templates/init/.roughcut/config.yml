@@ -1,0 +1,12 @@
+# roughcut workspace configuration
+# Non-secret preferences — safe to commit to version control
+# See: https://github.com/codeofficer/roughcut
+
+# ElevenLabs voice for narration
+# elevenlabs_voice_id: adam
+
+# Log level: debug, info, warn, error
+# log_level: info
+
+# Gemini model for image generation
+# gemini_model: gemini-2.0-flash-exp

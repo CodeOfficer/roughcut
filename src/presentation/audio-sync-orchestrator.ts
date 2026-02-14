@@ -11,10 +11,13 @@
  * 7. Repeat
  */
 
-import type { RevealTimeline } from '../core/types.js';
-import { PlaywrightRevealController } from './playwright-controller.js';
-import { PlaywrightInstructionExecutor } from './playwright-executor.js';
-import { BrowserAudioPlayer, createBrowserAudioPlayer } from './audio-player.js';
+import type { RevealTimeline } from "../core/types.js";
+import { PlaywrightRevealController } from "./playwright-controller.js";
+import { PlaywrightInstructionExecutor } from "./playwright-executor.js";
+import {
+  BrowserAudioPlayer,
+  createBrowserAudioPlayer,
+} from "./audio-player.js";
 
 // ============================================================================
 // TYPES
@@ -52,7 +55,9 @@ export interface OrchestrationOptions {
 /**
  * Orchestration progress callback
  */
-export type ProgressCallback = (progress: OrchestrationProgress) => void | Promise<void>;
+export type ProgressCallback = (
+  progress: OrchestrationProgress,
+) => void | Promise<void>;
 
 /**
  * Orchestration progress data
@@ -74,7 +79,7 @@ export interface OrchestrationProgress {
   totalDuration: number;
 
   /** Current phase */
-  phase: 'navigating' | 'playing_audio' | 'pausing' | 'executing' | 'complete';
+  phase: "navigating" | "playing_audio" | "pausing" | "executing" | "complete";
 
   /** Progress percentage (0-100) */
   percentage: number;
@@ -191,7 +196,7 @@ export class AudioSyncOrchestrator {
           slideId: entry.slideId,
           elapsedTime: this.getElapsedTime(),
           totalDuration: timeline.totalDuration,
-          phase: 'navigating',
+          phase: "navigating",
           percentage: (i / timeline.slides.length) * 100,
         });
 
@@ -210,7 +215,7 @@ export class AudioSyncOrchestrator {
             entry.audioPath,
             entry.fragmentTimings,
             i,
-            timeline.slides.length
+            timeline.slides.length,
           );
 
           // Record timestamp data for this slide
@@ -224,7 +229,12 @@ export class AudioSyncOrchestrator {
 
         // Pause after audio
         if (entry.pauseAfter > 0) {
-          await this.pauseAfter(entry.pauseAfter, i, timeline.slides.length, entry.slideId);
+          await this.pauseAfter(
+            entry.pauseAfter,
+            i,
+            timeline.slides.length,
+            entry.slideId,
+          );
         }
 
         // Execute playwright instructions if present
@@ -234,7 +244,7 @@ export class AudioSyncOrchestrator {
             entry.slideId,
             screenshotDir,
             i,
-            timeline.slides.length
+            timeline.slides.length,
           );
         }
       }
@@ -243,10 +253,10 @@ export class AudioSyncOrchestrator {
       await this.reportProgress({
         slideIndex: timeline.slides.length,
         totalSlides: timeline.slides.length,
-        slideId: 'complete',
+        slideId: "complete",
         elapsedTime: this.getElapsedTime(),
         totalDuration: timeline.totalDuration,
-        phase: 'complete',
+        phase: "complete",
         percentage: 100,
       });
 
@@ -311,7 +321,7 @@ export class AudioSyncOrchestrator {
     audioPath: string,
     fragmentTimings: Array<{ fragmentIndex: number; timestamp: number }>,
     slideIndex: number,
-    totalSlides: number
+    totalSlides: number,
   ): Promise<void> {
     await this.reportProgress({
       slideIndex,
@@ -319,7 +329,7 @@ export class AudioSyncOrchestrator {
       slideId: `slide-${slideIndex + 1}`,
       elapsedTime: this.getElapsedTime(),
       totalDuration: 0,
-      phase: 'playing_audio',
+      phase: "playing_audio",
       percentage: (slideIndex / totalSlides) * 100,
     });
 
@@ -337,20 +347,17 @@ export class AudioSyncOrchestrator {
           const fragmentPromise = this.scheduleFragmentReveal(
             fragmentIndex,
             timestamp,
-            audioStartTime
+            audioStartTime,
           );
           fragmentPromises.push(fragmentPromise);
         }
 
         // Wait for page's audio to finish
-        await Promise.all([
-          this.waitForPageAudio(),
-          ...fragmentPromises,
-        ]);
+        await Promise.all([this.waitForPageAudio(), ...fragmentPromises]);
       } else {
         // Fallback: Use orchestrator's audio player
         if (!this.audioPlayer) {
-          throw new Error('Audio player not initialized');
+          throw new Error("Audio player not initialized");
         }
 
         await this.audioPlayer.load(audioPath);
@@ -363,16 +370,13 @@ export class AudioSyncOrchestrator {
           const fragmentPromise = this.scheduleFragmentReveal(
             fragmentIndex,
             timestamp,
-            audioStartTime
+            audioStartTime,
           );
           fragmentPromises.push(fragmentPromise);
         }
 
         // Wait for audio to finish
-        await Promise.all([
-          this.audioPlayer.waitForEnd(),
-          ...fragmentPromises,
-        ]);
+        await Promise.all([this.audioPlayer.waitForEnd(), ...fragmentPromises]);
       }
     } catch (error) {
       // If audio fails to play, wait a minimal amount and continue
@@ -386,7 +390,7 @@ export class AudioSyncOrchestrator {
   private async scheduleFragmentReveal(
     fragmentIndex: number,
     timestamp: number,
-    audioStartTime: number
+    audioStartTime: number,
   ): Promise<void> {
     // Calculate delay until fragment should be revealed
     const delayMs = timestamp * 1000;
@@ -401,7 +405,7 @@ export class AudioSyncOrchestrator {
       const elapsedMs = Date.now() - audioStartTime;
       console.log(
         `✨ Fragment ${fragmentIndex} revealed at ${(elapsedMs / 1000).toFixed(2)}s ` +
-        `(scheduled: ${timestamp.toFixed(2)}s)`
+          `(scheduled: ${timestamp.toFixed(2)}s)`,
       );
     } catch (error) {
       console.warn(`Failed to reveal fragment ${fragmentIndex}:`, error);
@@ -414,7 +418,7 @@ export class AudioSyncOrchestrator {
   private async hasPageAudioController(): Promise<boolean> {
     const page = this.controller.getPage();
     return await page.evaluate(() => {
-      return typeof (window as any).revealAudioController !== 'undefined';
+      return typeof (window as any).revealAudioController !== "undefined";
     });
   }
 
@@ -436,11 +440,11 @@ export class AudioSyncOrchestrator {
           // Audio has finished if it's ended or paused
           return audio.ended || audio.paused;
         },
-        { timeout, polling: 100 }
+        { timeout, polling: 100 },
       );
     } catch (error) {
       // Timeout - continue anyway
-      console.warn('⚠️  Timeout waiting for page audio to finish');
+      console.warn("⚠️  Timeout waiting for page audio to finish");
     }
   }
 
@@ -451,7 +455,7 @@ export class AudioSyncOrchestrator {
     pauseDuration: number,
     slideIndex: number,
     totalSlides: number,
-    slideId: string
+    slideId: string,
   ): Promise<void> {
     await this.reportProgress({
       slideIndex,
@@ -459,7 +463,7 @@ export class AudioSyncOrchestrator {
       slideId,
       elapsedTime: this.getElapsedTime(),
       totalDuration: 0,
-      phase: 'pausing',
+      phase: "pausing",
       percentage: (slideIndex / totalSlides) * 100,
     });
 
@@ -475,7 +479,7 @@ export class AudioSyncOrchestrator {
     slideId: string,
     screenshotDir: string | undefined,
     slideIndex: number,
-    totalSlides: number
+    totalSlides: number,
   ): Promise<void> {
     await this.reportProgress({
       slideIndex,
@@ -483,7 +487,7 @@ export class AudioSyncOrchestrator {
       slideId,
       elapsedTime: this.getElapsedTime(),
       totalDuration: 0,
-      phase: 'executing',
+      phase: "executing",
       percentage: (slideIndex / totalSlides) * 100,
     });
 

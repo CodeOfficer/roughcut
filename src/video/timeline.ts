@@ -3,14 +3,14 @@
  * Maps slides to audio segments with cumulative timing
  */
 
-import { logger } from '../core/logger.js';
+import { logger } from "../core/logger.js";
 import type {
   RevealPresentation,
   RevealTimeline,
   SlideTimelineEntry,
   AudioGenerationResult,
   FragmentTiming,
-} from '../core/types.js';
+} from "../core/types.js";
 
 /**
  * Build timeline for reveal.js presentation orchestration
@@ -22,14 +22,14 @@ export class RevealTimelineBuilder {
    */
   build(
     presentation: RevealPresentation,
-    audioResults: Map<string, AudioGenerationResult>
+    audioResults: Map<string, AudioGenerationResult>,
   ): RevealTimeline {
     const entries: SlideTimelineEntry[] = [];
     let cumulativeTime = 0;
 
     // Phase 3: Track 2D navigation indices for vertical slides
     let currentH = -1; // Horizontal index (increments for each horizontal slide)
-    let currentV = 0;  // Vertical index (resets for each horizontal slide)
+    let currentV = 0; // Vertical index (resets for each horizontal slide)
 
     for (const slide of presentation.slides) {
       const audioResult = audioResults.get(slide.id);
@@ -65,7 +65,7 @@ export class RevealTimelineBuilder {
       // Calculate fragment timings
       const fragmentTimings = this.calculateFragmentTimings(
         slide.metadata.fragments,
-        audioDuration
+        audioDuration,
       );
 
       // Build timeline entry
@@ -92,13 +92,15 @@ export class RevealTimelineBuilder {
       cumulativeTime += totalSlideDuration;
 
       logger.debug(
-        `Timeline entry for ${slide.id} (h:${currentH}, v:${currentV}): ${entry.startTime.toFixed(2)}s - ${entry.endTime.toFixed(2)}s (audio: ${audioDuration.toFixed(2)}s, pause: ${pauseAfter.toFixed(2)}s)`
+        `Timeline entry for ${slide.id} (h:${currentH}, v:${currentV}): ${entry.startTime.toFixed(2)}s - ${entry.endTime.toFixed(2)}s (audio: ${audioDuration.toFixed(2)}s, pause: ${pauseAfter.toFixed(2)}s)`,
       );
     }
 
     const totalDuration = cumulativeTime;
 
-    logger.info(`Built timeline: ${entries.length} slides, ${totalDuration.toFixed(2)}s total`);
+    logger.info(
+      `Built timeline: ${entries.length} slides, ${totalDuration.toFixed(2)}s total`,
+    );
 
     return {
       slides: entries,
@@ -120,7 +122,7 @@ export class RevealTimelineBuilder {
    */
   private calculateFragmentTimings(
     fragments: Array<{ index: number; timingOffset?: number }>,
-    audioDuration: number
+    audioDuration: number,
   ): FragmentTiming[] {
     if (fragments.length === 0) {
       return [];
@@ -149,7 +151,7 @@ export class RevealTimelineBuilder {
 
       logger.debug(
         `Fragment ${fragment.index} timing: ${timestamp.toFixed(2)}s ` +
-        `(${fragment.timingOffset !== undefined ? 'explicit' : 'auto-spaced'})`
+          `(${fragment.timingOffset !== undefined ? "explicit" : "auto-spaced"})`,
       );
     }
 
@@ -161,7 +163,7 @@ export class RevealTimelineBuilder {
    */
   validateTimeline(timeline: RevealTimeline): void {
     if (timeline.slides.length === 0) {
-      throw new Error('Timeline has no slides');
+      throw new Error("Timeline has no slides");
     }
 
     // Verify cumulative timing
@@ -173,7 +175,9 @@ export class RevealTimelineBuilder {
 
       // Verify slide index matches array position
       if (entry.slideIndex !== i) {
-        throw new Error(`Timeline entry ${i} has incorrect slide index: ${entry.slideIndex}`);
+        throw new Error(
+          `Timeline entry ${i} has incorrect slide index: ${entry.slideIndex}`,
+        );
       }
 
       // Verify timing consistency
@@ -181,7 +185,7 @@ export class RevealTimelineBuilder {
         throw new Error(
           `Timeline entry ${entry.slideId} has inconsistent timing: ` +
             `startTime=${entry.startTime}, endTime=${entry.endTime}, ` +
-            `totalDuration=${entry.totalSlideDuration}`
+            `totalDuration=${entry.totalSlideDuration}`,
         );
       }
 
@@ -190,7 +194,7 @@ export class RevealTimelineBuilder {
         throw new Error(
           `Timeline entry ${entry.slideId} has incorrect totalSlideDuration: ` +
             `expected ${entry.audioDuration + entry.pauseAfter}, ` +
-            `got ${entry.totalSlideDuration}`
+            `got ${entry.totalSlideDuration}`,
         );
       }
 
@@ -203,7 +207,7 @@ export class RevealTimelineBuilder {
         if (nextEntry.startTime !== entry.endTime) {
           throw new Error(
             `Timeline gap between ${entry.slideId} and ${nextEntry.slideId}: ` +
-              `${entry.endTime} !== ${nextEntry.startTime}`
+              `${entry.endTime} !== ${nextEntry.startTime}`,
           );
         }
       }
@@ -212,22 +216,25 @@ export class RevealTimelineBuilder {
     // Verify total duration matches last slide end time
     const lastEntry = timeline.slides[timeline.slides.length - 1];
     if (!lastEntry) {
-      throw new Error('Timeline has no last entry');
+      throw new Error("Timeline has no last entry");
     }
     if (Math.abs(timeline.totalDuration - lastEntry.endTime) > 0.01) {
       throw new Error(
         `Timeline totalDuration mismatch: ` +
-          `expected ${lastEntry.endTime}, got ${timeline.totalDuration}`
+          `expected ${lastEntry.endTime}, got ${timeline.totalDuration}`,
       );
     }
 
-    logger.info('✓ Timeline validation passed');
+    logger.info("✓ Timeline validation passed");
   }
 
   /**
    * Get timeline entry for a specific slide
    */
-  getSlideEntry(timeline: RevealTimeline, slideId: string): SlideTimelineEntry | null {
+  getSlideEntry(
+    timeline: RevealTimeline,
+    slideId: string,
+  ): SlideTimelineEntry | null {
     return timeline.slides.find((entry) => entry.slideId === slideId) || null;
   }
 
@@ -267,12 +274,12 @@ export class RevealTimelineBuilder {
 
     const audioOnlyDuration = timeline.slides.reduce(
       (sum, entry) => sum + entry.audioDuration,
-      0
+      0,
     );
 
     const pauseDuration = timeline.slides.reduce(
       (sum, entry) => sum + entry.pauseAfter,
-      0
+      0,
     );
 
     return {

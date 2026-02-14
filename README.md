@@ -9,7 +9,10 @@ Write slides in a simple markdown format with 21 specialized directives. roughcu
 ```bash
 npm install -g roughcut
 
-roughcut init my-talk
+roughcut init my-project          # Create workspace
+cd my-project
+# Edit .env to add your API keys (optional)
+roughcut create my-talk           # Create a presentation
 cd my-talk
 roughcut build -i presentation.md          # HTML only (free, fast)
 roughcut dev -i presentation.md            # Preview in browser
@@ -48,16 +51,24 @@ brew install roughcut
 roughcut uses layered config (highest priority first):
 
 1. **CLI flags** — `--voice brian`, `--log-level debug`
-2. **Environment variables** — `ELEVENLABS_API_KEY`, `LOG_LEVEL`
-3. **Project config** — `.roughcutrc.yml` in your project directory
-4. **User config** — `~/.config/roughcut/config.yml`
-5. **Built-in defaults**
+2. **Shell environment variables** — `ELEVENLABS_API_KEY`, `LOG_LEVEL`
+3. **Workspace `.env`** — API keys (gitignored, found by walking up to `.roughcut/`)
+4. **Legacy `.roughcutrc.yml`** — backward compat project config
+5. **Workspace `.roughcut/config.yml`** — non-secret preferences
+6. **User config** — `~/.config/roughcut/config.yml`
+7. **Built-in defaults**
 
-Example `.roughcutrc.yml`:
+Example `.env` (API keys — gitignored):
+
+```bash
+ELEVENLABS_API_KEY=your-key-here
+GEMINI_API_KEY=your-key-here
+```
+
+Example `.roughcut/config.yml` (preferences — safe to commit):
 
 ```yaml
-elevenlabs_api_key: "your-key-here"
-elevenlabs_voice_id: "brian"
+elevenlabs_voice_id: brian
 log_level: info
 ```
 
@@ -67,7 +78,8 @@ log_level: info
 |---------|-------------|
 | `roughcut build -i <file>` | Build presentation (HTML by default) |
 | `roughcut dev -i <file>` | Preview in browser with hot reload |
-| `roughcut init [dir]` | Scaffold a new presentation project |
+| `roughcut init [dir]` | Create a new workspace |
+| `roughcut create <name>` | Create a presentation in the workspace |
 | `roughcut lint <file>` | Validate markdown format |
 | `roughcut doctor` | Check system prerequisites |
 | `roughcut voices` | List available ElevenLabs voices |

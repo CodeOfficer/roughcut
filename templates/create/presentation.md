@@ -1,9 +1,9 @@
 ---
-title: "My Presentation"
+title: "{{TITLE}}"
 theme: dracula
 ---
 
-# My Presentation
+# {{TITLE}}
 
 @transition: zoom
 

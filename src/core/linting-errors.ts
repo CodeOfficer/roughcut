@@ -3,27 +3,27 @@
  * Provides detailed, actionable error messages with line numbers and examples
  */
 
-import type { DirectiveDefinition } from './directive-registry.js';
+import type { DirectiveDefinition } from "./directive-registry.js";
 
 /**
  * Error severity levels
  */
 export enum ErrorSeverity {
-  ERROR = 'error',
-  WARNING = 'warning',
+  ERROR = "error",
+  WARNING = "warning",
 }
 
 /**
  * Error category for classification
  */
 export enum ErrorCategory {
-  FRONTMATTER = 'frontmatter',
-  UNKNOWN_DIRECTIVE = 'unknown_directive',
-  INVALID_SYNTAX = 'invalid_syntax',
-  INVALID_VALUE = 'invalid_value',
-  MISSING_REQUIRED = 'missing_required',
-  STRUCTURAL = 'structural',
-  PAUSE_MARKER = 'pause_marker',
+  FRONTMATTER = "frontmatter",
+  UNKNOWN_DIRECTIVE = "unknown_directive",
+  INVALID_SYNTAX = "invalid_syntax",
+  INVALID_VALUE = "invalid_value",
+  MISSING_REQUIRED = "missing_required",
+  STRUCTURAL = "structural",
+  PAUSE_MARKER = "pause_marker",
 }
 
 /**
@@ -68,7 +68,7 @@ export class LintingError {
       expectedValue?: string;
       example?: string;
       suggestions?: string[];
-    }
+    },
   ) {
     this.severity = severity;
     this.category = category;
@@ -98,7 +98,9 @@ export class LintingError {
     const parts: string[] = [];
 
     // Header: [ERROR] file.md:12:5
-    const location = filePath ? `${filePath}:${this.line}` : `line ${this.line}`;
+    const location = filePath
+      ? `${filePath}:${this.line}`
+      : `line ${this.line}`;
     const locationWithColumn =
       this.column !== undefined ? `${location}:${this.column}` : location;
     parts.push(`[${this.severity.toUpperCase()}] ${locationWithColumn}`);
@@ -129,7 +131,7 @@ export class LintingError {
       }
     }
 
-    return parts.join('\n');
+    return parts.join("\n");
   }
 }
 
@@ -183,43 +185,47 @@ export class LintingResult {
   toString(): string {
     const parts: string[] = [];
 
-    parts.push('='.repeat(80));
-    parts.push('MARKDOWN LINTING ERRORS');
-    parts.push('='.repeat(80));
-    parts.push('');
+    parts.push("=".repeat(80));
+    parts.push("MARKDOWN LINTING ERRORS");
+    parts.push("=".repeat(80));
+    parts.push("");
 
     if (this.errors.length === 0 && this.warnings.length === 0) {
-      parts.push('✓ No issues found');
-      return parts.join('\n');
+      parts.push("✓ No issues found");
+      return parts.join("\n");
     }
 
     // Errors
     if (this.errors.length > 0) {
-      parts.push(`Found ${this.errors.length} error${this.errors.length > 1 ? 's' : ''}:`);
-      parts.push('');
+      parts.push(
+        `Found ${this.errors.length} error${this.errors.length > 1 ? "s" : ""}:`,
+      );
+      parts.push("");
       for (const error of this.errors) {
         parts.push(error.toString(this.filePath));
-        parts.push('');
+        parts.push("");
       }
     }
 
     // Warnings
     if (this.warnings.length > 0) {
-      parts.push(`Found ${this.warnings.length} warning${this.warnings.length > 1 ? 's' : ''}:`);
-      parts.push('');
+      parts.push(
+        `Found ${this.warnings.length} warning${this.warnings.length > 1 ? "s" : ""}:`,
+      );
+      parts.push("");
       for (const warning of this.warnings) {
         parts.push(warning.toString(this.filePath));
-        parts.push('');
+        parts.push("");
       }
     }
 
-    parts.push('='.repeat(80));
-    parts.push('');
-    parts.push('Build cannot proceed until all errors are fixed.');
-    parts.push('See docs/LINTING_SPEC.md for complete specification.');
-    parts.push('');
+    parts.push("=".repeat(80));
+    parts.push("");
+    parts.push("Build cannot proceed until all errors are fixed.");
+    parts.push("See docs/LINTING_SPEC.md for complete specification.");
+    parts.push("");
 
-    return parts.join('\n');
+    return parts.join("\n");
   }
 }
 
@@ -233,7 +239,7 @@ export const ErrorFactories = {
   missingRequiredFrontmatter(
     field: string,
     line: number,
-    directive: DirectiveDefinition
+    directive: DirectiveDefinition,
   ): LintingError {
     return new LintingError(
       ErrorSeverity.ERROR,
@@ -243,7 +249,7 @@ export const ErrorFactories = {
       {
         expectedValue: directive.description,
         example: directive.example,
-      }
+      },
     );
   },
 
@@ -253,7 +259,7 @@ export const ErrorFactories = {
   unknownDirective(
     directiveName: string,
     line: number,
-    similarNames: string[]
+    similarNames: string[],
   ): LintingError {
     const suggestions: string[] = [];
 
@@ -261,7 +267,7 @@ export const ErrorFactories = {
       suggestions.push(`Did you mean: @${similarNames[0]}?`);
     }
 
-    suggestions.push('See docs/LINTING_SPEC.md for all supported directives');
+    suggestions.push("See docs/LINTING_SPEC.md for all supported directives");
 
     return new LintingError(
       ErrorSeverity.ERROR,
@@ -271,7 +277,7 @@ export const ErrorFactories = {
       {
         currentValue: `@${directiveName}`,
         suggestions,
-      }
+      },
     );
   },
 
@@ -282,7 +288,7 @@ export const ErrorFactories = {
     directiveName: string,
     line: number,
     expected: string,
-    example: string
+    example: string,
   ): LintingError {
     return new LintingError(
       ErrorSeverity.ERROR,
@@ -292,7 +298,7 @@ export const ErrorFactories = {
       {
         expectedValue: expected,
         example,
-      }
+      },
     );
   },
 
@@ -304,7 +310,7 @@ export const ErrorFactories = {
     value: string,
     line: number,
     error: string,
-    directive: DirectiveDefinition
+    directive: DirectiveDefinition,
   ): LintingError {
     return new LintingError(
       ErrorSeverity.ERROR,
@@ -314,14 +320,18 @@ export const ErrorFactories = {
       {
         currentValue: value,
         example: directive.example,
-      }
+      },
     );
   },
 
   /**
    * Invalid pause marker
    */
-  invalidPauseMarker(marker: string, line: number, error: string): LintingError {
+  invalidPauseMarker(
+    marker: string,
+    line: number,
+    error: string,
+  ): LintingError {
     return new LintingError(
       ErrorSeverity.ERROR,
       ErrorCategory.PAUSE_MARKER,
@@ -329,9 +339,9 @@ export const ErrorFactories = {
       line,
       {
         currentValue: marker,
-        expectedValue: 'Use [1s], [2s], [2.5s], etc.',
-        example: '@audio: Text here [2s] more text [1s] end.',
-      }
+        expectedValue: "Use [1s], [2s], [2.5s], etc.",
+        example: "@audio: Text here [2s] more text [1s] end.",
+      },
     );
   },
 
@@ -342,15 +352,15 @@ export const ErrorFactories = {
     return new LintingError(
       ErrorSeverity.ERROR,
       ErrorCategory.PAUSE_MARKER,
-      'Pause markers [Xs] can only be used inside @audio: blocks',
+      "Pause markers [Xs] can only be used inside @audio: blocks",
       line,
       {
         currentValue: marker,
         suggestions: [
-          'Move pause marker inside an @audio: block',
-          'Remove pause marker if not needed',
+          "Move pause marker inside an @audio: block",
+          "Remove pause marker if not needed",
         ],
-      }
+      },
     );
   },
 
@@ -365,10 +375,10 @@ export const ErrorFactories = {
       line,
       {
         suggestions: [
-          'Add markdown content to the slide',
-          'Remove empty slide if not needed',
+          "Add markdown content to the slide",
+          "Remove empty slide if not needed",
         ],
-      }
+      },
     );
   },
 
@@ -379,12 +389,15 @@ export const ErrorFactories = {
     return new LintingError(
       ErrorSeverity.ERROR,
       ErrorCategory.STRUCTURAL,
-      'Empty @audio: block (no text provided)',
+      "Empty @audio: block (no text provided)",
       line,
       {
-        example: '@audio: Your narration text here',
-        suggestions: ['Add narration text after @audio:', 'Remove @audio: if not needed'],
-      }
+        example: "@audio: Your narration text here",
+        suggestions: [
+          "Add narration text after @audio:",
+          "Remove @audio: if not needed",
+        ],
+      },
     );
   },
 
@@ -395,15 +408,15 @@ export const ErrorFactories = {
     return new LintingError(
       ErrorSeverity.ERROR,
       ErrorCategory.FRONTMATTER,
-      'Missing frontmatter block at start of file',
+      "Missing frontmatter block at start of file",
       line,
       {
         example: '---\ntitle: "My Presentation"\ntheme: dracula\n---',
         suggestions: [
-          'Add frontmatter block at the beginning of the file',
-          'Frontmatter must include: title, theme',
+          "Add frontmatter block at the beginning of the file",
+          "Frontmatter must include: title, theme",
         ],
-      }
+      },
     );
   },
 
@@ -418,7 +431,7 @@ export const ErrorFactories = {
       line,
       {
         example: '---\ntitle: "My Presentation"\ntheme: dracula\n---',
-      }
+      },
     );
   },
 };

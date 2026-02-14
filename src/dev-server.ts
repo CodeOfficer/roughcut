@@ -3,12 +3,12 @@
  * Opens browser with Playwright for manual or automated testing
  */
 
-import { chromium, type Browser, type Page } from 'playwright';
-import { AudioSyncOrchestrator } from './presentation/audio-sync-orchestrator.js';
-import * as path from 'path';
-import * as http from 'http';
-import * as fs from 'fs/promises';
-import { existsSync } from 'fs';
+import { chromium, type Browser, type Page } from "playwright";
+import { AudioSyncOrchestrator } from "./presentation/audio-sync-orchestrator.js";
+import * as path from "path";
+import * as http from "http";
+import * as fs from "fs/promises";
+import { existsSync } from "fs";
 
 export interface DevServerOptions {
   /** Path to HTML presentation */
@@ -35,7 +35,10 @@ export class DevServer {
   private page: Page | null = null;
   private httpServer: http.Server | null = null;
   private serverPort: number = 0;
-  private debugOverlayData: Map<string, { narration: string; fragmentCount: number }> | null = null;
+  private debugOverlayData: Map<
+    string,
+    { narration: string; fragmentCount: number }
+  > | null = null;
 
   /**
    * Start HTTP server to serve presentation files
@@ -48,27 +51,27 @@ export class DevServer {
       this.httpServer = http.createServer(async (req, res) => {
         try {
           // Strip query parameters from URL
-          const urlPath = req.url?.split('?')[0] || '/';
+          const urlPath = req.url?.split("?")[0] || "/";
 
           // Map URL to file path
           let filePath: string;
           let isMainHtml = false;
 
           // Root or /index.html -> serve the main HTML
-          if (urlPath === '/' || urlPath === '/index.html') {
+          if (urlPath === "/" || urlPath === "/index.html") {
             filePath = htmlPath;
             isMainHtml = true;
           }
           // /reveal/* -> serve from presentation/reveal/
-          else if (urlPath.startsWith('/reveal/')) {
+          else if (urlPath.startsWith("/reveal/")) {
             filePath = path.join(presentationDir, urlPath);
           }
           // /audio/* -> serve from output/audio/
-          else if (urlPath.startsWith('/audio/')) {
+          else if (urlPath.startsWith("/audio/")) {
             filePath = path.join(outputDir, urlPath);
           }
           // /images/* -> serve from output/images/
-          else if (urlPath.startsWith('/images/')) {
+          else if (urlPath.startsWith("/images/")) {
             filePath = path.join(outputDir, urlPath);
           }
           // Everything else -> try presentation dir first, then output dir
@@ -80,15 +83,15 @@ export class DevServer {
           }
 
           // Default to index.html for directories
-          if (filePath.endsWith('/')) {
-            filePath = path.join(filePath, 'index.html');
+          if (filePath.endsWith("/")) {
+            filePath = path.join(filePath, "index.html");
           }
 
           // Check if file exists
           if (!existsSync(filePath)) {
             console.log(`   ❌ 404 Not Found: ${urlPath} (tried: ${filePath})`);
             res.writeHead(404);
-            res.end('Not found');
+            res.end("Not found");
             return;
           }
 
@@ -98,45 +101,50 @@ export class DevServer {
 
           // If this is the main HTML and we have debug overlay data, inject the overlay script
           if (isMainHtml && this.debugOverlayData) {
-            let htmlContent = content.toString('utf-8');
-            const overlayScript = this.generateDebugOverlayScript(this.debugOverlayData);
+            let htmlContent = content.toString("utf-8");
+            const overlayScript = this.generateDebugOverlayScript(
+              this.debugOverlayData,
+            );
             // Inject before closing </body> tag
-            htmlContent = htmlContent.replace('</body>', `${overlayScript}</body>`);
-            content = Buffer.from(htmlContent, 'utf-8');
+            htmlContent = htmlContent.replace(
+              "</body>",
+              `${overlayScript}</body>`,
+            );
+            content = Buffer.from(htmlContent, "utf-8");
           }
 
           // Set content type
           const contentTypes: Record<string, string> = {
-            '.html': 'text/html',
-            '.js': 'text/javascript',
-            '.css': 'text/css',
-            '.json': 'application/json',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.gif': 'image/gif',
-            '.svg': 'image/svg+xml',
-            '.mp3': 'audio/mpeg',
-            '.wav': 'audio/wav',
+            ".html": "text/html",
+            ".js": "text/javascript",
+            ".css": "text/css",
+            ".json": "application/json",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".gif": "image/gif",
+            ".svg": "image/svg+xml",
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
           };
 
-          const contentType = contentTypes[ext] || 'application/octet-stream';
-          res.writeHead(200, { 'Content-Type': contentType });
+          const contentType = contentTypes[ext] || "application/octet-stream";
+          res.writeHead(200, { "Content-Type": contentType });
           res.end(content);
         } catch (error) {
-          console.error('Server error:', error);
+          console.error("Server error:", error);
           res.writeHead(500);
-          res.end('Internal server error');
+          res.end("Internal server error");
         }
       });
 
       // Listen on random available port
       this.httpServer.listen(0, () => {
         const address = this.httpServer?.address();
-        if (address && typeof address !== 'string') {
+        if (address && typeof address !== "string") {
           this.serverPort = address.port;
           resolve(`http://localhost:${this.serverPort}`);
         } else {
-          reject(new Error('Failed to start HTTP server'));
+          reject(new Error("Failed to start HTTP server"));
         }
       });
     });
@@ -146,13 +154,20 @@ export class DevServer {
    * Start dev server and open presentation in browser
    */
   async start(options: DevServerOptions): Promise<void> {
-    const { htmlPath, autoAdvance = false, timeline, audioBaseDir, slowMo = 100, debugOverlayData } = options;
+    const {
+      htmlPath,
+      autoAdvance = false,
+      timeline,
+      audioBaseDir,
+      slowMo = 100,
+      debugOverlayData,
+    } = options;
 
     // Store debug overlay data for injection
     this.debugOverlayData = debugOverlayData || null;
 
-    console.log('🚀 Starting dev server...');
-    console.log(`   Mode: ${autoAdvance ? 'Auto-advance' : 'Manual'}`);
+    console.log("🚀 Starting dev server...");
+    console.log(`   Mode: ${autoAdvance ? "Auto-advance" : "Manual"}`);
     console.log(`   HTML: ${htmlPath}`);
     if (this.debugOverlayData) {
       console.log(`   Debug overlay: Enabled (press 'D' to toggle)`);
@@ -164,48 +179,53 @@ export class DevServer {
 
     if (autoAdvance) {
       // In auto mode, let orchestrator handle the browser
-      console.log('✅ HTTP server ready');
-      console.log('');
+      console.log("✅ HTTP server ready");
+      console.log("");
       if (!timeline || !audioBaseDir) {
-        throw new Error('Timeline and audioBaseDir required for auto-advance mode');
+        throw new Error(
+          "Timeline and audioBaseDir required for auto-advance mode",
+        );
       }
 
-      console.log('🎬 Running auto-advance mode...');
-      console.log('   Slides will advance automatically based on timeline');
-      console.log('   Press Ctrl+C to stop');
-      console.log('');
+      console.log("🎬 Running auto-advance mode...");
+      console.log("   Slides will advance automatically based on timeline");
+      console.log("   Press Ctrl+C to stop");
+      console.log("");
 
       // Run orchestrator without video recording
       const orchestrator = new AudioSyncOrchestrator();
 
       orchestrator.onProgress((progress) => {
-        const emoji = {
-          navigating: '➡️',
-          playing_audio: '🔊',
-          pausing: '⏸️',
-          complete: '✅',
-          executing: '⚙️',
-        }[progress.phase] || '⚙️';
+        const emoji =
+          {
+            navigating: "➡️",
+            playing_audio: "🔊",
+            pausing: "⏸️",
+            complete: "✅",
+            executing: "⚙️",
+          }[progress.phase] || "⚙️";
 
-        console.log(`${emoji} ${progress.phase} (${progress.percentage.toFixed(0)}%)`);
+        console.log(
+          `${emoji} ${progress.phase} (${progress.percentage.toFixed(0)}%)`,
+        );
       });
 
       const result = await orchestrator.run({
-        htmlPath: `${serverUrl}?autoplay=true`,    // Use HTTP URL with autoplay parameter
+        htmlPath: `${serverUrl}?autoplay=true`, // Use HTTP URL with autoplay parameter
         timeline,
         audioBaseDir,
         // recordVideo is omitted - no video recording in dev mode
-        headless: false,        // Use visible browser
+        headless: false, // Use visible browser
       });
 
       if (result.success) {
-        console.log('');
-        console.log('✅ Auto-advance complete!');
-        console.log('   Browser will remain open for inspection');
-        console.log('   Press Ctrl+C to close');
-        console.log('');
+        console.log("");
+        console.log("✅ Auto-advance complete!");
+        console.log("   Browser will remain open for inspection");
+        console.log("   Press Ctrl+C to close");
+        console.log("");
       } else {
-        console.error('❌ Auto-advance failed:', result.error);
+        console.error("❌ Auto-advance failed:", result.error);
       }
 
       // Keep HTTP server running - orchestrator's browser will stay open
@@ -215,25 +235,25 @@ export class DevServer {
       this.browser = await chromium.launch({
         headless: false,
         slowMo,
-        args: ['--auto-open-devtools-for-tabs'], // Open DevTools by default
+        args: ["--auto-open-devtools-for-tabs"], // Open DevTools by default
       });
 
       this.page = await this.browser.newPage();
 
       // Load presentation from HTTP server
       await this.page.goto(serverUrl, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
         timeout: 60000,
       });
 
-      console.log('✅ Presentation loaded');
+      console.log("✅ Presentation loaded");
       console.log(`   URL: ${serverUrl}`);
-      console.log('');
-      console.log('🎮 Manual mode active');
-      console.log('   Use arrow keys or click to navigate slides');
-      console.log('   Audio will play automatically on slide change');
-      console.log('   Press Ctrl+C to close');
-      console.log('');
+      console.log("");
+      console.log("🎮 Manual mode active");
+      console.log("   Use arrow keys or click to navigate slides");
+      console.log("   Audio will play automatically on slide change");
+      console.log("   Press Ctrl+C to close");
+      console.log("");
 
       // Wait forever (until user closes browser or Ctrl+C)
       await this.waitForever();
@@ -247,18 +267,18 @@ export class DevServer {
     return new Promise((_resolve) => {
       // Handle Ctrl+C
       const sigintHandler = async () => {
-        console.log('');
-        console.log('👋 Closing dev server...');
+        console.log("");
+        console.log("👋 Closing dev server...");
         await this.stop();
         process.exit(0);
       };
-      process.on('SIGINT', sigintHandler);
+      process.on("SIGINT", sigintHandler);
 
       // Handle browser close
       if (this.browser) {
-        this.browser.on('disconnected', () => {
-          console.log('');
-          console.log('👋 Browser closed');
+        this.browser.on("disconnected", () => {
+          console.log("");
+          console.log("👋 Browser closed");
           process.exit(0);
         });
       }
@@ -269,7 +289,7 @@ export class DevServer {
       }, 1000);
 
       // Cleanup interval when promise resolves
-      process.on('exit', () => {
+      process.on("exit", () => {
         clearInterval(keepAlive);
       });
     });
@@ -278,9 +298,14 @@ export class DevServer {
   /**
    * Generate debug overlay script to inject into HTML
    */
-  private generateDebugOverlayScript(overlayData: Map<string, { narration: string; fragmentCount: number }>): string {
+  private generateDebugOverlayScript(
+    overlayData: Map<string, { narration: string; fragmentCount: number }>,
+  ): string {
     // Convert Map to plain object for JSON serialization
-    const dataObject: Record<string, { narration: string; fragmentCount: number }> = {};
+    const dataObject: Record<
+      string,
+      { narration: string; fragmentCount: number }
+    > = {};
     overlayData.forEach((value, key) => {
       dataObject[key] = value;
     });

@@ -3,8 +3,8 @@
  * Writes detailed logs to {outputDir}/debug.txt with timestamps
  */
 
-import { appendFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { appendFile, writeFile } from "fs/promises";
+import { join } from "path";
 
 /**
  * Operation tracking for timing analysis
@@ -25,7 +25,7 @@ export class DebugLogger {
   private initialized = false;
 
   constructor(outputDir: string) {
-    this.filePath = join(outputDir, 'debug.txt');
+    this.filePath = join(outputDir, "debug.txt");
   }
 
   /**
@@ -35,38 +35,45 @@ export class DebugLogger {
     if (this.initialized) return;
 
     const header = [
-      '='.repeat(80),
+      "=".repeat(80),
       `Build Debug Log - ${new Date().toISOString()}`,
-      '='.repeat(80),
-      '',
-    ].join('\n');
+      "=".repeat(80),
+      "",
+    ].join("\n");
 
-    await writeFile(this.filePath, header, 'utf-8');
+    await writeFile(this.filePath, header, "utf-8");
     this.initialized = true;
   }
 
   /**
    * Write a log entry with timestamp
    */
-  async log(level: string, message: string, metadata?: Record<string, any>): Promise<void> {
+  async log(
+    level: string,
+    message: string,
+    metadata?: Record<string, any>,
+  ): Promise<void> {
     await this.initialize();
 
     const timestamp = new Date().toISOString();
     let entry = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
 
     if (metadata && Object.keys(metadata).length > 0) {
-      entry += `\n  ${JSON.stringify(metadata, null, 2).split('\n').join('\n  ')}`;
+      entry += `\n  ${JSON.stringify(metadata, null, 2).split("\n").join("\n  ")}`;
     }
 
-    entry += '\n';
+    entry += "\n";
 
-    await appendFile(this.filePath, entry, 'utf-8');
+    await appendFile(this.filePath, entry, "utf-8");
   }
 
   /**
    * Start tracking an operation
    */
-  async startOperation(name: string, metadata?: Record<string, any>): Promise<void> {
+  async startOperation(
+    name: string,
+    metadata?: Record<string, any>,
+  ): Promise<void> {
     const operation: Operation = {
       name,
       startTime: Date.now(),
@@ -78,16 +85,19 @@ export class DebugLogger {
 
     this.operations.set(name, operation);
 
-    await this.log('OPERATION', `Started: ${name}`, metadata);
+    await this.log("OPERATION", `Started: ${name}`, metadata);
   }
 
   /**
    * End tracking an operation and calculate duration
    */
-  async endOperation(name: string, metadata?: Record<string, any>): Promise<number> {
+  async endOperation(
+    name: string,
+    metadata?: Record<string, any>,
+  ): Promise<number> {
     const operation = this.operations.get(name);
     if (!operation) {
-      await this.log('WARN', `Attempted to end unknown operation: ${name}`);
+      await this.log("WARN", `Attempted to end unknown operation: ${name}`);
       return 0;
     }
 
@@ -101,7 +111,7 @@ export class DebugLogger {
       duration_s: (duration / 1000).toFixed(2),
     };
 
-    await this.log('OPERATION', `Completed: ${name}`, combinedMetadata);
+    await this.log("OPERATION", `Completed: ${name}`, combinedMetadata);
 
     return duration;
   }
@@ -110,37 +120,41 @@ export class DebugLogger {
    * Log debug message
    */
   async debug(message: string, metadata?: Record<string, any>): Promise<void> {
-    await this.log('DEBUG', message, metadata);
+    await this.log("DEBUG", message, metadata);
   }
 
   /**
    * Log info message
    */
   async info(message: string, metadata?: Record<string, any>): Promise<void> {
-    await this.log('INFO', message, metadata);
+    await this.log("INFO", message, metadata);
   }
 
   /**
    * Log warning message
    */
   async warn(message: string, metadata?: Record<string, any>): Promise<void> {
-    await this.log('WARN', message, metadata);
+    await this.log("WARN", message, metadata);
   }
 
   /**
    * Log error message
    */
-  async error(message: string, error?: Error | unknown, metadata?: Record<string, any>): Promise<void> {
+  async error(
+    message: string,
+    error?: Error | unknown,
+    metadata?: Record<string, any>,
+  ): Promise<void> {
     const errorMetadata: Record<string, any> = { ...metadata };
 
     if (error instanceof Error) {
-      errorMetadata['error'] = error.message;
-      errorMetadata['stack'] = error.stack;
+      errorMetadata["error"] = error.message;
+      errorMetadata["stack"] = error.stack;
     } else if (error) {
-      errorMetadata['error'] = String(error);
+      errorMetadata["error"] = String(error);
     }
 
-    await this.log('ERROR', message, errorMetadata);
+    await this.log("ERROR", message, errorMetadata);
   }
 
   /**
@@ -148,31 +162,36 @@ export class DebugLogger {
    */
   async writeSummary(): Promise<void> {
     const summary = [
-      '',
-      '='.repeat(80),
-      'OPERATIONS SUMMARY',
-      '='.repeat(80),
-      '',
+      "",
+      "=".repeat(80),
+      "OPERATIONS SUMMARY",
+      "=".repeat(80),
+      "",
     ];
 
-    const completedOps = Array.from(this.operations.values()).filter(op => op.endTime);
-    const totalDuration = completedOps.reduce((sum, op) => sum + ((op.endTime || 0) - op.startTime), 0);
+    const completedOps = Array.from(this.operations.values()).filter(
+      (op) => op.endTime,
+    );
+    const totalDuration = completedOps.reduce(
+      (sum, op) => sum + ((op.endTime || 0) - op.startTime),
+      0,
+    );
 
     summary.push(`Total Operations: ${completedOps.length}`);
     summary.push(`Total Duration: ${(totalDuration / 1000).toFixed(2)}s`);
-    summary.push('');
-    summary.push('Individual Operations:');
+    summary.push("");
+    summary.push("Individual Operations:");
 
     for (const op of completedOps) {
       const duration = ((op.endTime || 0) - op.startTime) / 1000;
       summary.push(`  - ${op.name}: ${duration.toFixed(2)}s`);
     }
 
-    summary.push('');
-    summary.push('='.repeat(80));
-    summary.push('');
+    summary.push("");
+    summary.push("=".repeat(80));
+    summary.push("");
 
-    await appendFile(this.filePath, summary.join('\n'), 'utf-8');
+    await appendFile(this.filePath, summary.join("\n"), "utf-8");
   }
 
   /**

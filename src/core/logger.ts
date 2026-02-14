@@ -1,9 +1,9 @@
-import chalk from 'chalk';
+import chalk from "chalk";
 
 /**
  * Log levels in order of severity
  */
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * Map log levels to numeric values for comparison
@@ -21,7 +21,7 @@ const LOG_LEVEL_VALUES: Record<LogLevel, number> = {
 class Logger {
   private level: LogLevel;
 
-  constructor(level: LogLevel = 'info') {
+  constructor(level: LogLevel = "info") {
     this.level = level;
   }
 
@@ -36,8 +36,8 @@ class Logger {
    * Format a message with timestamp and level
    */
   private formatMessage(level: LogLevel, message: string): string {
-    const timePart = new Date().toISOString().split('T')[1];
-    const timestamp = timePart ? timePart.split('.')[0] : '00:00:00';
+    const timePart = new Date().toISOString().split("T")[1];
+    const timestamp = timePart ? timePart.split(".")[0] : "00:00:00";
     return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
   }
 
@@ -45,8 +45,8 @@ class Logger {
    * Log a debug message (gray)
    */
   debug(message: string, ...args: any[]): void {
-    if (this.shouldLog('debug')) {
-      console.log(chalk.gray(this.formatMessage('debug', message)), ...args);
+    if (this.shouldLog("debug")) {
+      console.log(chalk.gray(this.formatMessage("debug", message)), ...args);
     }
   }
 
@@ -54,8 +54,8 @@ class Logger {
    * Log an info message (blue)
    */
   info(message: string, ...args: any[]): void {
-    if (this.shouldLog('info')) {
-      console.log(chalk.blue(this.formatMessage('info', message)), ...args);
+    if (this.shouldLog("info")) {
+      console.log(chalk.blue(this.formatMessage("info", message)), ...args);
     }
   }
 
@@ -63,7 +63,7 @@ class Logger {
    * Log a success message (green)
    */
   success(message: string, ...args: any[]): void {
-    if (this.shouldLog('info')) {
+    if (this.shouldLog("info")) {
       console.log(chalk.green(`✓ ${message}`), ...args);
     }
   }
@@ -72,8 +72,8 @@ class Logger {
    * Log a warning message (yellow)
    */
   warn(message: string, ...args: any[]): void {
-    if (this.shouldLog('warn')) {
-      console.warn(chalk.yellow(this.formatMessage('warn', message)), ...args);
+    if (this.shouldLog("warn")) {
+      console.warn(chalk.yellow(this.formatMessage("warn", message)), ...args);
     }
   }
 
@@ -81,8 +81,8 @@ class Logger {
    * Log an error message (red)
    */
   error(message: string, error?: Error | unknown, ...args: any[]): void {
-    if (this.shouldLog('error')) {
-      console.error(chalk.red(this.formatMessage('error', message)), ...args);
+    if (this.shouldLog("error")) {
+      console.error(chalk.red(this.formatMessage("error", message)), ...args);
       if (error instanceof Error) {
         console.error(chalk.red(error.stack || error.message));
       } else if (error) {
@@ -95,7 +95,7 @@ class Logger {
    * Log a step in a process (cyan)
    */
   step(message: string, ...args: any[]): void {
-    if (this.shouldLog('info')) {
+    if (this.shouldLog("info")) {
       console.log(chalk.cyan(`→ ${message}`), ...args);
     }
   }
@@ -104,8 +104,8 @@ class Logger {
    * Log section header (bold white)
    */
   section(message: string): void {
-    if (this.shouldLog('info')) {
-      console.log('\n' + chalk.bold.white(message));
+    if (this.shouldLog("info")) {
+      console.log("\n" + chalk.bold.white(message));
     }
   }
 
@@ -127,7 +127,7 @@ class Logger {
 /**
  * Default logger instance configured from environment
  */
-const defaultLevel = (process.env['LOG_LEVEL'] as LogLevel) || 'info';
+const defaultLevel = (process.env["LOG_LEVEL"] as LogLevel) || "info";
 export const logger = new Logger(defaultLevel);
 
 /**

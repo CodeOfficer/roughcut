@@ -1,7 +1,7 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { config } from '../config/config-manager.js';
-import { logger } from '../core/logger.js';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { config } from "../config/config-manager.js";
+import { logger } from "../core/logger.js";
 
 const execAsync = promisify(exec);
 
@@ -19,7 +19,7 @@ export async function getAudioDuration(filePath: string): Promise<number> {
     const match = stdout.match(/Duration:\s*(\d{2}):(\d{2}):(\d{2}\.\d{2})/);
 
     if (!match || !match[1] || !match[2] || !match[3]) {
-      throw new Error('Could not parse duration from FFmpeg output');
+      throw new Error("Could not parse duration from FFmpeg output");
     }
 
     const hours = parseInt(match[1], 10);
@@ -41,7 +41,7 @@ export function formatDuration(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = (seconds % 60).toFixed(2);
 
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(5, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(5, "0")}`;
 }
 
 /**
@@ -50,7 +50,9 @@ export function formatDuration(seconds: number): string {
 export function parseDuration(duration: string): number {
   const match = duration.match(/^(\d+)s?$/);
   if (!match || !match[1]) {
-    throw new Error(`Invalid duration format: ${duration}. Expected format: "10s" or "10"`);
+    throw new Error(
+      `Invalid duration format: ${duration}. Expected format: "10s" or "10"`,
+    );
   }
   return parseInt(match[1], 10);
 }

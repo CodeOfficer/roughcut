@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { writeFile } from 'fs/promises';
-import { config } from '../config/config-manager.js';
-import { logger } from '../core/logger.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { writeFile } from "fs/promises";
+import { config } from "../config/config-manager.js";
+import { logger } from "../core/logger.js";
 
 /**
  * Gemini API client for image generation
@@ -34,18 +34,25 @@ export class GeminiClient {
     options?: {
       resolution?: string;
       aspectRatio?: string;
-    }
+    },
   ): Promise<void> {
-    logger.debug(`Generating themed placeholder image (Imagen requires Vertex AI setup)`);
+    logger.debug(
+      `Generating themed placeholder image (Imagen requires Vertex AI setup)`,
+    );
     logger.debug(`Prompt: ${prompt}`);
 
     try {
       // Create themed placeholder
-      const placeholderImage = await this.createThemedPlaceholder(prompt, options?.resolution);
+      const placeholderImage = await this.createThemedPlaceholder(
+        prompt,
+        options?.resolution,
+      );
       await writeFile(outputPath, placeholderImage);
 
       logger.debug(`Saved themed placeholder to ${outputPath}`);
-      logger.warn('Using enhanced placeholder - Vertex AI Imagen integration needed for production');
+      logger.warn(
+        "Using enhanced placeholder - Vertex AI Imagen integration needed for production",
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.error(`Failed to generate image: ${error.message}`);
@@ -57,25 +64,34 @@ export class GeminiClient {
   /**
    * Create themed cartoon placeholder based on prompt analysis
    */
-  private async createThemedPlaceholder(prompt: string, resolution?: string): Promise<Buffer> {
+  private async createThemedPlaceholder(
+    prompt: string,
+    resolution?: string,
+  ): Promise<Buffer> {
     const [width, height] = this.parseResolution(resolution);
     const lowerPrompt = prompt.toLowerCase();
 
     // Detect theme from prompt (check conclusion first since it's more specific)
-    const isConclusion = lowerPrompt.includes('complete') || lowerPrompt.includes('celebration') || lowerPrompt.includes('congratulations');
-    const isIntro = lowerPrompt.includes('tutorial') || lowerPrompt.includes('title');
+    const isConclusion =
+      lowerPrompt.includes("complete") ||
+      lowerPrompt.includes("celebration") ||
+      lowerPrompt.includes("congratulations");
+    const isIntro =
+      lowerPrompt.includes("tutorial") || lowerPrompt.includes("title");
 
-    logger.debug(`Prompt analysis: isIntro=${isIntro}, isConclusion=${isConclusion}`);
+    logger.debug(
+      `Prompt analysis: isIntro=${isIntro}, isConclusion=${isConclusion}`,
+    );
     logger.debug(`Prompt text: ${prompt.substring(0, 100)}...`);
 
     if (isConclusion) {
-      logger.debug('Creating conclusion SVG');
+      logger.debug("Creating conclusion SVG");
       return this.createConclusionSVG(width, height, prompt);
     } else if (isIntro) {
-      logger.debug('Creating intro SVG');
+      logger.debug("Creating intro SVG");
       return this.createIntroSVG(width, height, prompt);
     } else {
-      logger.debug('Creating generic placeholder');
+      logger.debug("Creating generic placeholder");
       return this.createPlaceholder(prompt, resolution);
     }
   }
@@ -83,7 +99,11 @@ export class GeminiClient {
   /**
    * Create intro/title card with cartoon sun and clouds
    */
-  private createIntroSVG(width: number, height: number, _prompt: string): Buffer {
+  private createIntroSVG(
+    width: number,
+    height: number,
+    _prompt: string,
+  ): Buffer {
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -107,10 +127,10 @@ export class GeminiClient {
 
     <!-- Sun rays -->
     <g stroke="#FFA500" stroke-width="${Math.min(width, height) * 0.01}" stroke-linecap="round">
-      <line x1="${Math.min(width, height) * -0.16}" y1="0" x2="${Math.min(width, height) * -0.20}" y2="0"/>
-      <line x1="${Math.min(width, height) * 0.16}" y1="0" x2="${Math.min(width, height) * 0.20}" y2="0"/>
-      <line x1="0" y1="${Math.min(width, height) * -0.16}" x2="0" y2="${Math.min(width, height) * -0.20}"/>
-      <line x1="0" y1="${Math.min(width, height) * 0.16}" x2="0" y2="${Math.min(width, height) * 0.20}"/>
+      <line x1="${Math.min(width, height) * -0.16}" y1="0" x2="${Math.min(width, height) * -0.2}" y2="0"/>
+      <line x1="${Math.min(width, height) * 0.16}" y1="0" x2="${Math.min(width, height) * 0.2}" y2="0"/>
+      <line x1="0" y1="${Math.min(width, height) * -0.16}" x2="0" y2="${Math.min(width, height) * -0.2}"/>
+      <line x1="0" y1="${Math.min(width, height) * 0.16}" x2="0" y2="${Math.min(width, height) * 0.2}"/>
       <line x1="${Math.min(width, height) * -0.113}" y1="${Math.min(width, height) * -0.113}" x2="${Math.min(width, height) * -0.141}" y2="${Math.min(width, height) * -0.141}"/>
       <line x1="${Math.min(width, height) * 0.113}" y1="${Math.min(width, height) * 0.113}" x2="${Math.min(width, height) * 0.141}" y2="${Math.min(width, height) * 0.141}"/>
       <line x1="${Math.min(width, height) * -0.113}" y1="${Math.min(width, height) * 0.113}" x2="${Math.min(width, height) * -0.141}" y2="${Math.min(width, height) * 0.141}"/>
@@ -126,7 +146,7 @@ export class GeminiClient {
     <path d="M ${Math.min(width, height) * -0.04} ${Math.min(width, height) * 0.02} Q 0 ${Math.min(width, height) * 0.05} ${Math.min(width, height) * 0.04} ${Math.min(width, height) * 0.02}" stroke="#8B4513" stroke-width="${Math.min(width, height) * 0.006}" fill="none" stroke-linecap="round"/>
 
     <!-- Programmer hat -->
-    <ellipse cx="0" cy="${Math.min(width, height) * -0.13}" rx="${Math.min(width, height) * 0.10}" ry="${Math.min(width, height) * 0.02}" fill="#2C3E50"/>
+    <ellipse cx="0" cy="${Math.min(width, height) * -0.13}" rx="${Math.min(width, height) * 0.1}" ry="${Math.min(width, height) * 0.02}" fill="#2C3E50"/>
     <rect x="${Math.min(width, height) * -0.08}" y="${Math.min(width, height) * -0.17}" width="${Math.min(width, height) * 0.16}" height="${Math.min(width, height) * 0.04}" fill="#34495E"/>
   </g>
 
@@ -142,12 +162,12 @@ export class GeminiClient {
     <circle cx="${Math.min(width, height) * 0.03}" cy="${Math.min(width, height) * -0.01}" r="${Math.min(width, height) * 0.008}" fill="#2C3E50"/>
 
     <!-- Smile -->
-    <path d="M ${Math.min(width, height) * 0.00} ${Math.min(width, height) * 0.01} Q ${Math.min(width, height) * 0.01} ${Math.min(width, height) * 0.02} ${Math.min(width, height) * 0.02} ${Math.min(width, height) * 0.01}" stroke="#E74C3C" stroke-width="${Math.min(width, height) * 0.003}" fill="none" stroke-linecap="round"/>
+    <path d="M ${Math.min(width, height) * 0.0} ${Math.min(width, height) * 0.01} Q ${Math.min(width, height) * 0.01} ${Math.min(width, height) * 0.02} ${Math.min(width, height) * 0.02} ${Math.min(width, height) * 0.01}" stroke="#E74C3C" stroke-width="${Math.min(width, height) * 0.003}" fill="none" stroke-linecap="round"/>
   </g>
 
   <!-- Laptop with code -->
   <g transform="translate(${width * 0.3}, ${height * 0.55})">
-    <rect x="${Math.min(width, height) * -0.08}" y="0" width="${Math.min(width, height) * 0.16}" height="${Math.min(width, height) * 0.10}" rx="${Math.min(width, height) * 0.005}" fill="#2C3E50" stroke="#34495E" stroke-width="${Math.min(width, height) * 0.003}"/>
+    <rect x="${Math.min(width, height) * -0.08}" y="0" width="${Math.min(width, height) * 0.16}" height="${Math.min(width, height) * 0.1}" rx="${Math.min(width, height) * 0.005}" fill="#2C3E50" stroke="#34495E" stroke-width="${Math.min(width, height) * 0.003}"/>
     <rect x="${Math.min(width, height) * -0.075}" y="${Math.min(width, height) * 0.01}" width="${Math.min(width, height) * 0.15}" height="${Math.min(width, height) * 0.07}" fill="#1ABC9C"/>
     <text x="0" y="${Math.min(width, height) * 0.05}" text-anchor="middle" font-family="monospace" font-size="${Math.min(width, height) * 0.015}" fill="white" font-weight="bold">&lt;/&gt;</text>
   </g>
@@ -160,13 +180,17 @@ export class GeminiClient {
   <text x="${width / 2}" y="${height * 0.9}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.015}" fill="rgba(0,0,0,0.3)" font-style="italic">Enhanced Placeholder - Vertex AI Imagen needed for production</text>
 </svg>`;
 
-    return Buffer.from(svg, 'utf-8');
+    return Buffer.from(svg, "utf-8");
   }
 
   /**
    * Create conclusion/celebration card
    */
-  private createConclusionSVG(width: number, height: number, _prompt: string): Buffer {
+  private createConclusionSVG(
+    width: number,
+    height: number,
+    _prompt: string,
+  ): Buffer {
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -194,7 +218,7 @@ export class GeminiClient {
   <!-- Jumping sun character -->
   <g transform="translate(${width * 0.35}, ${height * 0.35})">
     <!-- Sun body -->
-    <circle cx="0" cy="0" r="${Math.min(width, height) * 0.10}" fill="url(#sunGrad2)"/>
+    <circle cx="0" cy="0" r="${Math.min(width, height) * 0.1}" fill="url(#sunGrad2)"/>
 
     <!-- Sun rays -->
     <g stroke="#FFA500" stroke-width="${Math.min(width, height) * 0.01}" stroke-linecap="round">
@@ -238,7 +262,7 @@ export class GeminiClient {
   <text x="${width / 2}" y="${height * 0.15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.06}" font-weight="bold" fill="#2C3E50">Tutorial Complete!</text>
 
   <!-- Checkboxes -->
-  <g transform="translate(${width * 0.35}, ${height * 0.70})">
+  <g transform="translate(${width * 0.35}, ${height * 0.7})">
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.025}" fill="#27AE60">✓ Project Created</text>
     <text x="0" y="${Math.min(width, height) * 0.04}" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.025}" fill="#27AE60">✓ Dependencies Installed</text>
     <text x="0" y="${Math.min(width, height) * 0.08}" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.025}" fill="#27AE60">✓ Server Tested</text>
@@ -250,13 +274,16 @@ export class GeminiClient {
   <text x="${width / 2}" y="${height * 0.92}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.min(width, height) * 0.015}" fill="rgba(0,0,0,0.3)" font-style="italic">Enhanced Placeholder - Vertex AI Imagen needed for production</text>
 </svg>`;
 
-    return Buffer.from(svg, 'utf-8');
+    return Buffer.from(svg, "utf-8");
   }
 
   /**
    * Create basic placeholder (fallback)
    */
-  private async createPlaceholder(prompt: string, resolution?: string): Promise<Buffer> {
+  private async createPlaceholder(
+    prompt: string,
+    resolution?: string,
+  ): Promise<Buffer> {
     const [width, height] = this.parseResolution(resolution);
 
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -278,15 +305,16 @@ export class GeminiClient {
   </text>
 </svg>`;
 
-    return Buffer.from(svg, 'utf-8');
+    return Buffer.from(svg, "utf-8");
   }
 
   /**
    * Parse resolution string (e.g., "1920x1080") into [width, height]
    */
   private parseResolution(resolution?: string): [number, number] {
-    const defaultResolution = resolution || config.get().geminiImageResolution || '1920x1080';
-    const parts = defaultResolution.split('x').map(Number);
+    const defaultResolution =
+      resolution || config.get().geminiImageResolution || "1920x1080";
+    const parts = defaultResolution.split("x").map(Number);
     const width = parts[0] || 1920;
     const height = parts[1] || 1080;
     return [width, height];
@@ -297,7 +325,7 @@ export class GeminiClient {
    */
   private truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength - 3) + '...';
+    return text.substring(0, maxLength - 3) + "...";
   }
 
   /**
@@ -322,7 +350,7 @@ Enhanced prompt (respond with only the enhanced prompt, no additional text):`;
       logger.debug(`Enhanced prompt: ${enhanced}`);
       return enhanced;
     } catch (error) {
-      logger.warn('Failed to enhance prompt with Gemini, using original');
+      logger.warn("Failed to enhance prompt with Gemini, using original");
       return originalPrompt;
     }
   }

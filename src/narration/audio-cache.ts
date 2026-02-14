@@ -13,11 +13,11 @@
  * }
  */
 
-import { createHash } from 'node:crypto';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { existsSync } from 'node:fs';
-import type { CharacterAlignment } from './types.js';
+import { createHash } from "node:crypto";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { existsSync } from "node:fs";
+import type { CharacterAlignment } from "./types.js";
 
 /**
  * Cache manifest entry for a single audio line
@@ -78,7 +78,7 @@ export function hashAudioText(
   voiceId: string,
   model: string,
   stability: number,
-  similarityBoost: number
+  similarityBoost: number,
 ): string {
   // Create a deterministic cache key from all parameters
   const cacheKey = JSON.stringify({
@@ -89,7 +89,7 @@ export function hashAudioText(
     similarityBoost,
   });
 
-  return createHash('sha256').update(cacheKey).digest('hex');
+  return createHash("sha256").update(cacheKey).digest("hex");
 }
 
 /**
@@ -98,17 +98,17 @@ export function hashAudioText(
 export async function loadCacheManifest(
   outputDir: string,
 ): Promise<AudioCacheManifest> {
-  const manifestPath = join(outputDir, 'manifest.json');
+  const manifestPath = join(outputDir, "manifest.json");
 
   if (!existsSync(manifestPath)) {
     return {};
   }
 
   try {
-    const content = await readFile(manifestPath, 'utf-8');
+    const content = await readFile(manifestPath, "utf-8");
     return JSON.parse(content) as AudioCacheManifest;
   } catch (error) {
-    console.warn('Failed to load audio cache manifest:', error);
+    console.warn("Failed to load audio cache manifest:", error);
     return {};
   }
 }
@@ -120,12 +120,12 @@ export async function saveCacheManifest(
   outputDir: string,
   manifest: AudioCacheManifest,
 ): Promise<void> {
-  const manifestPath = join(outputDir, 'manifest.json');
+  const manifestPath = join(outputDir, "manifest.json");
 
   // Ensure directory exists
   await mkdir(dirname(manifestPath), { recursive: true });
 
-  await writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
 }
 
 /**
@@ -141,7 +141,7 @@ export function findCachedAudio(
     return null;
   }
 
-  return slideCache.find(entry => entry.hash === hash) || null;
+  return slideCache.find((entry) => entry.hash === hash) || null;
 }
 
 /**
@@ -157,7 +157,7 @@ export function updateCacheEntry(
   }
 
   // Remove any existing entry with same hash
-  manifest[slideId] = manifest[slideId].filter(e => e.hash !== entry.hash);
+  manifest[slideId] = manifest[slideId].filter((e) => e.hash !== entry.hash);
 
   // Add new entry
   manifest[slideId].push(entry);

@@ -5,10 +5,10 @@
  * Produces final MP4 video with ElevenLabs narration
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { spawn } from 'child_process';
-import type { RevealTimeline } from '../core/types.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { spawn } from "child_process";
+import type { RevealTimeline } from "../core/types.js";
 
 // ============================================================================
 // TYPES
@@ -34,7 +34,7 @@ export interface VideoAssemblyConfig {
   audioCodec?: string;
 
   /** Video quality preset (default: medium) */
-  preset?: 'ultrafast' | 'fast' | 'medium' | 'slow' | 'veryslow';
+  preset?: "ultrafast" | "fast" | "medium" | "slow" | "veryslow";
 
   /** Constant Rate Factor for video quality (default: 23, lower = better) */
   crf?: number;
@@ -68,7 +68,7 @@ export interface VideoAssemblyResult {
  */
 export interface AssemblyProgress {
   /** Current phase */
-  phase: 'preparing' | 'encoding' | 'finalizing' | 'complete';
+  phase: "preparing" | "encoding" | "finalizing" | "complete";
 
   /** Progress percentage (0-100) */
   percentage: number;
@@ -109,7 +109,7 @@ export class RevealVideoAssembler {
 
       // Report preparing phase
       this.reportProgress({
-        phase: 'preparing',
+        phase: "preparing",
         percentage: 0,
       });
 
@@ -122,7 +122,7 @@ export class RevealVideoAssembler {
 
       // Report encoding phase
       this.reportProgress({
-        phase: 'encoding',
+        phase: "encoding",
         percentage: 10,
       });
 
@@ -131,7 +131,7 @@ export class RevealVideoAssembler {
 
       // Report finalizing phase
       this.reportProgress({
-        phase: 'finalizing',
+        phase: "finalizing",
         percentage: 95,
       });
 
@@ -140,7 +140,7 @@ export class RevealVideoAssembler {
 
       // Report complete
       this.reportProgress({
-        phase: 'complete',
+        phase: "complete",
         percentage: 100,
       });
 
@@ -169,12 +169,12 @@ export class RevealVideoAssembler {
     inputVideoPath: string,
     timeline: RevealTimeline,
     audioBaseDir: string,
-    outputPath: string
+    outputPath: string,
   ): Promise<VideoAssemblyResult> {
     try {
       // Try to load recorded timestamps from recording phase
       const outputDir = path.dirname(audioBaseDir);
-      const timestampsPath = path.join(outputDir, 'recording-timeline.json');
+      const timestampsPath = path.join(outputDir, "recording-timeline.json");
       let recordedTimestamps: Array<{
         slideId: string;
         slideIndex: number;
@@ -183,7 +183,7 @@ export class RevealVideoAssembler {
       }> | null = null;
 
       try {
-        const timestampsData = await fs.readFile(timestampsPath, 'utf8');
+        const timestampsData = await fs.readFile(timestampsPath, "utf8");
         recordedTimestamps = JSON.parse(timestampsData);
         console.log(`✅ Using recorded timestamps from: ${timestampsPath}`);
       } catch (error) {
@@ -191,12 +191,12 @@ export class RevealVideoAssembler {
       }
 
       // Create combined audio file with timestamps
-      const audioPath = path.join(audioBaseDir, 'combined-audio.mp3');
+      const audioPath = path.join(audioBaseDir, "combined-audio.mp3");
       await this.concatenateSlideAudioWithTimestamps(
         timeline,
         audioBaseDir,
         audioPath,
-        recordedTimestamps
+        recordedTimestamps,
       );
 
       // Assemble video with combined audio
@@ -227,35 +227,35 @@ export class RevealVideoAssembler {
       inputVideoPath,
       audioPath,
       outputPath,
-      videoCodec = 'libx264',
-      audioCodec = 'aac',
-      preset = 'medium',
+      videoCodec = "libx264",
+      audioCodec = "aac",
+      preset = "medium",
       crf = 23,
-      audioBitrate = '192k',
+      audioBitrate = "192k",
     } = config;
 
     return [
-      'ffmpeg',
-      '-y', // Overwrite output file
-      '-i',
+      "ffmpeg",
+      "-y", // Overwrite output file
+      "-i",
       inputVideoPath, // Input video
-      '-i',
+      "-i",
       audioPath, // Input audio
-      '-c:v',
+      "-c:v",
       videoCodec, // Video codec
-      '-preset',
+      "-preset",
       preset, // Encoding preset
-      '-crf',
+      "-crf",
       String(crf), // Quality
-      '-c:a',
+      "-c:a",
       audioCodec, // Audio codec
-      '-b:a',
+      "-b:a",
       audioBitrate, // Audio bitrate
-      '-map',
-      '0:v:0', // Take video from first input
-      '-map',
-      '1:a:0', // Take audio from second input
-      '-shortest', // Match shortest stream duration
+      "-map",
+      "0:v:0", // Take video from first input
+      "-map",
+      "1:a:0", // Take audio from second input
+      "-shortest", // Match shortest stream duration
       outputPath,
     ];
   }
@@ -269,26 +269,31 @@ export class RevealVideoAssembler {
    */
   private async executeFFmpeg(
     command: string[],
-    _config: VideoAssemblyConfig
+    _config: VideoAssemblyConfig,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const [cmd, ...args] = command;
       if (!cmd) {
-        reject(new Error('FFmpeg command is empty'));
+        reject(new Error("FFmpeg command is empty"));
         return;
       }
 
       const ffmpeg = spawn(cmd, args, { shell: false });
 
-      let stderr = '';
+      let stderr = "";
 
       if (ffmpeg.stderr) {
-        ffmpeg.stderr.on('data', (data: Buffer) => {
+        ffmpeg.stderr.on("data", (data: Buffer) => {
           stderr += data.toString();
 
           // Parse FFmpeg progress output
           const progressMatch = stderr.match(/time=(\d{2}):(\d{2}):(\d{2})/);
-          if (progressMatch && progressMatch[1] && progressMatch[2] && progressMatch[3]) {
+          if (
+            progressMatch &&
+            progressMatch[1] &&
+            progressMatch[2] &&
+            progressMatch[3]
+          ) {
             const hours = parseInt(progressMatch[1], 10);
             const minutes = parseInt(progressMatch[2], 10);
             const seconds = parseInt(progressMatch[3], 10);
@@ -298,14 +303,14 @@ export class RevealVideoAssembler {
             // For now, just report encoding phase with increasing percentage
             const percentage = Math.min(90, 10 + totalSeconds * 2);
             this.reportProgress({
-              phase: 'encoding',
+              phase: "encoding",
               percentage,
             });
           }
         });
       }
 
-      ffmpeg.on('close', (code) => {
+      ffmpeg.on("close", (code) => {
         if (code === 0) {
           resolve();
         } else {
@@ -313,7 +318,7 @@ export class RevealVideoAssembler {
         }
       });
 
-      ffmpeg.on('error', (error) => {
+      ffmpeg.on("error", (error) => {
         reject(new Error(`FFmpeg error: ${error.message}`));
       });
     });
@@ -340,7 +345,7 @@ export class RevealVideoAssembler {
       slideIndex: number;
       audioStartTime: number;
       audioDuration: number;
-    }> | null
+    }> | null,
   ): Promise<void> {
     // Build audio segments
     const segments: Array<{
@@ -355,12 +360,15 @@ export class RevealVideoAssembler {
       if (!slide || !slide.audioPath) continue;
 
       const audioPath = path.join(audioBaseDir, path.basename(slide.audioPath));
-      const exists = await fs.access(audioPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(audioPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (exists) {
         // Find recorded timestamp for this slide
         const recordedTime = recordedTimestamps?.find(
-          (t) => t.slideId === slide.slideId
+          (t) => t.slideId === slide.slideId,
         );
 
         const seg: {
@@ -383,7 +391,7 @@ export class RevealVideoAssembler {
     }
 
     if (segments.length === 0) {
-      throw new Error('No audio files found for concatenation');
+      throw new Error("No audio files found for concatenation");
     }
 
     // Build FFmpeg filter based on whether we have recorded timestamps
@@ -392,22 +400,34 @@ export class RevealVideoAssembler {
 
     if (recordedTimestamps) {
       // Use EXACT recorded timestamps for perfect sync
-      console.log('Building combined audio with recorded timestamps:');
+      console.log("Building combined audio with recorded timestamps:");
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i]!;
-        inputs.push('-i', segment.audioPath);
+        inputs.push("-i", segment.audioPath);
 
         const expectedStart = segment.recordedStartTime || 0;
-        const actualStart = i === 0 ? 0 : segments[i - 1]!.recordedStartTime || 0;
-        const silenceDuration = i === 0 ? expectedStart : expectedStart - actualStart - timeline.slides[i - 1]!.audioDuration;
+        const actualStart =
+          i === 0 ? 0 : segments[i - 1]!.recordedStartTime || 0;
+        const silenceDuration =
+          i === 0
+            ? expectedStart
+            : expectedStart -
+              actualStart -
+              timeline.slides[i - 1]!.audioDuration;
 
-        console.log(`  Slide ${i + 1}: ${silenceDuration.toFixed(3)}s silence + audio`);
+        console.log(
+          `  Slide ${i + 1}: ${silenceDuration.toFixed(3)}s silence + audio`,
+        );
 
         if (silenceDuration > 0.001) {
           // Add silence before this slide's audio
-          filterParts.push(`aevalsrc=0:d=${silenceDuration.toFixed(3)}[silence${i}]`);
+          filterParts.push(
+            `aevalsrc=0:d=${silenceDuration.toFixed(3)}[silence${i}]`,
+          );
           filterParts.push(`[${i}:a]anull[audio${i}]`);
-          filterParts.push(`[silence${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`);
+          filterParts.push(
+            `[silence${i}][audio${i}]concat=n=2:v=0:a=1[seg${i}]`,
+          );
         } else {
           // No silence needed
           filterParts.push(`[${i}:a]anull[seg${i}]`);
@@ -415,11 +435,11 @@ export class RevealVideoAssembler {
       }
     } else {
       // Fallback: Use fixed navigation delay
-      console.log('Building combined audio with fixed delays (no timestamps):');
+      console.log("Building combined audio with fixed delays (no timestamps):");
       const NAVIGATION_DELAY = 0.35;
 
       for (let i = 0; i < segments.length; i++) {
-        inputs.push('-i', segments[i]!.audioPath);
+        inputs.push("-i", segments[i]!.audioPath);
 
         filterParts.push(`aevalsrc=0:d=${NAVIGATION_DELAY}[nav${i}]`);
         filterParts.push(`[${i}:a]anull[audio${i}]`);
@@ -428,28 +448,28 @@ export class RevealVideoAssembler {
     }
 
     // Concatenate all segments
-    const concatInputs = segments.map((_, i) => `[seg${i}]`).join('');
+    const concatInputs = segments.map((_, i) => `[seg${i}]`).join("");
     const concatFilter = `${concatInputs}concat=n=${segments.length}:v=0:a=1[out]`;
     filterParts.push(concatFilter);
 
     // Build complete filter_complex
-    const filterComplex = filterParts.join(';');
+    const filterComplex = filterParts.join(";");
 
     // Execute FFmpeg with filter
     const command = [
-      'ffmpeg',
-      '-y',
+      "ffmpeg",
+      "-y",
       ...inputs,
-      '-filter_complex',
+      "-filter_complex",
       filterComplex,
-      '-map',
-      '[out]',
+      "-map",
+      "[out]",
       outputPath,
     ];
 
     await this.executeFFmpeg(command, {
-      inputVideoPath: '',
-      audioPath: '',
+      inputVideoPath: "",
+      audioPath: "",
       outputPath,
     });
   }
@@ -499,13 +519,13 @@ export class RevealVideoAssembler {
    */
   async checkFFmpegAvailable(): Promise<boolean> {
     return new Promise((resolve) => {
-      const ffmpeg = spawn('ffmpeg', ['-version']);
+      const ffmpeg = spawn("ffmpeg", ["-version"]);
 
-      ffmpeg.on('close', (code) => {
+      ffmpeg.on("close", (code) => {
         resolve(code === 0);
       });
 
-      ffmpeg.on('error', () => {
+      ffmpeg.on("error", () => {
         resolve(false);
       });
     });
@@ -521,38 +541,40 @@ export class RevealVideoAssembler {
     format: string;
   }> {
     return new Promise((resolve, reject) => {
-      const ffprobe = spawn('ffprobe', [
-        '-v',
-        'quiet',
-        '-print_format',
-        'json',
-        '-show_format',
-        '-show_streams',
+      const ffprobe = spawn("ffprobe", [
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_format",
+        "-show_streams",
         videoPath,
       ]);
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      ffprobe.stdout.on('data', (data: Buffer) => {
+      ffprobe.stdout.on("data", (data: Buffer) => {
         stdout += data.toString();
       });
 
-      ffprobe.stderr.on('data', (data: Buffer) => {
+      ffprobe.stderr.on("data", (data: Buffer) => {
         stderr += data.toString();
       });
 
-      ffprobe.on('close', (code) => {
+      ffprobe.on("close", (code) => {
         if (code === 0) {
           try {
             const data = JSON.parse(stdout);
-            const videoStream = data.streams.find((s: any) => s.codec_type === 'video');
+            const videoStream = data.streams.find(
+              (s: any) => s.codec_type === "video",
+            );
 
             resolve({
               duration: parseFloat(data.format.duration) || 0,
               width: videoStream?.width || 0,
               height: videoStream?.height || 0,
-              format: data.format.format_name || 'unknown',
+              format: data.format.format_name || "unknown",
             });
           } catch (error) {
             reject(new Error(`Failed to parse FFprobe output: ${error}`));
@@ -562,7 +584,7 @@ export class RevealVideoAssembler {
         }
       });
 
-      ffprobe.on('error', (error) => {
+      ffprobe.on("error", (error) => {
         reject(new Error(`FFprobe error: ${error.message}`));
       });
     });

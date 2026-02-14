@@ -1,14 +1,18 @@
-import { writeFile } from 'fs/promises';
-import { config } from '../config/config-manager.js';
-import { logger } from '../core/logger.js';
-import type { ElevenLabsTextToSpeechRequest, AudioWithTimestampsResponse, CharacterAlignment } from './types.js';
+import { writeFile } from "fs/promises";
+import { config } from "../config/config-manager.js";
+import { logger } from "../core/logger.js";
+import type {
+  ElevenLabsTextToSpeechRequest,
+  AudioWithTimestampsResponse,
+  CharacterAlignment,
+} from "./types.js";
 
 /**
  * ElevenLabs API client for text-to-speech generation
  */
 export class ElevenLabsClient {
   private apiKey: string;
-  private baseUrl = 'https://api.elevenlabs.io/v1';
+  private baseUrl = "https://api.elevenlabs.io/v1";
 
   constructor(apiKey?: string) {
     this.apiKey = apiKey || config.requireElevenLabs().apiKey;
@@ -25,12 +29,17 @@ export class ElevenLabsClient {
       model?: string;
       stability?: number;
       similarityBoost?: number;
-    }
-  ): Promise<{ alignment?: CharacterAlignment; normalizedAlignment?: CharacterAlignment; durationSeconds: number }> {
+    },
+  ): Promise<{
+    alignment?: CharacterAlignment;
+    normalizedAlignment?: CharacterAlignment;
+    durationSeconds: number;
+  }> {
     const elevenLabsConfig = config.requireElevenLabs();
     const model = options?.model || elevenLabsConfig.model;
     const stability = options?.stability ?? elevenLabsConfig.stability;
-    const similarityBoost = options?.similarityBoost ?? elevenLabsConfig.similarityBoost;
+    const similarityBoost =
+      options?.similarityBoost ?? elevenLabsConfig.similarityBoost;
 
     logger.debug(`Generating speech with voice ${voiceId}, model ${model}`);
 
@@ -47,36 +56,45 @@ export class ElevenLabsClient {
       const response = await fetch(
         `${this.baseUrl}/text-to-speech/${voiceId}/with-timestamps`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'xi-api-key': this.apiKey,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "xi-api-key": this.apiKey,
           },
           body: JSON.stringify(requestBody),
-        }
+        },
       );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`ElevenLabs API error (${response.status}): ${errorText}`);
+        throw new Error(
+          `ElevenLabs API error (${response.status}): ${errorText}`,
+        );
       }
 
       // Parse JSON response with timestamps
-      const data = await response.json() as AudioWithTimestampsResponse;
+      const data = (await response.json()) as AudioWithTimestampsResponse;
 
       // Decode base64 audio
-      const audioBuffer = Buffer.from(data.audio_base64, 'base64');
+      const audioBuffer = Buffer.from(data.audio_base64, "base64");
 
       // Save to file
       await writeFile(outputPath, audioBuffer);
 
       // Calculate duration from alignment data
-      const durationSeconds = data.alignment?.character_end_times_seconds?.slice(-1)[0] || 0;
+      const durationSeconds =
+        data.alignment?.character_end_times_seconds?.slice(-1)[0] || 0;
 
-      logger.debug(`Saved audio to ${outputPath} (${audioBuffer.byteLength} bytes, ${durationSeconds.toFixed(2)}s)`);
+      logger.debug(
+        `Saved audio to ${outputPath} (${audioBuffer.byteLength} bytes, ${durationSeconds.toFixed(2)}s)`,
+      );
 
-      const result: { alignment?: CharacterAlignment; normalizedAlignment?: CharacterAlignment; durationSeconds: number } = {
+      const result: {
+        alignment?: CharacterAlignment;
+        normalizedAlignment?: CharacterAlignment;
+        durationSeconds: number;
+      } = {
         durationSeconds,
       };
 
@@ -104,7 +122,7 @@ export class ElevenLabsClient {
     try {
       const response = await fetch(`${this.baseUrl}/voices`, {
         headers: {
-          'xi-api-key': this.apiKey,
+          "xi-api-key": this.apiKey,
         },
       });
 
@@ -112,10 +130,10 @@ export class ElevenLabsClient {
         throw new Error(`Failed to fetch voices: ${response.status}`);
       }
 
-      const data = await response.json() as { voices?: any[] };
+      const data = (await response.json()) as { voices?: any[] };
       return data.voices || [];
     } catch (error) {
-      logger.error('Failed to fetch voices', error);
+      logger.error("Failed to fetch voices", error);
       throw error;
     }
   }

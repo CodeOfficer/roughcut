@@ -7,36 +7,36 @@
  * Context where directive can be used
  */
 export enum DirectiveContext {
-  FRONTMATTER = 'frontmatter',
-  SLIDE = 'slide',
-  INLINE = 'inline',
+  FRONTMATTER = "frontmatter",
+  SLIDE = "slide",
+  INLINE = "inline",
 }
 
 /**
  * Value type for directive validation
  */
 export enum DirectiveValueType {
-  STRING = 'string',
-  DURATION = 'duration',
-  COLOR = 'color',
-  ENUM = 'enum',
-  URL = 'url',
-  PROMPT = 'prompt',
-  VOICE_ID = 'voice_id',
-  RESOLUTION = 'resolution',
-  MULTILINE_TEXT = 'multiline_text',
-  MULTILINE_LIST = 'multiline_list',
-  INLINE_MARKER = 'inline_marker',
-  MARKER = 'marker', // Phase 3: Directive marker with no value (e.g., @vertical-slide:)
+  STRING = "string",
+  DURATION = "duration",
+  COLOR = "color",
+  ENUM = "enum",
+  URL = "url",
+  PROMPT = "prompt",
+  VOICE_ID = "voice_id",
+  RESOLUTION = "resolution",
+  MULTILINE_TEXT = "multiline_text",
+  MULTILINE_LIST = "multiline_list",
+  INLINE_MARKER = "inline_marker",
+  MARKER = "marker", // Phase 3: Directive marker with no value (e.g., @vertical-slide:)
 }
 
 /**
  * Format specification for directive (single-line vs multi-line)
  */
 export enum DirectiveFormat {
-  SINGLE_LINE = 'single_line', // @directive: value
-  MULTI_LINE = 'multi_line', // Multiple @directive: lines
-  INLINE = 'inline', // @directive in content (e.g., @fragment)
+  SINGLE_LINE = "single_line", // @directive: value
+  MULTI_LINE = "multi_line", // Multiple @directive: lines
+  INLINE = "inline", // @directive in content (e.g., @fragment)
 }
 
 /**
@@ -82,253 +82,270 @@ export const DIRECTIVE_REGISTRY: DirectiveDefinition[] = [
   // FRONTMATTER DIRECTIVES
   // ========================================================================
   {
-    name: 'title',
+    name: "title",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.STRING,
     required: true,
-    description: 'Presentation title',
+    description: "Presentation title",
     example: 'title: "My Awesome Presentation"',
   },
   {
-    name: 'theme',
+    name: "theme",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.ENUM,
     validValues: [
-      'black',
-      'white',
-      'league',
-      'beige',
-      'sky',
-      'night',
-      'serif',
-      'simple',
-      'solarized',
-      'blood',
-      'moon',
-      'dracula',
+      "black",
+      "white",
+      "league",
+      "beige",
+      "sky",
+      "night",
+      "serif",
+      "simple",
+      "solarized",
+      "blood",
+      "moon",
+      "dracula",
     ],
     required: true,
-    description: 'RevealJS theme',
-    example: 'theme: dracula',
+    description: "RevealJS theme",
+    example: "theme: dracula",
   },
   {
-    name: 'voice',
+    name: "voice",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.VOICE_ID,
     required: false,
-    description: 'ElevenLabs voice ID for TTS narration',
-    example: 'voice: adam',
-    notes: 'Falls back to ELEVENLABS_VOICE_ID environment variable if not provided',
+    description: "ElevenLabs voice ID for TTS narration",
+    example: "voice: adam",
+    notes:
+      "Falls back to ELEVENLABS_VOICE_ID environment variable if not provided",
   },
   {
-    name: 'resolution',
+    name: "resolution",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.RESOLUTION,
     required: false,
-    defaultValue: '1920x1080',
-    description: 'Video output resolution',
-    example: 'resolution: 1920x1080',
+    defaultValue: "1920x1080",
+    description: "Video output resolution",
+    example: "resolution: 1920x1080",
   },
   {
-    name: 'preset',
+    name: "preset",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.ENUM,
-    validValues: ['video-recording', 'manual-presentation', 'auto-demo', 'speaker-mode'],
+    validValues: [
+      "video-recording",
+      "manual-presentation",
+      "auto-demo",
+      "speaker-mode",
+    ],
     required: false,
-    description: 'RevealJS configuration preset (Phase 2)',
-    example: 'preset: manual-presentation',
-    notes: 'Applies a preset configuration optimized for specific use cases. Can be overridden by config section.',
+    description: "RevealJS configuration preset (Phase 2)",
+    example: "preset: manual-presentation",
+    notes:
+      "Applies a preset configuration optimized for specific use cases. Can be overridden by config section.",
   },
   {
-    name: 'config',
+    name: "config",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.MULTI_LINE,
     valueType: DirectiveValueType.STRING,
     required: false,
-    description: 'RevealJS configuration overrides (nested YAML)',
+    description: "RevealJS configuration overrides (nested YAML)",
     example: `config:
   controls: true
   progress: false
   slideNumber: 'c/t'`,
-    notes: 'Phase 2: Supports 60+ RevealJS options. See docs/architecture/revealjs/CONFIGURATION.md',
+    notes:
+      "Phase 2: Supports 60+ RevealJS options. See docs/architecture/revealjs/CONFIGURATION.md",
   },
   {
-    name: 'customCSS',
+    name: "customCSS",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.STRING,
     required: false,
-    description: 'Path to external custom CSS file (relative to markdown file)',
-    example: 'customCSS: ./styles/custom.css',
-    notes: 'Phase 3: Custom CSS Injection. Path is relative to presentation markdown file.',
+    description: "Path to external custom CSS file (relative to markdown file)",
+    example: "customCSS: ./styles/custom.css",
+    notes:
+      "Phase 3: Custom CSS Injection. Path is relative to presentation markdown file.",
   },
   {
-    name: 'customStyles',
+    name: "customStyles",
     context: DirectiveContext.FRONTMATTER,
     format: DirectiveFormat.MULTI_LINE,
     valueType: DirectiveValueType.MULTILINE_TEXT,
     required: false,
-    description: 'Inline custom CSS styles',
+    description: "Inline custom CSS styles",
     example: `customStyles: |
   .custom-highlight { color: #ff0; }
   .special-slide { background: linear-gradient(to right, #667eea 0%, #764ba2 100%); }`,
-    notes: 'Phase 3: Custom CSS Injection. Use YAML multiline syntax (|) for multiple lines.',
+    notes:
+      "Phase 3: Custom CSS Injection. Use YAML multiline syntax (|) for multiple lines.",
   },
 
   // ========================================================================
   // SLIDE-LEVEL DIRECTIVES (Single-line)
   // ========================================================================
   {
-    name: 'duration',
+    name: "duration",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.DURATION,
     required: false,
-    description: 'Expected slide duration in seconds or milliseconds',
-    example: '@duration: 8s',
-    notes: 'Supports formats: 5s, 500ms, 5.5s',
+    description: "Expected slide duration in seconds or milliseconds",
+    example: "@duration: 8s",
+    notes: "Supports formats: 5s, 500ms, 5.5s",
   },
   {
-    name: 'pause-after',
+    name: "pause-after",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.DURATION,
     required: false,
-    defaultValue: '1s',
-    description: 'Pause duration after audio ends before advancing to next slide',
-    example: '@pause-after: 2s',
+    defaultValue: "1s",
+    description:
+      "Pause duration after audio ends before advancing to next slide",
+    example: "@pause-after: 2s",
   },
   {
-    name: 'transition',
+    name: "transition",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.ENUM,
-    validValues: ['none', 'fade', 'slide', 'convex', 'concave', 'zoom'],
+    validValues: ["none", "fade", "slide", "convex", "concave", "zoom"],
     required: false,
-    description: 'RevealJS transition effect for this slide',
-    example: '@transition: zoom',
+    description: "RevealJS transition effect for this slide",
+    example: "@transition: zoom",
   },
   {
-    name: 'background',
+    name: "background",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.COLOR,
     required: false,
-    description: 'Background color, gradient, or image URL for this slide',
-    example: '@background: #1e1e1e',
-    notes: 'Supports hex colors, rgb(), gradients, and image URLs',
+    description: "Background color, gradient, or image URL for this slide",
+    example: "@background: #1e1e1e",
+    notes: "Supports hex colors, rgb(), gradients, and image URLs",
   },
   {
-    name: 'image-prompt',
+    name: "image-prompt",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.PROMPT,
     required: false,
-    description: 'AI image generation prompt (uses Gemini)',
-    example: '@image-prompt: A futuristic workspace with holographic displays',
-    notes: 'Requires GEMINI_API_KEY environment variable',
+    description: "AI image generation prompt (uses Gemini)",
+    example: "@image-prompt: A futuristic workspace with holographic displays",
+    notes: "Requires GEMINI_API_KEY environment variable",
   },
   {
-    name: 'notes',
+    name: "notes",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.STRING,
     required: false,
-    description: 'Speaker notes for this slide',
-    example: '@notes: Remember to emphasize the key benefits here',
+    description: "Speaker notes for this slide",
+    example: "@notes: Remember to emphasize the key benefits here",
   },
 
   // ========================================================================
   // SLIDE-LEVEL DIRECTIVES (Multi-line)
   // ========================================================================
   {
-    name: 'audio',
+    name: "audio",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.MULTI_LINE,
     valueType: DirectiveValueType.MULTILINE_TEXT,
     required: false,
-    description: 'Audio narration text with optional pause markers',
-    example: '@audio: This is the first sentence.\n@audio: This is the second sentence [2s] with a pause.\n@audio: This is the third sentence.',
-    notes: 'Multi-line format recommended for TTS caching. Pause markers: [1s], [2.5s], etc.',
+    description: "Audio narration text with optional pause markers",
+    example:
+      "@audio: This is the first sentence.\n@audio: This is the second sentence [2s] with a pause.\n@audio: This is the third sentence.",
+    notes:
+      "Multi-line format recommended for TTS caching. Pause markers: [1s], [2.5s], etc.",
   },
   {
-    name: 'playwright',
+    name: "playwright",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.MULTI_LINE,
     valueType: DirectiveValueType.MULTILINE_LIST,
     required: false,
-    description: 'Browser automation instructions',
-    example: '@playwright:\n- Action: Click button#submit\n- Wait 2s\n- Screenshot: form-submitted',
-    notes: 'Supports three instruction types: Action, Wait, Screenshot',
+    description: "Browser automation instructions",
+    example:
+      "@playwright:\n- Action: Click button#submit\n- Wait 2s\n- Screenshot: form-submitted",
+    notes: "Supports three instruction types: Action, Wait, Screenshot",
   },
 
   // ========================================================================
   // INLINE DIRECTIVES
   // ========================================================================
   {
-    name: 'fragment',
+    name: "fragment",
     context: DirectiveContext.INLINE,
     format: DirectiveFormat.INLINE,
     valueType: DirectiveValueType.INLINE_MARKER,
     required: false,
-    description: 'Progressive disclosure marker for list items',
-    example: '- Item one @fragment\n- Item two @fragment +2s',
-    notes: 'Must be used on list items. Supports timing offset: @fragment +2s',
+    description: "Progressive disclosure marker for list items",
+    example: "- Item one @fragment\n- Item two @fragment +2s",
+    notes: "Must be used on list items. Supports timing offset: @fragment +2s",
   },
 
   // ========================================================================
   // SLIDE STRUCTURE DIRECTIVES (Phase 3: Advanced Features)
   // ========================================================================
   {
-    name: 'vertical-slide',
+    name: "vertical-slide",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.MARKER,
     required: false,
-    description: 'Marks slide as vertical (2D navigation with up/down arrows)',
-    example: '@vertical-slide:',
-    notes: 'Phase 3: Enables 2D navigation. Vertical slides group under previous horizontal slide. Use arrow keys: left/right for horizontal, up/down for vertical.',
+    description: "Marks slide as vertical (2D navigation with up/down arrows)",
+    example: "@vertical-slide:",
+    notes:
+      "Phase 3: Enables 2D navigation. Vertical slides group under previous horizontal slide. Use arrow keys: left/right for horizontal, up/down for vertical.",
   },
 
   // ========================================================================
   // VIDEO BACKGROUND DIRECTIVES (Phase 3: Advanced Features)
   // ========================================================================
   {
-    name: 'background-video',
+    name: "background-video",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.STRING,
     required: false,
-    description: 'Video background for slide (local path or URL)',
-    example: '@background-video: ./assets/background.mp4',
-    notes: 'Phase 3: Supports .mp4, .webm, .ogg formats. Can be local path or URL.',
+    description: "Video background for slide (local path or URL)",
+    example: "@background-video: ./assets/background.mp4",
+    notes:
+      "Phase 3: Supports .mp4, .webm, .ogg formats. Can be local path or URL.",
   },
   {
-    name: 'background-video-loop',
+    name: "background-video-loop",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.ENUM,
-    validValues: ['true', 'false'],
+    validValues: ["true", "false"],
     required: false,
-    description: 'Loop video background',
-    example: '@background-video-loop: true',
-    notes: 'Phase 3: Set to true to loop video continuously.',
+    description: "Loop video background",
+    example: "@background-video-loop: true",
+    notes: "Phase 3: Set to true to loop video continuously.",
   },
   {
-    name: 'background-video-muted',
+    name: "background-video-muted",
     context: DirectiveContext.SLIDE,
     format: DirectiveFormat.SINGLE_LINE,
     valueType: DirectiveValueType.ENUM,
-    validValues: ['true', 'false'],
+    validValues: ["true", "false"],
     required: false,
-    description: 'Mute video background audio',
-    example: '@background-video-muted: true',
-    notes: 'Phase 3: Set to true to mute video audio (recommended when using @audio narration).',
+    description: "Mute video background audio",
+    example: "@background-video-muted: true",
+    notes:
+      "Phase 3: Set to true to mute video audio (recommended when using @audio narration).",
   },
 ];
 
@@ -341,7 +358,7 @@ export const VALUE_VALIDATORS: Record<
 > = {
   [DirectiveValueType.STRING]: (value: string) => {
     if (value.trim().length === 0) {
-      return { valid: false, error: 'Value cannot be empty' };
+      return { valid: false, error: "Value cannot be empty" };
     }
     return { valid: true };
   },
@@ -351,7 +368,8 @@ export const VALUE_VALIDATORS: Record<
     if (!match) {
       return {
         valid: false,
-        error: 'Invalid duration format. Use "5s" or "500ms" (supports decimals like "2.5s")',
+        error:
+          'Invalid duration format. Use "5s" or "500ms" (supports decimals like "2.5s")',
       };
     }
     return { valid: true };
@@ -379,20 +397,20 @@ export const VALUE_VALIDATORS: Record<
 
     // CSS named colors (basic set)
     const namedColors = [
-      'black',
-      'white',
-      'red',
-      'green',
-      'blue',
-      'yellow',
-      'cyan',
-      'magenta',
-      'gray',
-      'orange',
-      'purple',
-      'pink',
-      'brown',
-      'transparent',
+      "black",
+      "white",
+      "red",
+      "green",
+      "blue",
+      "yellow",
+      "cyan",
+      "magenta",
+      "gray",
+      "orange",
+      "purple",
+      "pink",
+      "brown",
+      "transparent",
     ];
     if (namedColors.includes(value.toLowerCase())) {
       return { valid: true };
@@ -400,7 +418,8 @@ export const VALUE_VALIDATORS: Record<
 
     return {
       valid: false,
-      error: 'Invalid color format. Use hex (#1e1e1e), rgb(r,g,b), CSS color name, gradient, image URL, or local file path (./image.png)',
+      error:
+        "Invalid color format. Use hex (#1e1e1e), rgb(r,g,b), CSS color name, gradient, image URL, or local file path (./image.png)",
     };
   },
 
@@ -416,7 +435,7 @@ export const VALUE_VALIDATORS: Record<
     } catch {
       return {
         valid: false,
-        error: 'Invalid URL format. Must be a valid http:// or https:// URL',
+        error: "Invalid URL format. Must be a valid http:// or https:// URL",
       };
     }
   },
@@ -425,7 +444,8 @@ export const VALUE_VALIDATORS: Record<
     if (value.trim().length < 10) {
       return {
         valid: false,
-        error: 'Image prompt must be at least 10 characters (be descriptive for better AI results)',
+        error:
+          "Image prompt must be at least 10 characters (be descriptive for better AI results)",
       };
     }
     return { valid: true };
@@ -436,13 +456,14 @@ export const VALUE_VALIDATORS: Record<
     // - Short names like "adam", "bella"
     // - Long IDs like "EXAVITQu4vr4xnSDxMaL"
     if (value.trim().length === 0) {
-      return { valid: false, error: 'Voice ID cannot be empty' };
+      return { valid: false, error: "Voice ID cannot be empty" };
     }
     // Basic validation: alphanumeric
     if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
       return {
         valid: false,
-        error: 'Invalid voice ID format. Must be alphanumeric (can include - and _)',
+        error:
+          "Invalid voice ID format. Must be alphanumeric (can include - and _)",
       };
     }
     return { valid: true };
@@ -461,7 +482,7 @@ export const VALUE_VALIDATORS: Record<
     if (width < 640 || height < 480) {
       return {
         valid: false,
-        error: 'Resolution too small. Minimum is 640x480',
+        error: "Resolution too small. Minimum is 640x480",
       };
     }
     return { valid: true };
@@ -469,14 +490,14 @@ export const VALUE_VALIDATORS: Record<
 
   [DirectiveValueType.MULTILINE_TEXT]: (value: string) => {
     if (value.trim().length === 0) {
-      return { valid: false, error: 'Multi-line text cannot be empty' };
+      return { valid: false, error: "Multi-line text cannot be empty" };
     }
     return { valid: true };
   },
 
   [DirectiveValueType.MULTILINE_LIST]: (value: string) => {
     if (value.trim().length === 0) {
-      return { valid: false, error: 'Multi-line list cannot be empty' };
+      return { valid: false, error: "Multi-line list cannot be empty" };
     }
     return { valid: true };
   },
@@ -502,7 +523,8 @@ export const VALUE_VALIDATORS: Record<
     if (value.trim().length > 0) {
       return {
         valid: false,
-        error: 'Marker directive should not have a value. Use "@vertical-slide:" without any value.',
+        error:
+          'Marker directive should not have a value. Use "@vertical-slide:" without any value.',
       };
     }
     return { valid: true };
@@ -514,22 +536,28 @@ export const VALUE_VALIDATORS: Record<
  */
 export function getDirectiveDefinition(
   name: string,
-  context: DirectiveContext
+  context: DirectiveContext,
 ): DirectiveDefinition | undefined {
-  return DIRECTIVE_REGISTRY.find((d) => d.name === name && d.context === context);
+  return DIRECTIVE_REGISTRY.find(
+    (d) => d.name === name && d.context === context,
+  );
 }
 
 /**
  * Get all directives for a context
  */
-export function getDirectivesForContext(context: DirectiveContext): DirectiveDefinition[] {
+export function getDirectivesForContext(
+  context: DirectiveContext,
+): DirectiveDefinition[] {
   return DIRECTIVE_REGISTRY.filter((d) => d.context === context);
 }
 
 /**
  * Get all required directives for a context
  */
-export function getRequiredDirectives(context: DirectiveContext): DirectiveDefinition[] {
+export function getRequiredDirectives(
+  context: DirectiveContext,
+): DirectiveDefinition[] {
   return DIRECTIVE_REGISTRY.filter((d) => d.context === context && d.required);
 }
 
@@ -538,14 +566,17 @@ export function getRequiredDirectives(context: DirectiveContext): DirectiveDefin
  */
 export function validateDirectiveValue(
   directive: DirectiveDefinition,
-  value: string
+  value: string,
 ): { valid: boolean; error?: string } {
   // Check enum values first
-  if (directive.valueType === DirectiveValueType.ENUM && directive.validValues) {
+  if (
+    directive.valueType === DirectiveValueType.ENUM &&
+    directive.validValues
+  ) {
     if (!directive.validValues.includes(value)) {
       return {
         valid: false,
-        error: `Invalid value "${value}". Valid options: ${directive.validValues.join(', ')}`,
+        error: `Invalid value "${value}". Valid options: ${directive.validValues.join(", ")}`,
       };
     }
     return { valid: true };
@@ -564,7 +595,10 @@ export function validateDirectiveValue(
  * Find similar directive names (for typo suggestions)
  * Uses Levenshtein distance
  */
-export function findSimilarDirectives(name: string, context: DirectiveContext): string[] {
+export function findSimilarDirectives(
+  name: string,
+  context: DirectiveContext,
+): string[] {
   const contextDirectives = getDirectivesForContext(context);
 
   // Calculate Levenshtein distance
@@ -603,7 +637,7 @@ function levenshteinDistance(a: string, b: string): number {
         const prevRow = matrix[i - 1];
         const currentRow = matrix[i];
         const prevValue = prevRow?.[j - 1];
-        if (prevRow && currentRow && typeof prevValue === 'number') {
+        if (prevRow && currentRow && typeof prevValue === "number") {
           currentRow[j] = prevValue;
         }
       } else {
@@ -615,14 +649,14 @@ function levenshteinDistance(a: string, b: string): number {
         if (
           prevRow &&
           currentRow &&
-          typeof subst === 'number' &&
-          typeof insert === 'number' &&
-          typeof del === 'number'
+          typeof subst === "number" &&
+          typeof insert === "number" &&
+          typeof del === "number"
         ) {
           currentRow[j] = Math.min(
             subst + 1, // substitution
             insert + 1, // insertion
-            del + 1 // deletion
+            del + 1, // deletion
           );
         }
       }
@@ -631,31 +665,35 @@ function levenshteinDistance(a: string, b: string): number {
 
   const lastRow = matrix[b.length];
   const result = lastRow?.[a.length];
-  return typeof result === 'number' ? result : 0;
+  return typeof result === "number" ? result : 0;
 }
 
 /**
  * Validate pause marker syntax [Xs]
  */
-export function validatePauseMarker(marker: string): { valid: boolean; error?: string } {
+export function validatePauseMarker(marker: string): {
+  valid: boolean;
+  error?: string;
+} {
   const match = marker.match(/^\[(\d+(?:\.\d+)?)s\]$/);
   if (!match || !match[1]) {
     return {
       valid: false,
-      error: 'Invalid pause marker format. Use [1s], [2s], [2.5s], etc.',
+      error: "Invalid pause marker format. Use [1s], [2s], [2.5s], etc.",
     };
   }
   const duration = parseFloat(match[1]);
   if (duration <= 0) {
     return {
       valid: false,
-      error: 'Pause duration must be greater than 0',
+      error: "Pause duration must be greater than 0",
     };
   }
   if (duration > 30) {
     return {
       valid: false,
-      error: 'Pause duration too long (max 30 seconds). Consider splitting into separate slides.',
+      error:
+        "Pause duration too long (max 30 seconds). Consider splitting into separate slides.",
     };
   }
   return { valid: true };

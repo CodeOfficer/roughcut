@@ -3,30 +3,30 @@
  * Validates audio generation for reveal.js presentations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RevealSpeechGenerator } from '../speech.js';
-import type { RevealPresentation, RevealSlide } from '../../core/types.js';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { RevealSpeechGenerator } from "../speech.js";
+import type { RevealPresentation, RevealSlide } from "../../core/types.js";
 
 // Mock dependencies
-vi.mock('../elevenlabs.js');
-vi.mock('../../utils/timing.js');
-vi.mock('fs/promises');
-vi.mock('../../config/config-manager.js', () => ({
+vi.mock("../elevenlabs.js");
+vi.mock("../../utils/timing.js");
+vi.mock("fs/promises");
+vi.mock("../../config/config-manager.js", () => ({
   config: {
     requireElevenLabs: vi.fn().mockReturnValue({
-      apiKey: 'test-key',
-      voiceId: 'adam',
-      model: 'eleven_monolingual_v1',
+      apiKey: "test-key",
+      voiceId: "adam",
+      model: "eleven_monolingual_v1",
       stability: 0.75,
       similarityBoost: 0.75,
     }),
     get: vi.fn().mockReturnValue({
-      logLevel: 'info',
-      elevenLabsVoiceId: 'adam',
-      elevenLabsModel: 'eleven_monolingual_v1',
+      logLevel: "info",
+      elevenLabsVoiceId: "adam",
+      elevenLabsModel: "eleven_monolingual_v1",
       elevenLabsStability: 0.75,
       elevenLabsSimilarityBoost: 0.75,
-      ffmpegPath: 'ffmpeg',
+      ffmpegPath: "ffmpeg",
     }),
     load: vi.fn(),
     reset: vi.fn(),
@@ -34,11 +34,11 @@ vi.mock('../../config/config-manager.js', () => ({
 }));
 
 // Import mocked modules
-import { ElevenLabsClient } from '../elevenlabs.js';
-import { getAudioDuration } from '../../utils/timing.js';
-import { mkdir, stat } from 'fs/promises';
+import { ElevenLabsClient } from "../elevenlabs.js";
+import { getAudioDuration } from "../../utils/timing.js";
+import { mkdir, stat } from "fs/promises";
 
-describe('RevealSpeechGenerator', () => {
+describe("RevealSpeechGenerator", () => {
   let generator: RevealSpeechGenerator;
   let mockElevenLabsClient: any;
 
@@ -50,7 +50,7 @@ describe('RevealSpeechGenerator', () => {
     mockElevenLabsClient = {
       generateSpeech: vi.fn().mockResolvedValue({
         alignment: {
-          characters: ['H', 'e', 'l', 'l', 'o'],
+          characters: ["H", "e", "l", "l", "o"],
           characterStartTimesSeconds: [0, 0.1, 0.2, 0.3, 0.4],
           characterEndTimesSeconds: [0.1, 0.2, 0.3, 0.4, 0.5],
         },
@@ -74,15 +74,15 @@ describe('RevealSpeechGenerator', () => {
   // SINGLE SLIDE AUDIO GENERATION
   // ==========================================================================
 
-  describe('generateSlideAudio', () => {
-    it('should generate audio for slide with audio block', async () => {
+  describe("generateSlideAudio", () => {
+    it("should generate audio for slide with audio block", async () => {
       const slide: RevealSlide = {
-        id: 'slide-001',
+        id: "slide-001",
         index: 0,
-        content: '# Test',
+        content: "# Test",
         audio: {
-          rawText: 'Hello [2s] world',
-          cleanText: 'Hello world',
+          rawText: "Hello [2s] world",
+          cleanText: "Hello world",
           expectedDuration: null,
           pauses: [{ position: 5, durationSeconds: 2 }],
         },
@@ -97,33 +97,33 @@ describe('RevealSpeechGenerator', () => {
 
       const result = await generator.generateSlideAudio(
         slide,
-        '/output/slide-001.mp3',
-        'adam'
+        "/output/slide-001.mp3",
+        "adam",
       );
 
       // Verify ElevenLabs was called with clean text
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledWith(
-        'Hello world',
-        'adam',
-        '/output/slide-001.mp3'
+        "Hello world",
+        "adam",
+        "/output/slide-001.mp3",
       );
 
       // Verify result structure
-      expect(result.slideId).toBe('slide-001');
-      expect(result.filePath).toBe('/output/slide-001.mp3');
+      expect(result.slideId).toBe("slide-001");
+      expect(result.filePath).toBe("/output/slide-001.mp3");
       expect(result.durationSeconds).toBe(5.5);
       expect(result.sizeBytes).toBe(102400);
 
       // Verify slide's audio block was updated
       expect(slide.audio?.actualDuration).toBe(5.5);
-      expect(slide.audio?.audioPath).toBe('/output/slide-001.mp3');
+      expect(slide.audio?.audioPath).toBe("/output/slide-001.mp3");
     });
 
-    it('should throw error if slide has no audio block', async () => {
+    it("should throw error if slide has no audio block", async () => {
       const slide: RevealSlide = {
-        id: 'slide-001',
+        id: "slide-001",
         index: 0,
-        content: '# Test',
+        content: "# Test",
         audio: null,
         playwright: null,
         notes: null,
@@ -135,18 +135,18 @@ describe('RevealSpeechGenerator', () => {
       };
 
       await expect(
-        generator.generateSlideAudio(slide, '/output/slide-001.mp3', 'adam')
-      ).rejects.toThrow('has no audio block');
+        generator.generateSlideAudio(slide, "/output/slide-001.mp3", "adam"),
+      ).rejects.toThrow("has no audio block");
     });
 
-    it('should throw error if audio text is empty', async () => {
+    it("should throw error if audio text is empty", async () => {
       const slide: RevealSlide = {
-        id: 'slide-001',
+        id: "slide-001",
         index: 0,
-        content: '# Test',
+        content: "# Test",
         audio: {
-          rawText: '',
-          cleanText: '',
+          rawText: "",
+          cleanText: "",
           expectedDuration: null,
           pauses: [],
         },
@@ -160,18 +160,18 @@ describe('RevealSpeechGenerator', () => {
       };
 
       await expect(
-        generator.generateSlideAudio(slide, '/output/slide-001.mp3', 'adam')
-      ).rejects.toThrow('empty audio text');
+        generator.generateSlideAudio(slide, "/output/slide-001.mp3", "adam"),
+      ).rejects.toThrow("empty audio text");
     });
 
-    it('should use clean text without pause markers', async () => {
+    it("should use clean text without pause markers", async () => {
       const slide: RevealSlide = {
-        id: 'slide-001',
+        id: "slide-001",
         index: 0,
-        content: '# Test',
+        content: "# Test",
         audio: {
-          rawText: 'Part 1 [2s] Part 2 [3s] Part 3',
-          cleanText: 'Part 1  Part 2  Part 3',
+          rawText: "Part 1 [2s] Part 2 [3s] Part 3",
+          cleanText: "Part 1  Part 2  Part 3",
           expectedDuration: null,
           pauses: [
             { position: 6, durationSeconds: 2 },
@@ -187,13 +187,17 @@ describe('RevealSpeechGenerator', () => {
         },
       };
 
-      await generator.generateSlideAudio(slide, '/output/slide-001.mp3', 'adam');
+      await generator.generateSlideAudio(
+        slide,
+        "/output/slide-001.mp3",
+        "adam",
+      );
 
       // Should send clean text to ElevenLabs
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledWith(
-        'Part 1  Part 2  Part 3',
-        'adam',
-        '/output/slide-001.mp3'
+        "Part 1  Part 2  Part 3",
+        "adam",
+        "/output/slide-001.mp3",
       );
     });
   });
@@ -202,21 +206,21 @@ describe('RevealSpeechGenerator', () => {
   // BATCH AUDIO GENERATION
   // ==========================================================================
 
-  describe('generateAllSlideAudio', () => {
-    it('should generate audio for all slides with audio blocks', async () => {
+  describe("generateAllSlideAudio", () => {
+    it("should generate audio for all slides with audio blocks", async () => {
       const presentation: RevealPresentation = {
-        title: 'Test Presentation',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Test Presentation",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Slide 1',
+            content: "# Slide 1",
             audio: {
-              rawText: 'First slide',
-              cleanText: 'First slide',
+              rawText: "First slide",
+              cleanText: "First slide",
               expectedDuration: null,
               pauses: [],
             },
@@ -225,12 +229,12 @@ describe('RevealSpeechGenerator', () => {
             metadata: { duration: null, pauseAfter: 1, fragments: [] },
           },
           {
-            id: 'slide-002',
+            id: "slide-002",
             index: 1,
-            content: '# Slide 2',
+            content: "# Slide 2",
             audio: {
-              rawText: 'Second slide',
-              cleanText: 'Second slide',
+              rawText: "Second slide",
+              cleanText: "Second slide",
               expectedDuration: null,
               pauses: [],
             },
@@ -243,16 +247,16 @@ describe('RevealSpeechGenerator', () => {
 
       const audioData = await generator.generateAllSlideAudio(
         presentation,
-        '/output/audio'
+        "/output/audio",
       );
 
       // Verify mkdir was called
-      expect(mkdir).toHaveBeenCalledWith('/output/audio', { recursive: true });
+      expect(mkdir).toHaveBeenCalledWith("/output/audio", { recursive: true });
 
       // Verify both slides were processed
       expect(audioData.results.size).toBe(2);
-      expect(audioData.results.has('slide-001')).toBe(true);
-      expect(audioData.results.has('slide-002')).toBe(true);
+      expect(audioData.results.has("slide-001")).toBe(true);
+      expect(audioData.results.has("slide-002")).toBe(true);
 
       // Verify cache statistics
       expect(audioData.cacheMisses).toBe(2);
@@ -262,20 +266,20 @@ describe('RevealSpeechGenerator', () => {
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledTimes(2);
     });
 
-    it('should skip slides without audio blocks', async () => {
+    it("should skip slides without audio blocks", async () => {
       const presentation: RevealPresentation = {
-        title: 'Test Presentation',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Test Presentation",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Slide 1',
+            content: "# Slide 1",
             audio: {
-              rawText: 'First slide',
-              cleanText: 'First slide',
+              rawText: "First slide",
+              cleanText: "First slide",
               expectedDuration: null,
               pauses: [],
             },
@@ -284,9 +288,9 @@ describe('RevealSpeechGenerator', () => {
             metadata: { duration: null, pauseAfter: 1, fragments: [] },
           },
           {
-            id: 'slide-002',
+            id: "slide-002",
             index: 1,
-            content: '# Slide 2',
+            content: "# Slide 2",
             audio: null, // No audio
             playwright: null,
             notes: null,
@@ -297,50 +301,50 @@ describe('RevealSpeechGenerator', () => {
 
       const audioData = await generator.generateAllSlideAudio(
         presentation,
-        '/output/audio'
+        "/output/audio",
       );
 
       // Only slide with audio should be in results
       expect(audioData.results.size).toBe(1);
-      expect(audioData.results.has('slide-001')).toBe(true);
-      expect(audioData.results.has('slide-002')).toBe(false);
+      expect(audioData.results.has("slide-001")).toBe(true);
+      expect(audioData.results.has("slide-002")).toBe(false);
 
       // ElevenLabs called once
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle empty presentation', async () => {
+    it("should handle empty presentation", async () => {
       const presentation: RevealPresentation = {
-        title: 'Empty Presentation',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Empty Presentation",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [],
       };
 
       const audioData = await generator.generateAllSlideAudio(
         presentation,
-        '/output/audio'
+        "/output/audio",
       );
 
       expect(audioData.results.size).toBe(0);
       expect(mockElevenLabsClient.generateSpeech).not.toHaveBeenCalled();
     });
 
-    it('should use voice from presentation', async () => {
+    it("should use voice from presentation", async () => {
       const presentation: RevealPresentation = {
-        title: 'Test',
-        theme: 'black',
-        voice: 'bella', // Different voice
-        resolution: '1920x1080',
+        title: "Test",
+        theme: "black",
+        voice: "bella", // Different voice
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Test',
+            content: "# Test",
             audio: {
-              rawText: 'Test',
-              cleanText: 'Test',
+              rawText: "Test",
+              cleanText: "Test",
               expectedDuration: null,
               pauses: [],
             },
@@ -351,13 +355,13 @@ describe('RevealSpeechGenerator', () => {
         ],
       };
 
-      await generator.generateAllSlideAudio(presentation, '/output/audio');
+      await generator.generateAllSlideAudio(presentation, "/output/audio");
 
       // Verify correct voice was used
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledWith(
-        'Test',
-        'bella',
-        expect.any(String)
+        "Test",
+        "bella",
+        expect.any(String),
       );
     });
   });
@@ -366,44 +370,48 @@ describe('RevealSpeechGenerator', () => {
   // CACHE INVALIDATION
   // ==========================================================================
 
-  describe('cache invalidation', () => {
-    it('should regenerate audio when voice changes', async () => {
+  describe("cache invalidation", () => {
+    it("should regenerate audio when voice changes", async () => {
       // Mock fs operations for cache testing
-      const { existsSync } = await import('fs');
-      const { readFile, writeFile } = await import('fs/promises');
+      const { existsSync } = await import("fs");
+      const { readFile, writeFile } = await import("fs/promises");
 
-      vi.mock('fs', () => ({
+      vi.mock("fs", () => ({
         existsSync: vi.fn(),
       }));
 
       vi.mocked(existsSync as any).mockReturnValue(true);
-      vi.mocked(readFile as any).mockResolvedValue(JSON.stringify({
-        'slide-001': [{
-          hash: 'old-hash-with-adam-voice',
-          text: 'Test',
-          voiceId: 'adam',
-          model: 'eleven_multilingual_v2',
-          stability: 0.5,
-          similarityBoost: 0.75,
-          file: 'slide-001.mp3',
-          duration: 5.5,
-        }],
-      }));
+      vi.mocked(readFile as any).mockResolvedValue(
+        JSON.stringify({
+          "slide-001": [
+            {
+              hash: "old-hash-with-adam-voice",
+              text: "Test",
+              voiceId: "adam",
+              model: "eleven_multilingual_v2",
+              stability: 0.5,
+              similarityBoost: 0.75,
+              file: "slide-001.mp3",
+              duration: 5.5,
+            },
+          ],
+        }),
+      );
       vi.mocked(writeFile as any).mockResolvedValue(undefined);
 
       const presentation: RevealPresentation = {
-        title: 'Test',
-        theme: 'black',
-        voice: 'bella', // Different voice!
-        resolution: '1920x1080',
+        title: "Test",
+        theme: "black",
+        voice: "bella", // Different voice!
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Test',
+            content: "# Test",
             audio: {
-              rawText: 'Test',
-              cleanText: 'Test', // Same text as cached
+              rawText: "Test",
+              cleanText: "Test", // Same text as cached
               expectedDuration: null,
               pauses: [],
             },
@@ -416,7 +424,7 @@ describe('RevealSpeechGenerator', () => {
 
       const audioData = await generator.generateAllSlideAudio(
         presentation,
-        '/output/audio'
+        "/output/audio",
       );
 
       // Should be a cache miss because voice changed from 'adam' to 'bella'
@@ -425,9 +433,9 @@ describe('RevealSpeechGenerator', () => {
 
       // Verify ElevenLabs was called with new voice
       expect(mockElevenLabsClient.generateSpeech).toHaveBeenCalledWith(
-        'Test',
-        'bella',
-        expect.any(String)
+        "Test",
+        "bella",
+        expect.any(String),
       );
     });
   });
@@ -436,21 +444,21 @@ describe('RevealSpeechGenerator', () => {
   // VALIDATION
   // ==========================================================================
 
-  describe('validateAudioGeneration', () => {
-    it('should pass validation when all slides have audio', () => {
+  describe("validateAudioGeneration", () => {
+    it("should pass validation when all slides have audio", () => {
       const presentation: RevealPresentation = {
-        title: 'Test',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Test",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Test',
+            content: "# Test",
             audio: {
-              rawText: 'Test',
-              cleanText: 'Test',
+              rawText: "Test",
+              cleanText: "Test",
               expectedDuration: null,
               pauses: [],
             },
@@ -463,33 +471,35 @@ describe('RevealSpeechGenerator', () => {
 
       const results = new Map([
         [
-          'slide-001',
+          "slide-001",
           {
-            slideId: 'slide-001',
-            filePath: '/output/slide-001.mp3',
+            slideId: "slide-001",
+            filePath: "/output/slide-001.mp3",
             durationSeconds: 5,
             sizeBytes: 100000,
           },
         ],
       ]);
 
-      expect(() => generator.validateAudioGeneration(presentation, results)).not.toThrow();
+      expect(() =>
+        generator.validateAudioGeneration(presentation, results),
+      ).not.toThrow();
     });
 
-    it('should throw error when audio is missing for slides', () => {
+    it("should throw error when audio is missing for slides", () => {
       const presentation: RevealPresentation = {
-        title: 'Test',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Test",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Test',
+            content: "# Test",
             audio: {
-              rawText: 'Test',
-              cleanText: 'Test',
+              rawText: "Test",
+              cleanText: "Test",
               expectedDuration: null,
               pauses: [],
             },
@@ -502,25 +512,25 @@ describe('RevealSpeechGenerator', () => {
 
       const results = new Map(); // Empty results
 
-      expect(() => generator.validateAudioGeneration(presentation, results)).toThrow(
-        'Missing audio for slides: slide-001'
-      );
+      expect(() =>
+        generator.validateAudioGeneration(presentation, results),
+      ).toThrow("Missing audio for slides: slide-001");
     });
 
-    it('should pass validation when some slides have no audio', () => {
+    it("should pass validation when some slides have no audio", () => {
       const presentation: RevealPresentation = {
-        title: 'Test',
-        theme: 'black',
-        voice: 'adam',
-        resolution: '1920x1080',
+        title: "Test",
+        theme: "black",
+        voice: "adam",
+        resolution: "1920x1080",
         slides: [
           {
-            id: 'slide-001',
+            id: "slide-001",
             index: 0,
-            content: '# Test',
+            content: "# Test",
             audio: {
-              rawText: 'Test',
-              cleanText: 'Test',
+              rawText: "Test",
+              cleanText: "Test",
               expectedDuration: null,
               pauses: [],
             },
@@ -529,9 +539,9 @@ describe('RevealSpeechGenerator', () => {
             metadata: { duration: null, pauseAfter: 1, fragments: [] },
           },
           {
-            id: 'slide-002',
+            id: "slide-002",
             index: 1,
-            content: '# No audio',
+            content: "# No audio",
             audio: null, // Slides without audio should be ignored
             playwright: null,
             notes: null,
@@ -542,10 +552,10 @@ describe('RevealSpeechGenerator', () => {
 
       const results = new Map([
         [
-          'slide-001',
+          "slide-001",
           {
-            slideId: 'slide-001',
-            filePath: '/output/slide-001.mp3',
+            slideId: "slide-001",
+            filePath: "/output/slide-001.mp3",
             durationSeconds: 5,
             sizeBytes: 100000,
           },
@@ -553,7 +563,9 @@ describe('RevealSpeechGenerator', () => {
       ]);
 
       // Should not throw - slide-002 has no audio so it's expected to not be in results
-      expect(() => generator.validateAudioGeneration(presentation, results)).not.toThrow();
+      expect(() =>
+        generator.validateAudioGeneration(presentation, results),
+      ).not.toThrow();
     });
   });
 });

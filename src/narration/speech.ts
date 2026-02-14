@@ -3,26 +3,26 @@
  * Generates audio per slide using ElevenLabs API with intelligent caching
  */
 
-import { mkdir } from 'fs/promises';
-import { join } from 'path';
-import { stat } from 'fs/promises';
-import { existsSync } from 'fs';
-import { ElevenLabsClient } from './elevenlabs.js';
-import { getAudioDuration } from '../utils/timing.js';
-import { logger } from '../core/logger.js';
-import { config } from '../config/config-manager.js';
+import { mkdir } from "fs/promises";
+import { join } from "path";
+import { stat } from "fs/promises";
+import { existsSync } from "fs";
+import { ElevenLabsClient } from "./elevenlabs.js";
+import { getAudioDuration } from "../utils/timing.js";
+import { logger } from "../core/logger.js";
+import { config } from "../config/config-manager.js";
 import {
   loadCacheManifest,
   saveCacheManifest,
   hashAudioText,
   findCachedAudio,
   updateCacheEntry,
-} from './audio-cache.js';
+} from "./audio-cache.js";
 import type {
   RevealPresentation,
   RevealSlide,
   AudioGenerationResult,
-} from '../core/types.js';
+} from "../core/types.js";
 
 /**
  * Generate audio narration for reveal.js presentations
@@ -41,7 +41,7 @@ export class RevealSpeechGenerator {
    */
   async generateAllSlideAudio(
     presentation: RevealPresentation,
-    outputDir: string
+    outputDir: string,
   ): Promise<{
     results: Map<string, AudioGenerationResult>;
     cacheHits: number;
@@ -81,7 +81,7 @@ export class RevealSpeechGenerator {
           voiceId,
           model,
           stability,
-          similarityBoost
+          similarityBoost,
         );
 
         // Check cache
@@ -116,8 +116,12 @@ export class RevealSpeechGenerator {
           slide.audio.actualDuration = cached.duration;
           slide.audio.audioPath = cachedPath;
 
-          const alignmentInfo = cached.alignment ? ` with ${cached.alignment.characters.length} char timestamps` : '';
-          logger.info(`[CACHE] Reusing audio for ${slide.id} (${cached.duration.toFixed(2)}s)${alignmentInfo}`);
+          const alignmentInfo = cached.alignment
+            ? ` with ${cached.alignment.characters.length} char timestamps`
+            : "";
+          logger.info(
+            `[CACHE] Reusing audio for ${slide.id} (${cached.duration.toFixed(2)}s)${alignmentInfo}`,
+          );
           continue;
         }
 
@@ -127,7 +131,7 @@ export class RevealSpeechGenerator {
         const result = await this.generateSlideAudio(
           slide,
           outputPath,
-          voiceId
+          voiceId,
         );
 
         results.set(slide.id, result);
@@ -155,7 +159,7 @@ export class RevealSpeechGenerator {
         updateCacheEntry(manifest, slide.id, cacheEntry);
 
         logger.info(
-          `[TTS] Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`
+          `[TTS] Generated audio for ${slide.id}: ${result.durationSeconds.toFixed(2)}s (${result.sizeBytes} bytes)`,
         );
       } catch (error) {
         logger.error(`Failed to generate audio for ${slide.id}`, error);
@@ -167,7 +171,7 @@ export class RevealSpeechGenerator {
     await saveCacheManifest(outputDir, manifest);
 
     logger.info(
-      `Audio generation complete: ${results.size} slides (${cacheHits} cached, ${cacheMisses} generated)`
+      `Audio generation complete: ${results.size} slides (${cacheHits} cached, ${cacheMisses} generated)`,
     );
 
     return {
@@ -183,7 +187,7 @@ export class RevealSpeechGenerator {
   async generateSlideAudio(
     slide: RevealSlide,
     outputPath: string,
-    voiceId: string
+    voiceId: string,
   ): Promise<AudioGenerationResult> {
     if (!slide.audio) {
       throw new Error(`Slide ${slide.id} has no audio block`);
@@ -196,18 +200,22 @@ export class RevealSpeechGenerator {
       throw new Error(`Slide ${slide.id} has empty audio text`);
     }
 
-    logger.debug(`Generating audio for slide ${slide.id} with voice ${voiceId}`);
-    logger.debug(`Text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
-
-    // Generate speech using ElevenLabs (with timestamps)
-    const { alignment, normalizedAlignment, durationSeconds: apiDuration } = await this.elevenlabsClient.generateSpeech(
-      text,
-      voiceId,
-      outputPath
+    logger.debug(
+      `Generating audio for slide ${slide.id} with voice ${voiceId}`,
+    );
+    logger.debug(
+      `Text: "${text.substring(0, 50)}${text.length > 50 ? "..." : ""}"`,
     );
 
+    // Generate speech using ElevenLabs (with timestamps)
+    const {
+      alignment,
+      normalizedAlignment,
+      durationSeconds: apiDuration,
+    } = await this.elevenlabsClient.generateSpeech(text, voiceId, outputPath);
+
     // Use API duration if available, otherwise fallback to analyzing the file
-    const durationSeconds = apiDuration || await getAudioDuration(outputPath);
+    const durationSeconds = apiDuration || (await getAudioDuration(outputPath));
 
     // Get file size
     const stats = await stat(outputPath);
@@ -215,10 +223,14 @@ export class RevealSpeechGenerator {
 
     // Log alignment data receipt
     if (alignment) {
-      logger.debug(`Received ${alignment.characters.length} character timestamps for ${slide.id}`);
+      logger.debug(
+        `Received ${alignment.characters.length} character timestamps for ${slide.id}`,
+      );
     }
     if (normalizedAlignment) {
-      logger.debug(`Received normalized alignment (${normalizedAlignment.characters.length} chars) for ${slide.id}`);
+      logger.debug(
+        `Received normalized alignment (${normalizedAlignment.characters.length} chars) for ${slide.id}`,
+      );
     }
 
     // Update slide's audio block with actual duration and path
@@ -248,13 +260,13 @@ export class RevealSpeechGenerator {
    */
   validateAudioGeneration(
     presentation: RevealPresentation,
-    results: Map<string, AudioGenerationResult>
+    results: Map<string, AudioGenerationResult>,
   ): void {
     const slidesWithAudio = presentation.slides.filter((s) => s.audio !== null);
     const missingAudio = slidesWithAudio.filter((s) => !results.has(s.id));
 
     if (missingAudio.length > 0) {
-      const ids = missingAudio.map((s) => s.id).join(', ');
+      const ids = missingAudio.map((s) => s.id).join(", ");
       throw new Error(`Missing audio for slides: ${ids}`);
     }
 
@@ -266,7 +278,7 @@ export class RevealSpeechGenerator {
  * Factory function to create a speech generator
  */
 export function createRevealSpeechGenerator(
-  elevenlabsClient?: ElevenLabsClient
+  elevenlabsClient?: ElevenLabsClient,
 ): RevealSpeechGenerator {
   return new RevealSpeechGenerator(elevenlabsClient);
 }

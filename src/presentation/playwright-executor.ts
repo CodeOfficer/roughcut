@@ -7,9 +7,9 @@
  * - Screenshot: Capture screenshots with names
  */
 
-import type { Page } from '@playwright/test';
-import type { PlaywrightInstruction } from '../core/types.js';
-import * as path from 'path';
+import type { Page } from "@playwright/test";
+import type { PlaywrightInstruction } from "../core/types.js";
+import * as path from "path";
 
 // ============================================================================
 // TYPES
@@ -61,22 +61,25 @@ export class PlaywrightInstructionExecutor {
    */
   async execute(
     instruction: PlaywrightInstruction,
-    context: ExecutionContext
+    context: ExecutionContext,
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
 
     try {
       switch (instruction.type) {
-        case 'action':
+        case "action":
           await this.executeAction(instruction.content, context);
           break;
 
-        case 'wait':
+        case "wait":
           await this.executeWait(instruction.content, context);
           break;
 
-        case 'screenshot':
-          const screenshotPath = await this.executeScreenshot(instruction.content, context);
+        case "screenshot":
+          const screenshotPath = await this.executeScreenshot(
+            instruction.content,
+            context,
+          );
           return {
             success: true,
             screenshotPath,
@@ -105,7 +108,7 @@ export class PlaywrightInstructionExecutor {
    */
   async executeAll(
     instructions: PlaywrightInstruction[],
-    context: ExecutionContext
+    context: ExecutionContext,
   ): Promise<ExecutionResult[]> {
     const results: ExecutionResult[] = [];
 
@@ -138,7 +141,10 @@ export class PlaywrightInstructionExecutor {
    * - Press [key]
    * - Fill [selector] with "text"
    */
-  private async executeAction(action: string, context: ExecutionContext): Promise<void> {
+  private async executeAction(
+    action: string,
+    context: ExecutionContext,
+  ): Promise<void> {
     const { page, timeout = this.defaultTimeout } = context;
 
     // Click action: "Click button" or "Click #submit"
@@ -209,7 +215,7 @@ export class PlaywrightInstructionExecutor {
       const [, actionType, selectorText] = checkMatch;
       const selector = this.parseSelector(selectorText);
 
-      if (actionType.toLowerCase() === 'check') {
+      if (actionType.toLowerCase() === "check") {
         await page.check(selector, { timeout });
       } else {
         await page.uncheck(selector, { timeout });
@@ -241,7 +247,10 @@ export class PlaywrightInstructionExecutor {
    * - "500ms" -> Wait 500 milliseconds
    * - "2" -> Wait 2 seconds (default unit)
    */
-  private async executeWait(waitStr: string, _context: ExecutionContext): Promise<void> {
+  private async executeWait(
+    waitStr: string,
+    _context: ExecutionContext,
+  ): Promise<void> {
     const duration = this.parseDuration(waitStr);
     await new Promise((resolve) => setTimeout(resolve, duration));
   }
@@ -257,12 +266,12 @@ export class PlaywrightInstructionExecutor {
    */
   private async executeScreenshot(
     name: string,
-    context: ExecutionContext
+    context: ExecutionContext,
   ): Promise<string> {
-    const { page, screenshotDir = '.', slideId = 'unknown' } = context;
+    const { page, screenshotDir = ".", slideId = "unknown" } = context;
 
     // Generate filename
-    const sanitizedName = name.replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+    const sanitizedName = name.replace(/[^a-z0-9-_]/gi, "-").toLowerCase();
     const filename = `${slideId}-${sanitizedName}.png`;
     const filepath = path.join(screenshotDir, filename);
 
@@ -285,17 +294,30 @@ export class PlaywrightInstructionExecutor {
 
     // Already a CSS selector (starts with # . [ or contains spaces with combinators)
     if (
-      trimmed.startsWith('#') ||
-      trimmed.startsWith('.') ||
-      trimmed.startsWith('[') ||
+      trimmed.startsWith("#") ||
+      trimmed.startsWith(".") ||
+      trimmed.startsWith("[") ||
       /[\s>+~]/.test(trimmed)
     ) {
       return trimmed;
     }
 
     // Common HTML element names (lowercase only)
-    const elementNames = ['button', 'input', 'select', 'textarea', 'div', 'span', 'a', 'form', 'table'];
-    if (elementNames.includes(trimmed.toLowerCase()) && /^[a-z]+$/i.test(trimmed)) {
+    const elementNames = [
+      "button",
+      "input",
+      "select",
+      "textarea",
+      "div",
+      "span",
+      "a",
+      "form",
+      "table",
+    ];
+    if (
+      elementNames.includes(trimmed.toLowerCase()) &&
+      /^[a-z]+$/i.test(trimmed)
+    ) {
       return trimmed.toLowerCase();
     }
 
@@ -322,7 +344,7 @@ export class PlaywrightInstructionExecutor {
     const num = parseFloat(value);
 
     // Default to seconds if no unit
-    if (!unit || unit === 's') {
+    if (!unit || unit === "s") {
       return num * 1000;
     }
 

@@ -9,7 +9,7 @@
  * - Playwright orchestration
  */
 
-import type { RevealJSConfig } from './revealjs-config-schema.js';
+import type { RevealJSConfig } from "./revealjs-config-schema.js";
 
 // ============================================================================
 // PRESENTATION STRUCTURE
@@ -193,7 +193,7 @@ export interface PlaywrightBlock {
  */
 export interface PlaywrightInstruction {
   /** Instruction type */
-  type: 'action' | 'wait' | 'screenshot';
+  type: "action" | "wait" | "screenshot";
 
   /** Raw instruction text (e.g., "Click button", "2s", "screenshot-name") */
   content: string;
@@ -474,21 +474,27 @@ export interface RawSlideData {
 /**
  * Type guard to check if slide has audio
  */
-export function hasAudio(slide: RevealSlide): slide is RevealSlide & { audio: AudioBlock } {
+export function hasAudio(
+  slide: RevealSlide,
+): slide is RevealSlide & { audio: AudioBlock } {
   return slide.audio !== null;
 }
 
 /**
  * Type guard to check if slide has playwright instructions
  */
-export function hasPlaywright(slide: RevealSlide): slide is RevealSlide & { playwright: PlaywrightBlock } {
+export function hasPlaywright(
+  slide: RevealSlide,
+): slide is RevealSlide & { playwright: PlaywrightBlock } {
   return slide.playwright !== null;
 }
 
 /**
  * Type guard to check if slide has speaker notes
  */
-export function hasSpeakerNotes(slide: RevealSlide): slide is RevealSlide & { notes: string } {
+export function hasSpeakerNotes(
+  slide: RevealSlide,
+): slide is RevealSlide & { notes: string } {
   return slide.notes !== null && slide.notes.length > 0;
 }
 
@@ -522,10 +528,10 @@ export const DEFAULT_REVEAL_CONFIG: RevealConfig = {
   history: true,
   fragments: true,
   fragmentInURL: true,
-  transition: 'slide',
-  transitionSpeed: 'default',
+  transition: "slide",
+  transitionSpeed: "default",
   autoPlayMedia: false,
-  plugins: ['RevealMarkdown', 'RevealHighlight', 'RevealNotes'],
+  plugins: ["RevealMarkdown", "RevealHighlight", "RevealNotes"],
 
   // Phase 1: Core config options (sensible defaults)
   controls: true,
@@ -539,35 +545,35 @@ export const DEFAULT_REVEAL_CONFIG: RevealConfig = {
  * Supported reveal.js transitions
  */
 export const REVEAL_TRANSITIONS = [
-  'none',
-  'fade',
-  'slide',
-  'convex',
-  'concave',
-  'zoom',
+  "none",
+  "fade",
+  "slide",
+  "convex",
+  "concave",
+  "zoom",
 ] as const;
 
-export type RevealTransition = typeof REVEAL_TRANSITIONS[number];
+export type RevealTransition = (typeof REVEAL_TRANSITIONS)[number];
 
 /**
  * Supported fragment effects
  */
 export const FRAGMENT_EFFECTS = [
-  'fade',
-  'fade-out',
-  'fade-up',
-  'fade-down',
-  'fade-left',
-  'fade-right',
-  'grow',
-  'shrink',
-  'strike',
-  'highlight-red',
-  'highlight-green',
-  'highlight-blue',
-  'highlight-current-red',
-  'highlight-current-green',
-  'highlight-current-blue',
+  "fade",
+  "fade-out",
+  "fade-up",
+  "fade-down",
+  "fade-left",
+  "fade-right",
+  "grow",
+  "shrink",
+  "strike",
+  "highlight-red",
+  "highlight-green",
+  "highlight-blue",
+  "highlight-current-red",
+  "highlight-current-green",
+  "highlight-current-blue",
 ] as const;
 
-export type FragmentEffect = typeof FRAGMENT_EFFECTS[number];
+export type FragmentEffect = (typeof FRAGMENT_EFFECTS)[number];

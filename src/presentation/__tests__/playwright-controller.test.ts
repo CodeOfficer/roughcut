@@ -3,15 +3,15 @@
  * Tests browser automation, navigation, state, and events
  */
 
-import { PlaywrightRevealController } from '../playwright-controller.js';
-import { RevealHTMLGenerator } from '../revealjs-generator.js';
-import type { RevealPresentation } from '../../core/types.js';
-import { DEFAULT_SLIDE_METADATA } from '../../core/types.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+import { PlaywrightRevealController } from "../playwright-controller.js";
+import { RevealHTMLGenerator } from "../revealjs-generator.js";
+import type { RevealPresentation } from "../../core/types.js";
+import { DEFAULT_SLIDE_METADATA } from "../../core/types.js";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 
-describe('PlaywrightRevealController', () => {
+describe("PlaywrightRevealController", () => {
   let controller: PlaywrightRevealController;
   let tempDir: string;
   let testHtmlPath: string;
@@ -20,7 +20,7 @@ describe('PlaywrightRevealController', () => {
     controller = new PlaywrightRevealController();
 
     // Create temporary directory
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'playwright-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "playwright-test-"));
 
     // Generate test HTML
     testHtmlPath = await generateTestPresentation(tempDir);
@@ -44,18 +44,20 @@ describe('PlaywrightRevealController', () => {
   // INITIALIZATION TESTS
   // ==========================================================================
 
-  describe('Initialization', () => {
-    it('should launch browser and load presentation', async () => {
+  describe("Initialization", () => {
+    it("should launch browser and load presentation", async () => {
       await controller.launch(testHtmlPath, { headless: true });
 
       expect(controller.isInitialized()).toBe(true);
     });
 
-    it('should throw error if accessing methods before launch', async () => {
-      await expect(controller.next()).rejects.toThrow('Controller not initialized');
+    it("should throw error if accessing methods before launch", async () => {
+      await expect(controller.next()).rejects.toThrow(
+        "Controller not initialized",
+      );
     });
 
-    it('should support non-headless mode', async () => {
+    it("should support non-headless mode", async () => {
       await controller.launch(testHtmlPath, { headless: true });
 
       expect(controller.isInitialized()).toBe(true);
@@ -66,12 +68,12 @@ describe('PlaywrightRevealController', () => {
   // NAVIGATION TESTS
   // ==========================================================================
 
-  describe('Navigation', () => {
+  describe("Navigation", () => {
     beforeEach(async () => {
       await controller.launch(testHtmlPath, { headless: true });
     });
 
-    it('should navigate to next slide', async () => {
+    it("should navigate to next slide", async () => {
       const initialIndices = await controller.getIndices();
       expect(initialIndices.h).toBe(0);
 
@@ -81,7 +83,7 @@ describe('PlaywrightRevealController', () => {
       expect(newIndices.h).toBe(1);
     });
 
-    it('should navigate to previous slide', async () => {
+    it("should navigate to previous slide", async () => {
       // Go to slide 2
       await controller.slide(1);
 
@@ -95,7 +97,7 @@ describe('PlaywrightRevealController', () => {
       expect(afterIndices.h).toBe(0);
     });
 
-    it('should navigate to specific slide', async () => {
+    it("should navigate to specific slide", async () => {
       await controller.slide(2);
 
       const indices = await controller.getIndices();
@@ -103,7 +105,7 @@ describe('PlaywrightRevealController', () => {
       expect(indices.v).toBe(0);
     });
 
-    it('should navigate to specific horizontal and vertical slide', async () => {
+    it("should navigate to specific horizontal and vertical slide", async () => {
       // Assuming presentation has vertical slides
       await controller.slide(1, 0);
 
@@ -117,44 +119,44 @@ describe('PlaywrightRevealController', () => {
   // STATE TESTS
   // ==========================================================================
 
-  describe('State', () => {
+  describe("State", () => {
     beforeEach(async () => {
       await controller.launch(testHtmlPath, { headless: true });
     });
 
-    it('should get current indices', async () => {
+    it("should get current indices", async () => {
       const indices = await controller.getIndices();
 
-      expect(indices).toHaveProperty('h');
-      expect(indices).toHaveProperty('v');
-      expect(typeof indices.h).toBe('number');
-      expect(typeof indices.v).toBe('number');
+      expect(indices).toHaveProperty("h");
+      expect(indices).toHaveProperty("v");
+      expect(typeof indices.h).toBe("number");
+      expect(typeof indices.v).toBe("number");
     });
 
-    it('should get total slides', async () => {
+    it("should get total slides", async () => {
       const total = await controller.getTotalSlides();
 
-      expect(typeof total).toBe('number');
+      expect(typeof total).toBe("number");
       expect(total).toBeGreaterThan(0);
     });
 
-    it('should get current slide', async () => {
+    it("should get current slide", async () => {
       const slide = await controller.getCurrentSlide();
 
-      expect(slide).toHaveProperty('id');
+      expect(slide).toHaveProperty("id");
       expect(slide.id).toBeTruthy();
     });
 
-    it('should check if paused', async () => {
+    it("should check if paused", async () => {
       const paused = await controller.isPaused();
 
-      expect(typeof paused).toBe('boolean');
+      expect(typeof paused).toBe("boolean");
     });
 
-    it('should check if in overview mode', async () => {
+    it("should check if in overview mode", async () => {
       const overview = await controller.isOverview();
 
-      expect(typeof overview).toBe('boolean');
+      expect(typeof overview).toBe("boolean");
       expect(overview).toBe(false); // Should not be in overview initially
     });
   });
@@ -163,12 +165,12 @@ describe('PlaywrightRevealController', () => {
   // EVENT TESTS
   // ==========================================================================
 
-  describe('Events', () => {
+  describe("Events", () => {
     beforeEach(async () => {
       await controller.launch(testHtmlPath, { headless: true });
     });
 
-    it('should listen to slide changed events', async () => {
+    it("should listen to slide changed events", async () => {
       const events: any[] = [];
 
       await controller.onSlideChanged(async (event) => {
@@ -182,11 +184,11 @@ describe('PlaywrightRevealController', () => {
       await controller.wait(100);
 
       expect(events.length).toBeGreaterThan(0);
-      expect(events[0]).toHaveProperty('indexh');
-      expect(events[0]).toHaveProperty('indexv');
+      expect(events[0]).toHaveProperty("indexh");
+      expect(events[0]).toHaveProperty("indexv");
     });
 
-    it('should provide current slide in event', async () => {
+    it("should provide current slide in event", async () => {
       let currentSlideId: string | null = null;
 
       await controller.onSlideChanged(async (event) => {
@@ -204,17 +206,20 @@ describe('PlaywrightRevealController', () => {
   // UTILITY TESTS
   // ==========================================================================
 
-  describe('Utilities', () => {
+  describe("Utilities", () => {
     beforeEach(async () => {
       await controller.launch(testHtmlPath, { headless: true });
     });
 
-    it('should take screenshot', async () => {
-      const screenshotPath = path.join(tempDir, 'screenshot.png');
+    it("should take screenshot", async () => {
+      const screenshotPath = path.join(tempDir, "screenshot.png");
 
       await controller.screenshot(screenshotPath);
 
-      const exists = await fs.access(screenshotPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(screenshotPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
 
       // Check file has content
@@ -222,7 +227,7 @@ describe('PlaywrightRevealController', () => {
       expect(stats.size).toBeGreaterThan(0);
     });
 
-    it('should wait for specified duration', async () => {
+    it("should wait for specified duration", async () => {
       const start = Date.now();
 
       await controller.wait(100);
@@ -231,7 +236,7 @@ describe('PlaywrightRevealController', () => {
       expect(elapsed).toBeGreaterThanOrEqual(100);
     });
 
-    it('should evaluate JavaScript in page context', async () => {
+    it("should evaluate JavaScript in page context", async () => {
       const result = await controller.evaluate(() => {
         return (window as any).Reveal.isReady();
       });
@@ -239,12 +244,12 @@ describe('PlaywrightRevealController', () => {
       expect(result).toBe(true);
     });
 
-    it('should provide page instance', () => {
+    it("should provide page instance", () => {
       const page = controller.getPage();
 
       expect(page).toBeDefined();
-      expect(page).toHaveProperty('goto');
-      expect(page).toHaveProperty('evaluate');
+      expect(page).toHaveProperty("goto");
+      expect(page).toHaveProperty("evaluate");
     });
   });
 
@@ -252,8 +257,8 @@ describe('PlaywrightRevealController', () => {
   // CLEANUP TESTS
   // ==========================================================================
 
-  describe('Cleanup', () => {
-    it('should close browser and cleanup', async () => {
+  describe("Cleanup", () => {
+    it("should close browser and cleanup", async () => {
       await controller.launch(testHtmlPath, { headless: true });
 
       expect(controller.isInitialized()).toBe(true);
@@ -263,7 +268,7 @@ describe('PlaywrightRevealController', () => {
       expect(controller.isInitialized()).toBe(false);
     });
 
-    it('should handle multiple close calls gracefully', async () => {
+    it("should handle multiple close calls gracefully", async () => {
       await controller.launch(testHtmlPath, { headless: true });
 
       await controller.close();
@@ -277,9 +282,9 @@ describe('PlaywrightRevealController', () => {
   // VIDEO RECORDING TESTS
   // ==========================================================================
 
-  describe('Video Recording', () => {
-    it('should support video recording option', async () => {
-      const videoDir = path.join(tempDir, 'videos');
+  describe("Video Recording", () => {
+    it("should support video recording option", async () => {
+      const videoDir = path.join(tempDir, "videos");
       await fs.mkdir(videoDir, { recursive: true });
 
       await controller.launch(testHtmlPath, {
@@ -299,7 +304,7 @@ describe('PlaywrightRevealController', () => {
       expect(files.length).toBeGreaterThan(0);
 
       // Check video file has content
-      const videoFile = files.find((f) => f.endsWith('.webm'));
+      const videoFile = files.find((f) => f.endsWith(".webm"));
       expect(videoFile).toBeDefined();
 
       if (videoFile) {
@@ -320,33 +325,33 @@ describe('PlaywrightRevealController', () => {
  */
 async function generateTestPresentation(outputDir: string): Promise<string> {
   const presentation: RevealPresentation = {
-    title: 'Playwright Test Presentation',
-    theme: 'black',
-    voice: 'adam',
-    resolution: '1920x1080',
+    title: "Playwright Test Presentation",
+    theme: "black",
+    voice: "adam",
+    resolution: "1920x1080",
     slides: [
       {
-        id: 'slide-001',
+        id: "slide-001",
         index: 0,
-        content: '# Slide 1\n\nFirst slide content',
+        content: "# Slide 1\n\nFirst slide content",
         audio: null,
         playwright: null,
         notes: null,
         metadata: { ...DEFAULT_SLIDE_METADATA },
       },
       {
-        id: 'slide-002',
+        id: "slide-002",
         index: 1,
-        content: '# Slide 2\n\nSecond slide content',
+        content: "# Slide 2\n\nSecond slide content",
         audio: null,
         playwright: null,
         notes: null,
         metadata: { ...DEFAULT_SLIDE_METADATA },
       },
       {
-        id: 'slide-003',
+        id: "slide-003",
         index: 2,
-        content: '# Slide 3\n\nThird slide content',
+        content: "# Slide 3\n\nThird slide content",
         audio: null,
         playwright: null,
         notes: null,
@@ -356,7 +361,7 @@ async function generateTestPresentation(outputDir: string): Promise<string> {
   };
 
   const generator = new RevealHTMLGenerator();
-  const outputPath = path.join(outputDir, 'test-presentation.html');
+  const outputPath = path.join(outputDir, "test-presentation.html");
 
   await generator.generate(presentation, outputPath, {
     bundleAssets: true,

@@ -3,8 +3,8 @@
  * Validates markdown presentations against directive registry before build
  */
 
-import path from 'path';
-import fs from 'fs';
+import path from "path";
+import fs from "fs";
 import {
   DirectiveContext,
   DirectiveFormat,
@@ -14,16 +14,16 @@ import {
   findSimilarDirectives,
   validatePauseMarker,
   DIRECTIVE_REGISTRY,
-} from './directive-registry.js';
+} from "./directive-registry.js";
 import {
   LintingResult,
   LintingError,
   ErrorSeverity,
   ErrorCategory,
   ErrorFactories,
-} from './linting-errors.js';
-import { validateConfig } from '../validation/config-validator.js';
-import type { RevealJSConfig } from './revealjs-config-schema.js';
+} from "./linting-errors.js";
+import { validateConfig } from "../validation/config-validator.js";
+import type { RevealJSConfig } from "./revealjs-config-schema.js";
 
 /**
  * Markdown linting engine
@@ -34,7 +34,7 @@ export class MarkdownLinter {
    */
   lint(markdown: string, filePath: string): LintingResult {
     const result = new LintingResult(filePath);
-    const lines = markdown.split('\n');
+    const lines = markdown.split("\n");
 
     // Parse and validate frontmatter
     const frontmatterEnd = this.validateFrontmatter(lines, result);
@@ -56,7 +56,7 @@ export class MarkdownLinter {
   private validateFrontmatter(lines: string[], result: LintingResult): number {
     // Check for opening ---
     const firstLine = lines[0];
-    if (lines.length === 0 || !firstLine || firstLine.trim() !== '---') {
+    if (lines.length === 0 || !firstLine || firstLine.trim() !== "---") {
       result.addError(ErrorFactories.missingFrontmatter(1));
       return -1;
     }
@@ -65,7 +65,7 @@ export class MarkdownLinter {
     let endLine = -1;
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
-      if (line && line.trim() === '---') {
+      if (line && line.trim() === "---") {
         endLine = i;
         break;
       }
@@ -73,7 +73,7 @@ export class MarkdownLinter {
 
     if (endLine === -1) {
       result.addError(
-        ErrorFactories.invalidFrontmatterFormat(1, 'Missing closing "---"')
+        ErrorFactories.invalidFrontmatterFormat(1, 'Missing closing "---"'),
       );
       return -1;
     }
@@ -91,14 +91,14 @@ export class MarkdownLinter {
       const lineNumber = i + 2; // +1 for array index, +1 for opening ---
 
       // Skip empty lines and comments (except in customStyles section where blank lines are valid CSS)
-      if (line.trim().length === 0 || line.trim().startsWith('#')) {
+      if (line.trim().length === 0 || line.trim().startsWith("#")) {
         continue;
       }
 
       // Check if this is a customStyles section start (customStyles: |)
       if (line.match(/^customStyles:\s*\|?\s*$/)) {
         inCustomStylesSection = true;
-        foundFields.add('customStyles');
+        foundFields.add("customStyles");
         continue;
       }
 
@@ -115,7 +115,7 @@ export class MarkdownLinter {
       // Check if this is a config section start
       if (line.match(/^config:\s*$/)) {
         inConfigSection = true;
-        foundFields.add('config');
+        foundFields.add("config");
 
         // Phase 2: Validate config options
         const configOptions = this.parseConfigSection(frontmatterLines, i);
@@ -151,8 +151,8 @@ export class MarkdownLinter {
                   ErrorCategory.FRONTMATTER,
                   error.message,
                   lineNumber,
-                  errorOptions
-                )
+                  errorOptions,
+                ),
               );
             }
           }
@@ -177,28 +177,36 @@ export class MarkdownLinter {
           new LintingError(
             ErrorSeverity.ERROR,
             ErrorCategory.FRONTMATTER,
-            'Invalid frontmatter line format',
+            "Invalid frontmatter line format",
             lineNumber,
             {
               currentValue: line,
-              expectedValue: 'field: value',
+              expectedValue: "field: value",
               example: 'title: "My Presentation"',
-            }
-          )
+            },
+          ),
         );
         continue;
       }
 
       const fieldName = match[1];
-      const fieldValue = match[2].replace(/^["']|["']$/g, '').trim(); // Remove quotes
+      const fieldValue = match[2].replace(/^["']|["']$/g, "").trim(); // Remove quotes
 
       // Check if field is known
-      const directive = getDirectiveDefinition(fieldName, DirectiveContext.FRONTMATTER);
+      const directive = getDirectiveDefinition(
+        fieldName,
+        DirectiveContext.FRONTMATTER,
+      );
 
       if (!directive) {
         // Unknown frontmatter field
-        const similar = findSimilarDirectives(fieldName, DirectiveContext.FRONTMATTER);
-        result.addError(ErrorFactories.unknownDirective(fieldName, lineNumber, similar));
+        const similar = findSimilarDirectives(
+          fieldName,
+          DirectiveContext.FRONTMATTER,
+        );
+        result.addError(
+          ErrorFactories.unknownDirective(fieldName, lineNumber, similar),
+        );
         continue;
       }
 
@@ -206,12 +214,18 @@ export class MarkdownLinter {
       const validation = validateDirectiveValue(directive, fieldValue);
       if (!validation.valid && validation.error) {
         result.addError(
-          ErrorFactories.invalidValue(fieldName, fieldValue, lineNumber, validation.error, directive)
+          ErrorFactories.invalidValue(
+            fieldName,
+            fieldValue,
+            lineNumber,
+            validation.error,
+            directive,
+          ),
         );
       }
 
       // Validate asset file existence for customCSS
-      if (fieldName === 'customCSS') {
+      if (fieldName === "customCSS") {
         this.validateAssetFile(fieldName, fieldValue, lineNumber, result);
       }
 
@@ -219,11 +233,17 @@ export class MarkdownLinter {
     }
 
     // Check for required fields
-    const requiredDirectives = getRequiredDirectives(DirectiveContext.FRONTMATTER);
+    const requiredDirectives = getRequiredDirectives(
+      DirectiveContext.FRONTMATTER,
+    );
     for (const directive of requiredDirectives) {
       if (!foundFields.has(directive.name)) {
         result.addError(
-          ErrorFactories.missingRequiredFrontmatter(directive.name, 1, directive)
+          ErrorFactories.missingRequiredFrontmatter(
+            directive.name,
+            1,
+            directive,
+          ),
         );
       }
     }
@@ -237,7 +257,7 @@ export class MarkdownLinter {
    */
   private parseConfigSection(
     frontmatterLines: (string | undefined)[],
-    configLineIndex: number
+    configLineIndex: number,
   ): Partial<RevealJSConfig> {
     const config: Partial<RevealJSConfig> = {};
 
@@ -252,17 +272,20 @@ export class MarkdownLinter {
       }
 
       // Parse key: value
-      const [key, ...valueParts] = line.trim().split(':');
+      const [key, ...valueParts] = line.trim().split(":");
       if (key && valueParts.length > 0) {
-        let value: string | boolean | number = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+        let value: string | boolean | number = valueParts
+          .join(":")
+          .trim()
+          .replace(/^["']|["']$/g, "");
 
         // Parse boolean values
-        if (value === 'true') value = true;
-        else if (value === 'false') value = false;
+        if (value === "true") value = true;
+        else if (value === "false") value = false;
         // Parse numbers
-        else if (!isNaN(Number(value)) && value !== '') value = Number(value);
+        else if (!isNaN(Number(value)) && value !== "") value = Number(value);
         // Parse null
-        else if (value === 'null') value = null as any;
+        else if (value === "null") value = null as any;
 
         (config as any)[key.trim()] = value;
       }
@@ -277,14 +300,14 @@ export class MarkdownLinter {
   private validateSlides(
     lines: string[],
     startLine: number,
-    result: LintingResult
+    result: LintingResult,
   ): void {
     // Split content into slides (separated by ---)
     const slideStarts: number[] = [startLine + 1]; // First slide starts after frontmatter
 
     for (let i = startLine + 1; i < lines.length; i++) {
       const line = lines[i];
-      if (line && line.trim() === '---') {
+      if (line && line.trim() === "---") {
         slideStarts.push(i + 1);
       }
     }
@@ -295,7 +318,8 @@ export class MarkdownLinter {
       const nextSlideStart = slideStarts[i + 1];
       if (slideStartLine === undefined) continue;
 
-      const slideEndLine = nextSlideStart !== undefined ? nextSlideStart - 2 : lines.length;
+      const slideEndLine =
+        nextSlideStart !== undefined ? nextSlideStart - 2 : lines.length;
       const slideLines = lines.slice(slideStartLine, slideEndLine + 1);
 
       this.validateSlide(slideLines, slideStartLine, i + 1, result);
@@ -309,7 +333,7 @@ export class MarkdownLinter {
     lines: string[],
     startLineNumber: number,
     slideNumber: number,
-    result: LintingResult
+    result: LintingResult,
   ): void {
     const foundDirectives = new Set<string>();
     let hasContent = false;
@@ -331,12 +355,16 @@ export class MarkdownLinter {
       // Check for directives
       const directiveMatch = line.match(/^@([\w-]+):\s*(.*)$/);
 
-      if (directiveMatch && directiveMatch[1] && directiveMatch[2] !== undefined) {
+      if (
+        directiveMatch &&
+        directiveMatch[1] &&
+        directiveMatch[2] !== undefined
+      ) {
         const directiveName = directiveMatch[1];
         const directiveValue = directiveMatch[2].trim();
 
         // Special handling for @audio (multi-line)
-        if (directiveName === 'audio') {
+        if (directiveName === "audio") {
           inAudioBlock = true;
           if (audioBlockStartLine === -1) {
             audioBlockStartLine = lineNumber;
@@ -347,13 +375,13 @@ export class MarkdownLinter {
         }
 
         // Special handling for @playwright: (multi-line list on subsequent lines)
-        if (directiveName === 'playwright') {
+        if (directiveName === "playwright") {
           // Collect list items from subsequent lines
           const playwrightLines: string[] = [];
           let j = i + 1;
           while (j < lines.length) {
             const nextLine = lines[j];
-            if (nextLine && nextLine.trim().startsWith('- ')) {
+            if (nextLine && nextLine.trim().startsWith("- ")) {
               playwrightLines.push(nextLine.trim());
               j++;
             } else {
@@ -361,15 +389,18 @@ export class MarkdownLinter {
             }
           }
           if (playwrightLines.length === 0) {
-            const playwrightDef = getDirectiveDefinition(directiveName, DirectiveContext.SLIDE)!;
+            const playwrightDef = getDirectiveDefinition(
+              directiveName,
+              DirectiveContext.SLIDE,
+            )!;
             result.addError(
               ErrorFactories.invalidValue(
                 directiveName,
-                '',
+                "",
                 lineNumber,
-                'Multi-line list cannot be empty',
-                playwrightDef
-              )
+                "Multi-line list cannot be empty",
+                playwrightDef,
+              ),
             );
           }
           // Skip the list item lines we already consumed
@@ -387,25 +418,36 @@ export class MarkdownLinter {
         }
 
         // Check if directive is known
-        const directive = getDirectiveDefinition(directiveName, DirectiveContext.SLIDE);
+        const directive = getDirectiveDefinition(
+          directiveName,
+          DirectiveContext.SLIDE,
+        );
 
         if (!directive) {
-          const similar = findSimilarDirectives(directiveName, DirectiveContext.SLIDE);
-          result.addError(ErrorFactories.unknownDirective(directiveName, lineNumber, similar));
+          const similar = findSimilarDirectives(
+            directiveName,
+            DirectiveContext.SLIDE,
+          );
+          result.addError(
+            ErrorFactories.unknownDirective(directiveName, lineNumber, similar),
+          );
           continue;
         }
 
         // Validate single-line directive has value (Phase 3: skip for MARKER directives)
-        if (directive.format === DirectiveFormat.SINGLE_LINE && directiveValue.length === 0) {
+        if (
+          directive.format === DirectiveFormat.SINGLE_LINE &&
+          directiveValue.length === 0
+        ) {
           // Phase 3: MARKER directives (like @vertical-slide:) should have no value
-          if (directive.valueType !== 'marker') {
+          if (directive.valueType !== "marker") {
             result.addError(
               ErrorFactories.invalidSyntax(
                 directiveName,
                 lineNumber,
                 `@${directiveName}: value`,
-                directive.example
-              )
+                directive.example,
+              ),
             );
             continue;
           }
@@ -420,13 +462,18 @@ export class MarkdownLinter {
               directiveValue,
               lineNumber,
               validation.error,
-              directive
-            )
+              directive,
+            ),
           );
         }
 
         // Validate asset file existence for specific directives
-        this.validateAssetFile(directiveName, directiveValue, lineNumber, result);
+        this.validateAssetFile(
+          directiveName,
+          directiveValue,
+          lineNumber,
+          result,
+        );
 
         foundDirectives.add(directiveName);
       } else {
@@ -442,25 +489,27 @@ export class MarkdownLinter {
         const pauseMarkers = line.match(/\[(\d+(?:\.\d+)?)s\]/g);
         if (pauseMarkers) {
           for (const marker of pauseMarkers) {
-            result.addError(ErrorFactories.pauseMarkerOutsideAudio(marker, lineNumber));
+            result.addError(
+              ErrorFactories.pauseMarkerOutsideAudio(marker, lineNumber),
+            );
           }
         }
 
         // Check for inline @fragment directives
-        if (line.includes('@fragment')) {
+        if (line.includes("@fragment")) {
           // Must be on list items
           if (!line.trim().match(/^[-*+]\s+.*@fragment/)) {
             result.addError(
               new LintingError(
                 ErrorSeverity.ERROR,
                 ErrorCategory.INVALID_SYNTAX,
-                '@fragment can only be used on list items',
+                "@fragment can only be used on list items",
                 lineNumber,
                 {
                   currentValue: line.trim(),
-                  example: '- Item text @fragment',
-                }
-              )
+                  example: "- Item text @fragment",
+                },
+              ),
             );
           }
         }
@@ -488,10 +537,15 @@ export class MarkdownLinter {
     directiveName: string,
     directiveValue: string,
     lineNumber: number,
-    result: LintingResult
+    result: LintingResult,
   ): void {
     // Directives that reference local asset files
-    const assetDirectives = ['background', 'background-video', 'customCSS', 'image-prompt'];
+    const assetDirectives = [
+      "background",
+      "background-video",
+      "customCSS",
+      "image-prompt",
+    ];
 
     // Only validate if this is an asset directive and value looks like a local path
     if (!assetDirectives.includes(directiveName)) {
@@ -504,19 +558,19 @@ export class MarkdownLinter {
     // - Gradients
     // - AI-generated images (@image-prompt:)
     if (
-      directiveValue.startsWith('http://') ||
-      directiveValue.startsWith('https://') ||
-      directiveValue.startsWith('#') ||
-      directiveValue.startsWith('rgb') ||
-      directiveValue.startsWith('hsl') ||
-      directiveValue.includes('gradient') ||
-      directiveName === 'image-prompt'
+      directiveValue.startsWith("http://") ||
+      directiveValue.startsWith("https://") ||
+      directiveValue.startsWith("#") ||
+      directiveValue.startsWith("rgb") ||
+      directiveValue.startsWith("hsl") ||
+      directiveValue.includes("gradient") ||
+      directiveName === "image-prompt"
     ) {
       return;
     }
 
     // Check if this looks like a local file path
-    if (!directiveValue.startsWith('./') && !directiveValue.startsWith('../')) {
+    if (!directiveValue.startsWith("./") && !directiveValue.startsWith("../")) {
       return;
     }
 
@@ -534,10 +588,10 @@ export class MarkdownLinter {
           lineNumber,
           {
             currentValue: directiveValue,
-            example: 'Run: TUTORIAL=<name> npm run generate-assets',
-            suggestions: ['Check the file path', 'Generate placeholder assets'],
-          }
-        )
+            example: "Run: TUTORIAL=<name> npm run generate-assets",
+            suggestions: ["Check the file path", "Generate placeholder assets"],
+          },
+        ),
       );
     }
   }
@@ -548,10 +602,10 @@ export class MarkdownLinter {
   private validateAudioBlock(
     lines: string[],
     startLineNumber: number,
-    result: LintingResult
+    result: LintingResult,
   ): void {
     // Combine all lines
-    const fullText = lines.join(' ').trim();
+    const fullText = lines.join(" ").trim();
 
     if (fullText.length === 0) {
       result.addError(ErrorFactories.emptyAudioBlock(startLineNumber));
@@ -568,7 +622,11 @@ export class MarkdownLinter {
           const validation = validatePauseMarker(bracket);
           if (!validation.valid && validation.error) {
             result.addError(
-              ErrorFactories.invalidPauseMarker(bracket, startLineNumber, validation.error)
+              ErrorFactories.invalidPauseMarker(
+                bracket,
+                startLineNumber,
+                validation.error,
+              ),
             );
           }
         }
@@ -587,7 +645,10 @@ export function createMarkdownLinter(): MarkdownLinter {
 /**
  * Convenience function to lint a markdown file
  */
-export function lintMarkdown(markdown: string, filePath: string): LintingResult {
+export function lintMarkdown(
+  markdown: string,
+  filePath: string,
+): LintingResult {
   const linter = createMarkdownLinter();
   return linter.lint(markdown, filePath);
 }
@@ -598,8 +659,8 @@ export function lintMarkdown(markdown: string, filePath: string): LintingResult 
 export function getDirectiveSummary(): string {
   const lines: string[] = [];
 
-  lines.push('# Supported Directives');
-  lines.push('');
+  lines.push("# Supported Directives");
+  lines.push("");
 
   // Group by context
   const contexts = [
@@ -612,28 +673,28 @@ export function getDirectiveSummary(): string {
     const directives = DIRECTIVE_REGISTRY.filter((d) => d.context === context);
 
     lines.push(`## ${context.toUpperCase()}`);
-    lines.push('');
+    lines.push("");
 
     for (const directive of directives) {
-      const requiredBadge = directive.required ? ' (REQUIRED)' : '';
+      const requiredBadge = directive.required ? " (REQUIRED)" : "";
       lines.push(`### @${directive.name}${requiredBadge}`);
-      lines.push('');
+      lines.push("");
       lines.push(`**Description:** ${directive.description}`);
-      lines.push('');
+      lines.push("");
       lines.push(`**Format:** ${directive.format}`);
-      lines.push('');
+      lines.push("");
       lines.push(`**Example:**`);
-      lines.push('```');
+      lines.push("```");
       lines.push(directive.example);
-      lines.push('```');
-      lines.push('');
+      lines.push("```");
+      lines.push("");
 
       if (directive.notes) {
         lines.push(`**Notes:** ${directive.notes}`);
-        lines.push('');
+        lines.push("");
       }
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

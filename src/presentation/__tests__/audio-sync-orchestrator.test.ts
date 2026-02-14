@@ -3,23 +3,26 @@
  * Tests complete presentation orchestration flow
  */
 
-import { AudioSyncOrchestrator, type OrchestrationProgress } from '../audio-sync-orchestrator.js';
-import { RevealHTMLGenerator } from '../revealjs-generator.js';
-import { RevealSpeechGenerator } from '../../narration/speech.js';
-import { createRevealTimelineBuilder } from '../../video/timeline.js';
-import type { RevealPresentation } from '../../core/types.js';
-import { DEFAULT_SLIDE_METADATA } from '../../core/types.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+import {
+  AudioSyncOrchestrator,
+  type OrchestrationProgress,
+} from "../audio-sync-orchestrator.js";
+import { RevealHTMLGenerator } from "../revealjs-generator.js";
+import { RevealSpeechGenerator } from "../../narration/speech.js";
+import { createRevealTimelineBuilder } from "../../video/timeline.js";
+import type { RevealPresentation } from "../../core/types.js";
+import { DEFAULT_SLIDE_METADATA } from "../../core/types.js";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 
-describe('AudioSyncOrchestrator', () => {
+describe("AudioSyncOrchestrator", () => {
   let orchestrator: AudioSyncOrchestrator;
   let tempDir: string;
 
   beforeEach(async () => {
     orchestrator = new AudioSyncOrchestrator();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'orchestrator-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "orchestrator-test-"));
   });
 
   afterEach(async () => {
@@ -34,8 +37,8 @@ describe('AudioSyncOrchestrator', () => {
   // BASIC ORCHESTRATION TESTS
   // ==========================================================================
 
-  describe('Basic Orchestration', () => {
-    it('should orchestrate simple presentation without audio', async () => {
+  describe("Basic Orchestration", () => {
+    it("should orchestrate simple presentation without audio", async () => {
       const { htmlPath, timeline } = await generateTestPresentation(tempDir, {
         includeAudio: false,
       });
@@ -52,12 +55,15 @@ describe('AudioSyncOrchestrator', () => {
       expect(result.totalDuration).toBeGreaterThan(0);
     }, 30000);
 
-    it.skip('should orchestrate presentation with audio', async () => {
+    it.skip("should orchestrate presentation with audio", async () => {
       // Skipped: Audio playback in test environment is unreliable
       // The orchestration logic is tested without audio
-      const { htmlPath, timeline, audioDir } = await generateTestPresentation(tempDir, {
-        includeAudio: true,
-      });
+      const { htmlPath, timeline, audioDir } = await generateTestPresentation(
+        tempDir,
+        {
+          includeAudio: true,
+        },
+      );
 
       const result = await orchestrator.run({
         htmlPath,
@@ -70,7 +76,7 @@ describe('AudioSyncOrchestrator', () => {
       expect(result.slidesProcessed).toBe(2);
     }, 30000);
 
-    it('should process all slides in order', async () => {
+    it("should process all slides in order", async () => {
       const { htmlPath, timeline } = await generateTestPresentation(tempDir, {
         slideCount: 3,
         includeAudio: false,
@@ -92,8 +98,8 @@ describe('AudioSyncOrchestrator', () => {
   // PROGRESS CALLBACK TESTS
   // ==========================================================================
 
-  describe('Progress Callbacks', () => {
-    it('should report progress during orchestration', async () => {
+  describe("Progress Callbacks", () => {
+    it("should report progress during orchestration", async () => {
       const { htmlPath, timeline } = await generateTestPresentation(tempDir, {
         includeAudio: false,
       });
@@ -115,16 +121,18 @@ describe('AudioSyncOrchestrator', () => {
       expect(progressUpdates.length).toBeGreaterThan(0);
 
       // Should have navigating phase
-      const navigatingPhases = progressUpdates.filter((p) => p.phase === 'navigating');
+      const navigatingPhases = progressUpdates.filter(
+        (p) => p.phase === "navigating",
+      );
       expect(navigatingPhases.length).toBeGreaterThan(0);
 
       // Should have complete phase
-      const completePhase = progressUpdates.find((p) => p.phase === 'complete');
+      const completePhase = progressUpdates.find((p) => p.phase === "complete");
       expect(completePhase).toBeDefined();
       expect(completePhase?.percentage).toBe(100);
     }, 30000);
 
-    it('should report correct slide indices', async () => {
+    it("should report correct slide indices", async () => {
       const { htmlPath, timeline } = await generateTestPresentation(tempDir, {
         slideCount: 2,
         includeAudio: false,
@@ -133,7 +141,7 @@ describe('AudioSyncOrchestrator', () => {
       const slideIndices: number[] = [];
 
       orchestrator.onProgress(async (progress) => {
-        if (progress.phase === 'navigating') {
+        if (progress.phase === "navigating") {
           slideIndices.push(progress.slideIndex);
         }
       });
@@ -155,13 +163,13 @@ describe('AudioSyncOrchestrator', () => {
   // VIDEO RECORDING TESTS
   // ==========================================================================
 
-  describe('Video Recording', () => {
-    it('should support video recording', async () => {
+  describe("Video Recording", () => {
+    it("should support video recording", async () => {
       const { htmlPath, timeline } = await generateTestPresentation(tempDir, {
         includeAudio: false,
       });
 
-      const videoDir = path.join(tempDir, 'videos');
+      const videoDir = path.join(tempDir, "videos");
       await fs.mkdir(videoDir, { recursive: true });
 
       const result = await orchestrator.run({
@@ -177,7 +185,10 @@ describe('AudioSyncOrchestrator', () => {
 
       // Video file should exist
       if (result.videoPath) {
-        const exists = await fs.access(result.videoPath).then(() => true).catch(() => false);
+        const exists = await fs
+          .access(result.videoPath)
+          .then(() => true)
+          .catch(() => false);
         expect(exists).toBe(true);
       }
     }, 30000);
@@ -187,14 +198,14 @@ describe('AudioSyncOrchestrator', () => {
   // ERROR HANDLING TESTS
   // ==========================================================================
 
-  describe('Error Handling', () => {
-    it('should handle missing HTML file', async () => {
+  describe("Error Handling", () => {
+    it("should handle missing HTML file", async () => {
       const { timeline } = await generateTestPresentation(tempDir, {
         includeAudio: false,
       });
 
       const result = await orchestrator.run({
-        htmlPath: '/nonexistent/file.html',
+        htmlPath: "/nonexistent/file.html",
         timeline,
         audioBaseDir: tempDir,
         headless: true,
@@ -204,13 +215,13 @@ describe('AudioSyncOrchestrator', () => {
       expect(result.error).toBeDefined();
     }, 30000);
 
-    it('should return error details on failure', async () => {
+    it("should return error details on failure", async () => {
       const { timeline } = await generateTestPresentation(tempDir, {
         includeAudio: false,
       });
 
       const result = await orchestrator.run({
-        htmlPath: '/invalid/path.html',
+        htmlPath: "/invalid/path.html",
         timeline,
         audioBaseDir: tempDir,
         headless: true,
@@ -218,7 +229,7 @@ describe('AudioSyncOrchestrator', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeTruthy();
-      expect(typeof result.error).toBe('string');
+      expect(typeof result.error).toBe("string");
     }, 30000);
   });
 
@@ -226,12 +237,15 @@ describe('AudioSyncOrchestrator', () => {
   // PLAYBACK OPTIONS TESTS
   // ==========================================================================
 
-  describe('Playback Options', () => {
-    it.skip('should support custom playback rate', async () => {
+  describe("Playback Options", () => {
+    it.skip("should support custom playback rate", async () => {
       // Skipped: Audio playback in test environment is unreliable
-      const { htmlPath, timeline, audioDir } = await generateTestPresentation(tempDir, {
-        includeAudio: true,
-      });
+      const { htmlPath, timeline, audioDir } = await generateTestPresentation(
+        tempDir,
+        {
+          includeAudio: true,
+        },
+      );
 
       const result = await orchestrator.run({
         htmlPath,
@@ -244,11 +258,14 @@ describe('AudioSyncOrchestrator', () => {
       expect(result.success).toBe(true);
     }, 30000);
 
-    it.skip('should support custom volume', async () => {
+    it.skip("should support custom volume", async () => {
       // Skipped: Audio playback in test environment is unreliable
-      const { htmlPath, timeline, audioDir } = await generateTestPresentation(tempDir, {
-        includeAudio: true,
-      });
+      const { htmlPath, timeline, audioDir } = await generateTestPresentation(
+        tempDir,
+        {
+          includeAudio: true,
+        },
+      );
 
       const result = await orchestrator.run({
         htmlPath,
@@ -277,23 +294,23 @@ interface GenerateOptions {
  */
 async function generateTestPresentation(
   outputDir: string,
-  options: GenerateOptions = {}
+  options: GenerateOptions = {},
 ): Promise<{ htmlPath: string; timeline: any; audioDir: string }> {
   const { slideCount = 2, includeAudio = false } = options;
 
   // Create presentation
   const presentation: RevealPresentation = {
-    title: 'Orchestrator Test',
-    theme: 'black',
-    voice: 'adam',
-    resolution: '1920x1080',
+    title: "Orchestrator Test",
+    theme: "black",
+    voice: "adam",
+    resolution: "1920x1080",
     slides: [],
   };
 
   // Add slides
   for (let i = 0; i < slideCount; i++) {
     presentation.slides.push({
-      id: `slide-${String(i + 1).padStart(3, '0')}`,
+      id: `slide-${String(i + 1).padStart(3, "0")}`,
       index: i,
       content: `# Slide ${i + 1}\n\nContent for slide ${i + 1}`,
       audio: includeAudio
@@ -315,7 +332,7 @@ async function generateTestPresentation(
 
   // Generate HTML
   const generator = new RevealHTMLGenerator();
-  const htmlPath = path.join(outputDir, 'presentation.html');
+  const htmlPath = path.join(outputDir, "presentation.html");
   await generator.generate(presentation, htmlPath, {
     bundleAssets: true,
   });
@@ -323,7 +340,7 @@ async function generateTestPresentation(
   // Generate audio if requested
   let audioDir = outputDir;
   if (includeAudio) {
-    audioDir = path.join(outputDir, 'audio');
+    audioDir = path.join(outputDir, "audio");
     await fs.mkdir(audioDir, { recursive: true });
 
     // Generate mock audio files

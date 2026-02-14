@@ -21,10 +21,14 @@ import type {
   PauseMarker,
   FragmentDefinition,
   PresentationFrontMatter,
-} from './types.js';
-import { DEFAULT_SLIDE_METADATA } from './types.js';
-import { resolveConfig } from './revealjs-config-schema.js';
-import { validateConfig, validatePreset, formatValidationErrors } from '../validation/config-validator.js';
+} from "./types.js";
+import { DEFAULT_SLIDE_METADATA } from "./types.js";
+import { resolveConfig } from "./revealjs-config-schema.js";
+import {
+  validateConfig,
+  validatePreset,
+  formatValidationErrors,
+} from "../validation/config-validator.js";
 
 // ============================================================================
 // MAIN PARSER CLASS
@@ -43,7 +47,7 @@ export class RevealMarkdownParser {
 
     // 3. Parse each slide
     const slides: RevealSlide[] = slideStrings.map((slideMarkdown, index) =>
-      this.parseSlide(slideMarkdown, index)
+      this.parseSlide(slideMarkdown, index),
     );
 
     // 4. Phase 3: Detect and group vertical slides (2D navigation)
@@ -53,7 +57,7 @@ export class RevealMarkdownParser {
     const presentation: RevealPresentation = {
       title: frontMatter.title,
       theme: frontMatter.theme,
-      resolution: frontMatter.resolution || '1920x1080',
+      resolution: frontMatter.resolution || "1920x1080",
       slides,
     };
 
@@ -81,7 +85,10 @@ export class RevealMarkdownParser {
       }
 
       // Resolve final config (merges preset + user config + defaults)
-      presentation.config = resolveConfig(frontMatter.config, frontMatter.preset);
+      presentation.config = resolveConfig(
+        frontMatter.config,
+        frontMatter.preset,
+      );
     }
 
     // Phase 3: Custom CSS Injection
@@ -121,53 +128,58 @@ export class RevealMarkdownParser {
     const match = markdown.match(frontMatterRegex);
 
     if (!match || !match[1]) {
-      throw new Error('Missing front matter. Format should start with:\n---\ntitle: "..."\n---');
+      throw new Error(
+        'Missing front matter. Format should start with:\n---\ntitle: "..."\n---',
+      );
     }
 
     const frontMatterText = match[1];
     const content = markdown.slice(match[0].length);
 
     // Parse front matter lines (with support for nested config and multiline customStyles)
-    const lines = frontMatterText.split('\n');
+    const lines = frontMatterText.split("\n");
     const frontMatter: Partial<PresentationFrontMatter> = {};
     let currentSection: string | null = null;
     const customStylesLines: string[] = [];
 
     for (const line of lines) {
       // Skip empty lines (except in customStyles section)
-      if (!line.trim() && currentSection !== 'customStyles') continue;
+      if (!line.trim() && currentSection !== "customStyles") continue;
 
       // Check if this is a nested section (e.g., "config:" or "customStyles: |")
       if (line.match(/^[a-zA-Z]+:\s*(\|)?$/)) {
-        if (line.startsWith('config:')) {
-          currentSection = 'config';
+        if (line.startsWith("config:")) {
+          currentSection = "config";
           frontMatter.config = {};
           continue;
-        } else if (line.startsWith('customStyles:')) {
-          currentSection = 'customStyles';
+        } else if (line.startsWith("customStyles:")) {
+          currentSection = "customStyles";
           customStylesLines.length = 0; // Reset
           continue;
         }
       }
 
       // Parse indented lines under customStyles section (multiline CSS)
-      if (currentSection === 'customStyles' && line.match(/^\s+/)) {
+      if (currentSection === "customStyles" && line.match(/^\s+/)) {
         // Remove leading indentation but preserve relative indentation
-        customStylesLines.push(line.replace(/^\s{2}/, ''));
+        customStylesLines.push(line.replace(/^\s{2}/, ""));
         continue;
       }
 
       // Parse indented lines under config section
-      if (currentSection === 'config' && line.match(/^\s+/)) {
-        const [key, ...valueParts] = line.trim().split(':');
+      if (currentSection === "config" && line.match(/^\s+/)) {
+        const [key, ...valueParts] = line.trim().split(":");
         if (key && valueParts.length > 0) {
-          let value: string | boolean | number = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+          let value: string | boolean | number = valueParts
+            .join(":")
+            .trim()
+            .replace(/^["']|["']$/g, "");
 
           // Parse boolean values
-          if (value === 'true') value = true;
-          else if (value === 'false') value = false;
+          if (value === "true") value = true;
+          else if (value === "false") value = false;
           // Parse numbers
-          else if (!isNaN(Number(value)) && value !== '') value = Number(value);
+          else if (!isNaN(Number(value)) && value !== "") value = Number(value);
 
           (frontMatter.config as any)[key.trim()] = value;
         }
@@ -180,18 +192,22 @@ export class RevealMarkdownParser {
       }
 
       // Parse top-level key-value pairs
-      const [key, ...valueParts] = line.split(':');
+      const [key, ...valueParts] = line.split(":");
       if (key && valueParts.length > 0 && !currentSection) {
-        const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
-        if (key.trim() !== 'config' && key.trim() !== 'customStyles') {
-          frontMatter[key.trim() as keyof PresentationFrontMatter] = value as any;
+        const value = valueParts
+          .join(":")
+          .trim()
+          .replace(/^["']|["']$/g, "");
+        if (key.trim() !== "config" && key.trim() !== "customStyles") {
+          frontMatter[key.trim() as keyof PresentationFrontMatter] =
+            value as any;
         }
       }
     }
 
     // Phase 3: Finalize customStyles if any were collected
     if (customStylesLines.length > 0) {
-      frontMatter.customStyles = customStylesLines.join('\n');
+      frontMatter.customStyles = customStylesLines.join("\n");
     }
 
     if (!frontMatter.title) {
@@ -226,7 +242,7 @@ export class RevealMarkdownParser {
       if (block.trim().length === 0) continue;
 
       // Phase 3: Check if block contains @vertical-slide: markers
-      if (block.includes('@vertical-slide:')) {
+      if (block.includes("@vertical-slide:")) {
         // Split on @vertical-slide: to get individual slides
         const parts = block.split(/(?=@vertical-slide:)/);
 
@@ -252,7 +268,7 @@ export class RevealMarkdownParser {
    * Parse a single slide markdown into RevealSlide structure
    */
   parseSlide(slideMarkdown: string, index: number): RevealSlide {
-    const id = `slide-${String(index + 1).padStart(3, '0')}`;
+    const id = `slide-${String(index + 1).padStart(3, "0")}`;
 
     // Extract directives
     const directives = this.extractDirectives(slideMarkdown);
@@ -308,8 +324,8 @@ export class RevealMarkdownParser {
       const [, name, value] = match;
 
       // Skip audio and playwright (handled separately)
-      if (name && name !== 'audio' && name !== 'playwright') {
-        directives.set(name, value?.trim() || '');
+      if (name && name !== "audio" && name !== "playwright") {
+        directives.set(name, value?.trim() || "");
       }
     }
 
@@ -323,47 +339,47 @@ export class RevealMarkdownParser {
     const metadata: SlideMetadata = { ...DEFAULT_SLIDE_METADATA };
 
     // @duration: 8s
-    if (directives.has('duration')) {
-      const duration = directives.get('duration')!;
+    if (directives.has("duration")) {
+      const duration = directives.get("duration")!;
       metadata.duration = this.parseDuration(duration);
     }
 
     // @pause-after: 2s
-    if (directives.has('pause-after')) {
-      const pauseAfter = directives.get('pause-after')!;
+    if (directives.has("pause-after")) {
+      const pauseAfter = directives.get("pause-after")!;
       metadata.pauseAfter = this.parseDuration(pauseAfter);
     }
 
     // @transition: zoom
-    if (directives.has('transition')) {
-      metadata.transition = directives.get('transition')!;
+    if (directives.has("transition")) {
+      metadata.transition = directives.get("transition")!;
     }
 
     // @background: #1e1e1e
-    if (directives.has('background')) {
-      metadata.background = directives.get('background')!;
+    if (directives.has("background")) {
+      metadata.background = directives.get("background")!;
     }
 
     // @image-prompt: A futuristic data center
-    if (directives.has('image-prompt')) {
-      metadata.imagePrompt = directives.get('image-prompt')!;
+    if (directives.has("image-prompt")) {
+      metadata.imagePrompt = directives.get("image-prompt")!;
     }
 
     // Phase 3: @background-video: ./assets/video.mp4
-    if (directives.has('background-video')) {
-      metadata.backgroundVideo = directives.get('background-video')!;
+    if (directives.has("background-video")) {
+      metadata.backgroundVideo = directives.get("background-video")!;
     }
 
     // Phase 3: @background-video-loop: true
-    if (directives.has('background-video-loop')) {
-      const value = directives.get('background-video-loop')!;
-      metadata.backgroundVideoLoop = value === 'true';
+    if (directives.has("background-video-loop")) {
+      const value = directives.get("background-video-loop")!;
+      metadata.backgroundVideoLoop = value === "true";
     }
 
     // Phase 3: @background-video-muted: true
-    if (directives.has('background-video-muted')) {
-      const value = directives.get('background-video-muted')!;
-      metadata.backgroundVideoMuted = value === 'true';
+    if (directives.has("background-video-muted")) {
+      const value = directives.get("background-video-muted")!;
+      metadata.backgroundVideoMuted = value === "true";
     }
 
     return metadata;
@@ -376,13 +392,15 @@ export class RevealMarkdownParser {
   private parseDuration(durationStr: string): number {
     const match = durationStr.match(/^([\d.]+)(s|ms)$/);
     if (!match || !match[1] || !match[2]) {
-      throw new Error(`Invalid duration format: ${durationStr}. Use "5s" or "500ms"`);
+      throw new Error(
+        `Invalid duration format: ${durationStr}. Use "5s" or "500ms"`,
+      );
     }
 
     const [, value, unit] = match;
     const num = parseFloat(value);
 
-    return unit === 's' ? num : num / 1000;
+    return unit === "s" ? num : num / 1000;
   }
 
   // ============================================================================
@@ -415,13 +433,13 @@ export class RevealMarkdownParser {
 
     // Extract individual lines for fingerprinting
     const lines: AudioLine[] = matches
-      .filter(match => match[1]) // Filter out undefined matches
-      .map(match => ({
+      .filter((match) => match[1]) // Filter out undefined matches
+      .map((match) => ({
         text: match[1]!.trim(), // Non-null assertion since we filtered
       }));
 
     // Join lines with automatic 1s pauses
-    const rawText = lines.map(line => line.text).join(' [1s] ');
+    const rawText = lines.map((line) => line.text).join(" [1s] ");
 
     // Extract pause markers [Xs]
     const pauses: PauseMarker[] = [];
@@ -440,13 +458,13 @@ export class RevealMarkdownParser {
       const markerLength = pauseMatch[0].length;
 
       pauses.push({
-        position: markerStart - (pauses.length * markerLength), // Adjust for previous removals
+        position: markerStart - pauses.length * markerLength, // Adjust for previous removals
         durationSeconds,
       });
     }
 
     // Remove all pause markers from text
-    cleanText = rawText.replace(/\[\d+(?:\.\d+)?s\]/g, '');
+    cleanText = rawText.replace(/\[\d+(?:\.\d+)?s\]/g, "");
 
     return {
       rawText,
@@ -478,10 +496,12 @@ export class RevealMarkdownParser {
     }
 
     const blockText = match[1];
-    const lines = blockText.split('\n').filter((line) => line.trim().startsWith('-'));
+    const lines = blockText
+      .split("\n")
+      .filter((line) => line.trim().startsWith("-"));
 
     const instructions: PlaywrightInstruction[] = lines.map((line) => {
-      const content = line.trim().replace(/^-\s*/, '');
+      const content = line.trim().replace(/^-\s*/, "");
       return this.parsePlaywrightInstruction(content);
     });
 
@@ -503,7 +523,7 @@ export class RevealMarkdownParser {
     if (colonMatch && colonMatch[1] && colonMatch[2]) {
       const [, type, content] = colonMatch;
       return {
-        type: type.toLowerCase() as 'action' | 'screenshot',
+        type: type.toLowerCase() as "action" | "screenshot",
         content: content.trim(),
       };
     }
@@ -512,14 +532,14 @@ export class RevealMarkdownParser {
     const waitMatch = line.match(/^Wait\s+(\d+(?:\.\d+)?s?)$/i);
     if (waitMatch && waitMatch[1]) {
       return {
-        type: 'wait',
+        type: "wait",
         content: waitMatch[1],
       };
     }
 
     // Default to action
     return {
-      type: 'action',
+      type: "action",
       content: line,
     };
   }
@@ -551,13 +571,13 @@ export class RevealMarkdownParser {
       // Skip if this is a directive line (starts with @)
       // This prevents matching "@fragment" when it appears in @audio: or other directives
       const trimmedContent = content.trim();
-      if (trimmedContent.startsWith('@')) {
+      if (trimmedContent.startsWith("@")) {
         continue;
       }
 
       const fragment: FragmentDefinition = {
         index,
-        effect: 'fade', // Default effect
+        effect: "fade", // Default effect
         content: trimmedContent,
       };
 
@@ -608,7 +628,10 @@ export class RevealMarkdownParser {
    *   Slide 4 (horizontal) -> verticalGroup: undefined
    *   Slide 5 (@vertical-slide:) -> isVertical: true, verticalGroup: 1
    */
-  private assignVerticalGroups(slides: RevealSlide[], slideStrings: string[]): void {
+  private assignVerticalGroups(
+    slides: RevealSlide[],
+    slideStrings: string[],
+  ): void {
     let currentVerticalGroup = -1;
     let lastHorizontalSlideIndex = -1;
 
@@ -621,7 +644,7 @@ export class RevealMarkdownParser {
       }
 
       // Check if this slide has @vertical-slide: directive
-      const hasVerticalDirective = slideMarkdown.includes('@vertical-slide:');
+      const hasVerticalDirective = slideMarkdown.includes("@vertical-slide:");
 
       if (hasVerticalDirective) {
         // This is a vertical slide
@@ -652,20 +675,20 @@ export class RevealMarkdownParser {
 
     // Remove @playwright: block (multi-line) - matches directive + all list items
     // IMPORTANT: Must be done BEFORE removing single-line directives
-    cleaned = cleaned.replace(/@playwright:\n(?:-[^\n]*(?:\n|$))+/gm, '');
+    cleaned = cleaned.replace(/@playwright:\n(?:-[^\n]*(?:\n|$))+/gm, "");
 
     // Remove all @directive: lines (single line directives)
     // Phase 3: Updated to handle marker directives with no value (e.g., @vertical-slide:)
-    cleaned = cleaned.replace(/^@[\w-]+:.*$/gm, '');
+    cleaned = cleaned.replace(/^@[\w-]+:.*$/gm, "");
 
     // Remove @audio: block
-    cleaned = cleaned.replace(/^@audio:.+$/gm, '');
+    cleaned = cleaned.replace(/^@audio:.+$/gm, "");
 
     // Remove @fragment markers from content
-    cleaned = cleaned.replace(/\s+@fragment(?:\s+\+\d+(?:\.\d+)?s)?/g, '');
+    cleaned = cleaned.replace(/\s+@fragment(?:\s+\+\d+(?:\.\d+)?s)?/g, "");
 
     // Remove extra blank lines (more than 2 consecutive)
-    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
 
     // Trim whitespace
     return cleaned.trim();

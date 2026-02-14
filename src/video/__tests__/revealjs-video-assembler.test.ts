@@ -8,19 +8,19 @@ import {
   createRevealVideoAssembler,
   type VideoAssemblyConfig,
   type AssemblyProgress,
-} from '../assembler.js';
-import type { RevealTimeline } from '../timeline.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+} from "../assembler.js";
+import type { RevealTimeline } from "../timeline.js";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 
-describe('RevealVideoAssembler', () => {
+describe("RevealVideoAssembler", () => {
   let assembler: RevealVideoAssembler;
   let tempDir: string;
 
   beforeEach(async () => {
     assembler = createRevealVideoAssembler();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'assembler-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "assembler-test-"));
   });
 
   afterEach(async () => {
@@ -35,13 +35,13 @@ describe('RevealVideoAssembler', () => {
   // CONFIGURATION TESTS
   // ==========================================================================
 
-  describe('Configuration', () => {
-    it('should create assembler instance', () => {
+  describe("Configuration", () => {
+    it("should create assembler instance", () => {
       expect(assembler).toBeDefined();
       expect(assembler).toBeInstanceOf(RevealVideoAssembler);
     });
 
-    it('should support progress callbacks', () => {
+    it("should support progress callbacks", () => {
       const callback = vi.fn();
       assembler.onProgress(callback);
 
@@ -54,42 +54,42 @@ describe('RevealVideoAssembler', () => {
   // VALIDATION TESTS
   // ==========================================================================
 
-  describe('Input Validation', () => {
-    it('should fail if input video does not exist', async () => {
-      const audioPath = path.join(tempDir, 'audio.mp3');
-      await fs.writeFile(audioPath, Buffer.from('mock audio'));
+  describe("Input Validation", () => {
+    it("should fail if input video does not exist", async () => {
+      const audioPath = path.join(tempDir, "audio.mp3");
+      await fs.writeFile(audioPath, Buffer.from("mock audio"));
 
       const result = await assembler.assemble({
-        inputVideoPath: '/nonexistent/video.webm',
+        inputVideoPath: "/nonexistent/video.webm",
         audioPath,
-        outputPath: path.join(tempDir, 'output.mp4'),
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Input video not found');
+      expect(result.error).toContain("Input video not found");
     });
 
-    it('should fail if audio file does not exist', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
+    it("should fail if audio file does not exist", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
 
       const result = await assembler.assemble({
         inputVideoPath: videoPath,
-        audioPath: '/nonexistent/audio.mp3',
-        outputPath: path.join(tempDir, 'output.mp4'),
+        audioPath: "/nonexistent/audio.mp3",
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Audio file not found');
+      expect(result.error).toContain("Audio file not found");
     });
 
-    it('should create output directory if it does not exist', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioPath = path.join(tempDir, 'audio.mp3');
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
-      await fs.writeFile(audioPath, Buffer.from('mock audio'));
+    it("should create output directory if it does not exist", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioPath = path.join(tempDir, "audio.mp3");
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
+      await fs.writeFile(audioPath, Buffer.from("mock audio"));
 
-      const outputPath = path.join(tempDir, 'nested', 'deep', 'output.mp4');
+      const outputPath = path.join(tempDir, "nested", "deep", "output.mp4");
 
       // This will fail because we don't have real FFmpeg, but directory should be created
       await assembler.assemble({
@@ -111,12 +111,12 @@ describe('RevealVideoAssembler', () => {
   // PROGRESS REPORTING TESTS
   // ==========================================================================
 
-  describe('Progress Reporting', () => {
-    it('should report progress during assembly', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioPath = path.join(tempDir, 'audio.mp3');
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
-      await fs.writeFile(audioPath, Buffer.from('mock audio'));
+  describe("Progress Reporting", () => {
+    it("should report progress during assembly", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioPath = path.join(tempDir, "audio.mp3");
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
+      await fs.writeFile(audioPath, Buffer.from("mock audio"));
 
       const progressUpdates: AssemblyProgress[] = [];
 
@@ -127,22 +127,24 @@ describe('RevealVideoAssembler', () => {
       await assembler.assemble({
         inputVideoPath: videoPath,
         audioPath,
-        outputPath: path.join(tempDir, 'output.mp4'),
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       // Should have at least preparing phase
       expect(progressUpdates.length).toBeGreaterThan(0);
 
-      const preparingPhase = progressUpdates.find((p) => p.phase === 'preparing');
+      const preparingPhase = progressUpdates.find(
+        (p) => p.phase === "preparing",
+      );
       expect(preparingPhase).toBeDefined();
       expect(preparingPhase?.percentage).toBe(0);
     });
 
-    it('should report multiple phases', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioPath = path.join(tempDir, 'audio.mp3');
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
-      await fs.writeFile(audioPath, Buffer.from('mock audio'));
+    it("should report multiple phases", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioPath = path.join(tempDir, "audio.mp3");
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
+      await fs.writeFile(audioPath, Buffer.from("mock audio"));
 
       const phases: string[] = [];
 
@@ -155,12 +157,12 @@ describe('RevealVideoAssembler', () => {
       await assembler.assemble({
         inputVideoPath: videoPath,
         audioPath,
-        outputPath: path.join(tempDir, 'output.mp4'),
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       // Should have preparing and encoding at minimum
-      expect(phases).toContain('preparing');
-      expect(phases).toContain('encoding');
+      expect(phases).toContain("preparing");
+      expect(phases).toContain("encoding");
     });
   });
 
@@ -168,14 +170,14 @@ describe('RevealVideoAssembler', () => {
   // FFMPEG COMMAND BUILDING TESTS
   // ==========================================================================
 
-  describe('FFmpeg Command Building', () => {
-    it('should use default encoding settings', async () => {
+  describe("FFmpeg Command Building", () => {
+    it("should use default encoding settings", async () => {
       // We can't test the actual command without exposing it,
       // but we can verify the config is accepted
       const config: VideoAssemblyConfig = {
-        inputVideoPath: path.join(tempDir, 'input.webm'),
-        audioPath: path.join(tempDir, 'audio.mp3'),
-        outputPath: path.join(tempDir, 'output.mp4'),
+        inputVideoPath: path.join(tempDir, "input.webm"),
+        audioPath: path.join(tempDir, "audio.mp3"),
+        outputPath: path.join(tempDir, "output.mp4"),
       };
 
       expect(config.videoCodec).toBeUndefined(); // Will use default
@@ -183,22 +185,22 @@ describe('RevealVideoAssembler', () => {
       expect(config.crf).toBeUndefined(); // Will use default
     });
 
-    it('should accept custom encoding settings', async () => {
+    it("should accept custom encoding settings", async () => {
       const config: VideoAssemblyConfig = {
-        inputVideoPath: path.join(tempDir, 'input.webm'),
-        audioPath: path.join(tempDir, 'audio.mp3'),
-        outputPath: path.join(tempDir, 'output.mp4'),
-        videoCodec: 'libx265',
-        audioCodec: 'libmp3lame',
-        preset: 'fast',
+        inputVideoPath: path.join(tempDir, "input.webm"),
+        audioPath: path.join(tempDir, "audio.mp3"),
+        outputPath: path.join(tempDir, "output.mp4"),
+        videoCodec: "libx265",
+        audioCodec: "libmp3lame",
+        preset: "fast",
         crf: 18,
-        audioBitrate: '256k',
+        audioBitrate: "256k",
       };
 
-      expect(config.videoCodec).toBe('libx265');
-      expect(config.preset).toBe('fast');
+      expect(config.videoCodec).toBe("libx265");
+      expect(config.preset).toBe("fast");
       expect(config.crf).toBe(18);
-      expect(config.audioBitrate).toBe('256k');
+      expect(config.audioBitrate).toBe("256k");
     });
   });
 
@@ -206,15 +208,15 @@ describe('RevealVideoAssembler', () => {
   // ASSEMBLY FROM TIMELINE TESTS
   // ==========================================================================
 
-  describe('Assembly from Timeline', () => {
-    it('should handle timeline with combined audio', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioDir = path.join(tempDir, 'audio');
-      const combinedAudioPath = path.join(audioDir, 'combined-audio.mp3');
+  describe("Assembly from Timeline", () => {
+    it("should handle timeline with combined audio", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioDir = path.join(tempDir, "audio");
+      const combinedAudioPath = path.join(audioDir, "combined-audio.mp3");
 
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
       await fs.mkdir(audioDir, { recursive: true });
-      await fs.writeFile(combinedAudioPath, Buffer.from('mock audio'));
+      await fs.writeFile(combinedAudioPath, Buffer.from("mock audio"));
 
       const timeline: RevealTimeline = {
         totalDuration: 10,
@@ -224,7 +226,7 @@ describe('RevealVideoAssembler', () => {
             startTime: 0,
             audioDuration: 5,
             pauseAfter: 1,
-            audioPath: 'slide-001.mp3',
+            audioPath: "slide-001.mp3",
             hasPlaywrightInstructions: false,
           },
           {
@@ -232,7 +234,7 @@ describe('RevealVideoAssembler', () => {
             startTime: 6,
             audioDuration: 3,
             pauseAfter: 1,
-            audioPath: 'slide-002.mp3',
+            audioPath: "slide-002.mp3",
             hasPlaywrightInstructions: false,
           },
         ],
@@ -242,7 +244,7 @@ describe('RevealVideoAssembler', () => {
         videoPath,
         timeline,
         audioDir,
-        path.join(tempDir, 'output.mp4')
+        path.join(tempDir, "output.mp4"),
       );
 
       // Will fail without real FFmpeg, but shouldn't throw
@@ -250,11 +252,11 @@ describe('RevealVideoAssembler', () => {
       expect(result.success).toBe(false); // Expected without real FFmpeg
     });
 
-    it('should handle error when no audio files exist', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioDir = path.join(tempDir, 'audio');
+    it("should handle error when no audio files exist", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioDir = path.join(tempDir, "audio");
 
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
       await fs.mkdir(audioDir, { recursive: true });
 
       const timeline: RevealTimeline = {
@@ -265,7 +267,7 @@ describe('RevealVideoAssembler', () => {
             startTime: 0,
             audioDuration: 5,
             pauseAfter: 1,
-            audioPath: 'slide-001.mp3',
+            audioPath: "slide-001.mp3",
             hasPlaywrightInstructions: false,
           },
         ],
@@ -275,7 +277,7 @@ describe('RevealVideoAssembler', () => {
         videoPath,
         timeline,
         audioDir,
-        path.join(tempDir, 'output.mp4')
+        path.join(tempDir, "output.mp4"),
       );
 
       expect(result.success).toBe(false);
@@ -287,12 +289,12 @@ describe('RevealVideoAssembler', () => {
   // FFMPEG AVAILABILITY TESTS
   // ==========================================================================
 
-  describe('FFmpeg Availability', () => {
-    it('should check if FFmpeg is available', async () => {
+  describe("FFmpeg Availability", () => {
+    it("should check if FFmpeg is available", async () => {
       const isAvailable = await assembler.checkFFmpegAvailable();
 
       // May be true or false depending on environment
-      expect(typeof isAvailable).toBe('boolean');
+      expect(typeof isAvailable).toBe("boolean");
     });
   });
 
@@ -300,10 +302,10 @@ describe('RevealVideoAssembler', () => {
   // VIDEO METADATA TESTS
   // ==========================================================================
 
-  describe('Video Metadata', () => {
-    it('should handle missing video file for metadata', async () => {
+  describe("Video Metadata", () => {
+    it("should handle missing video file for metadata", async () => {
       try {
-        await assembler.getVideoMetadata('/nonexistent/video.mp4');
+        await assembler.getVideoMetadata("/nonexistent/video.mp4");
         // Should not reach here
         expect(true).toBe(false);
       } catch (error) {
@@ -311,7 +313,7 @@ describe('RevealVideoAssembler', () => {
       }
     });
 
-    it.skip('should extract video metadata with FFprobe', async () => {
+    it.skip("should extract video metadata with FFprobe", async () => {
       // Skipped: Requires real video file and FFmpeg installation
       // This test would verify metadata extraction in production
     });
@@ -321,40 +323,40 @@ describe('RevealVideoAssembler', () => {
   // ERROR HANDLING TESTS
   // ==========================================================================
 
-  describe('Error Handling', () => {
-    it('should return error result on failure', async () => {
+  describe("Error Handling", () => {
+    it("should return error result on failure", async () => {
       const result = await assembler.assemble({
-        inputVideoPath: '/nonexistent/video.webm',
-        audioPath: '/nonexistent/audio.mp3',
-        outputPath: path.join(tempDir, 'output.mp4'),
+        inputVideoPath: "/nonexistent/video.webm",
+        audioPath: "/nonexistent/audio.mp3",
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
-      expect(typeof result.error).toBe('string');
+      expect(typeof result.error).toBe("string");
     });
 
-    it('should include error message in result', async () => {
+    it("should include error message in result", async () => {
       const result = await assembler.assemble({
-        inputVideoPath: '/nonexistent/video.webm',
-        audioPath: path.join(tempDir, 'audio.mp3'),
-        outputPath: path.join(tempDir, 'output.mp4'),
+        inputVideoPath: "/nonexistent/video.webm",
+        audioPath: path.join(tempDir, "audio.mp3"),
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
-      expect(result.error).toContain('not found');
+      expect(result.error).toContain("not found");
     });
 
-    it('should handle FFmpeg spawn errors gracefully', async () => {
-      const videoPath = path.join(tempDir, 'video.webm');
-      const audioPath = path.join(tempDir, 'audio.mp3');
-      await fs.writeFile(videoPath, Buffer.from('mock video'));
-      await fs.writeFile(audioPath, Buffer.from('mock audio'));
+    it("should handle FFmpeg spawn errors gracefully", async () => {
+      const videoPath = path.join(tempDir, "video.webm");
+      const audioPath = path.join(tempDir, "audio.mp3");
+      await fs.writeFile(videoPath, Buffer.from("mock video"));
+      await fs.writeFile(audioPath, Buffer.from("mock audio"));
 
       // This will fail because FFmpeg is not available or files are not real media
       const result = await assembler.assemble({
         inputVideoPath: videoPath,
         audioPath,
-        outputPath: path.join(tempDir, 'output.mp4'),
+        outputPath: path.join(tempDir, "output.mp4"),
       });
 
       // Should return result, not throw
@@ -367,8 +369,8 @@ describe('RevealVideoAssembler', () => {
   // FACTORY FUNCTION TESTS
   // ==========================================================================
 
-  describe('Factory Function', () => {
-    it('should create assembler via factory function', () => {
+  describe("Factory Function", () => {
+    it("should create assembler via factory function", () => {
       const assembler = createRevealVideoAssembler();
 
       expect(assembler).toBeDefined();

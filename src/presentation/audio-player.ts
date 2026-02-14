@@ -4,7 +4,7 @@
  * Plays audio files in the browser and reports playback events
  */
 
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 // ============================================================================
 // TYPES
@@ -58,7 +58,7 @@ export class BrowserAudioPlayer {
       const w = window as any;
       if (!w.__revealAudioPlayer) {
         const audio = new Audio();
-        audio.id = 'reveal-audio-player';
+        audio.id = "reveal-audio-player";
         w.__revealAudioPlayer = audio;
       }
     });
@@ -91,7 +91,7 @@ export class BrowserAudioPlayer {
         audio.playbackRate = playbackRate;
         audio.play();
       },
-      { volume, playbackRate }
+      { volume, playbackRate },
     );
   }
 
@@ -126,7 +126,7 @@ export class BrowserAudioPlayer {
           const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
           return audio.ended || audio.paused || audio.error !== null;
         },
-        { timeout }
+        { timeout },
       );
     } catch (error) {
       // Timeout or error - stop audio and continue
@@ -144,7 +144,7 @@ export class BrowserAudioPlayer {
         const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
         return audio.readyState >= 2; // HAVE_CURRENT_DATA
       },
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
   }
 

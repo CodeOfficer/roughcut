@@ -8,18 +8,18 @@ import {
   createBuildCommand,
   type BuildOptions,
   type BuildProgress,
-} from '../build.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+} from "../build.js";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 
-describe('RevealBuildCommand', () => {
+describe("RevealBuildCommand", () => {
   let command: RevealBuildCommand;
   let tempDir: string;
 
   beforeEach(async () => {
     command = createBuildCommand();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'build-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "build-test-"));
   });
 
   afterEach(async () => {
@@ -34,13 +34,13 @@ describe('RevealBuildCommand', () => {
   // CONFIGURATION TESTS
   // ==========================================================================
 
-  describe('Configuration', () => {
-    it('should create build command instance', () => {
+  describe("Configuration", () => {
+    it("should create build command instance", () => {
       expect(command).toBeDefined();
       expect(command).toBeInstanceOf(RevealBuildCommand);
     });
 
-    it('should support progress callbacks', () => {
+    it("should support progress callbacks", () => {
       const callback = vi.fn();
       command.onProgress(callback);
 
@@ -53,30 +53,30 @@ describe('RevealBuildCommand', () => {
   // VALIDATION TESTS
   // ==========================================================================
 
-  describe('Input Validation', () => {
-    it('should fail if input file is not provided', async () => {
+  describe("Input Validation", () => {
+    it("should fail if input file is not provided", async () => {
       const result = await command.execute({
-        input: '',
+        input: "",
         output: tempDir,
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Input file is required');
+      expect(result.error).toContain("Input file is required");
     });
 
-    it('should fail if output directory is not provided', async () => {
+    it("should fail if output directory is not provided", async () => {
       const result = await command.execute({
-        input: '/some/file.md',
-        output: '',
+        input: "/some/file.md",
+        output: "",
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Output directory is required');
+      expect(result.error).toContain("Output directory is required");
     });
 
-    it('should fail if input file does not exist', async () => {
+    it("should fail if input file does not exist", async () => {
       const result = await command.execute({
-        input: '/nonexistent/file.md',
+        input: "/nonexistent/file.md",
         output: tempDir,
       });
 
@@ -89,13 +89,13 @@ describe('RevealBuildCommand', () => {
   // BASIC BUILD TESTS
   // ==========================================================================
 
-  describe('Basic Build', () => {
-    it('should build HTML-only presentation', async () => {
+  describe("Basic Build", () => {
+    it("should build HTML-only presentation", async () => {
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -113,9 +113,9 @@ describe('RevealBuildCommand', () => {
       }
     }, 30000);
 
-    it('should create output directories', async () => {
+    it("should create output directories", async () => {
       const inputPath = await createTestMarkdown(tempDir);
-      const outputDir = path.join(tempDir, 'output');
+      const outputDir = path.join(tempDir, "output");
 
       await command.execute({
         input: inputPath,
@@ -126,15 +126,15 @@ describe('RevealBuildCommand', () => {
 
       // Check directories exist
       const audioDir = await fs
-        .access(path.join(outputDir, 'audio'))
+        .access(path.join(outputDir, "audio"))
         .then(() => true)
         .catch(() => false);
       const presentationDir = await fs
-        .access(path.join(outputDir, 'presentation'))
+        .access(path.join(outputDir, "presentation"))
         .then(() => true)
         .catch(() => false);
       const videoDir = await fs
-        .access(path.join(outputDir, 'video'))
+        .access(path.join(outputDir, "video"))
         .then(() => true)
         .catch(() => false);
 
@@ -143,12 +143,12 @@ describe('RevealBuildCommand', () => {
       expect(videoDir).toBe(true);
     }, 30000);
 
-    it('should return build statistics', async () => {
+    it("should return build statistics", async () => {
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -158,12 +158,12 @@ describe('RevealBuildCommand', () => {
       expect(result.stats?.totalDuration).toBeGreaterThan(0);
     }, 30000);
 
-    it('should return build duration', async () => {
+    it("should return build duration", async () => {
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -177,8 +177,8 @@ describe('RevealBuildCommand', () => {
   // PROGRESS REPORTING TESTS
   // ==========================================================================
 
-  describe('Progress Reporting', () => {
-    it('should report progress during build', async () => {
+  describe("Progress Reporting", () => {
+    it("should report progress during build", async () => {
       const inputPath = await createTestMarkdown(tempDir);
       const progressUpdates: BuildProgress[] = [];
 
@@ -188,7 +188,7 @@ describe('RevealBuildCommand', () => {
 
       await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -197,16 +197,16 @@ describe('RevealBuildCommand', () => {
       expect(progressUpdates.length).toBeGreaterThan(0);
 
       // Should have parsing phase
-      const parsingPhase = progressUpdates.find((p) => p.phase === 'parsing');
+      const parsingPhase = progressUpdates.find((p) => p.phase === "parsing");
       expect(parsingPhase).toBeDefined();
 
       // Should have complete phase
-      const completePhase = progressUpdates.find((p) => p.phase === 'complete');
+      const completePhase = progressUpdates.find((p) => p.phase === "complete");
       expect(completePhase).toBeDefined();
       expect(completePhase?.percentage).toBe(100);
     }, 30000);
 
-    it('should report all build phases', async () => {
+    it("should report all build phases", async () => {
       const inputPath = await createTestMarkdown(tempDir);
       const phases: string[] = [];
 
@@ -218,19 +218,19 @@ describe('RevealBuildCommand', () => {
 
       await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
 
       // Should have key phases
-      expect(phases).toContain('parsing');
-      expect(phases).toContain('html_generation');
-      expect(phases).toContain('timeline_building');
-      expect(phases).toContain('complete');
+      expect(phases).toContain("parsing");
+      expect(phases).toContain("html_generation");
+      expect(phases).toContain("timeline_building");
+      expect(phases).toContain("complete");
     }, 30000);
 
-    it('should include progress messages', async () => {
+    it("should include progress messages", async () => {
       const inputPath = await createTestMarkdown(tempDir);
       const messages: string[] = [];
 
@@ -240,14 +240,14 @@ describe('RevealBuildCommand', () => {
 
       await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
 
       // Should have descriptive messages
       expect(messages.length).toBeGreaterThan(0);
-      expect(messages.some((m) => m.includes('Parsed'))).toBe(true);
+      expect(messages.some((m) => m.includes("Parsed"))).toBe(true);
     }, 30000);
   });
 
@@ -255,13 +255,13 @@ describe('RevealBuildCommand', () => {
   // BUILD OPTIONS TESTS
   // ==========================================================================
 
-  describe('Build Options', () => {
-    it('should support skipAudio option', async () => {
+  describe("Build Options", () => {
+    it("should support skipAudio option", async () => {
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -270,12 +270,12 @@ describe('RevealBuildCommand', () => {
       expect(result.stats?.audioFilesGenerated).toBe(0);
     }, 30000);
 
-    it('should support video=false option', async () => {
+    it("should support video=false option", async () => {
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -284,14 +284,14 @@ describe('RevealBuildCommand', () => {
       expect(result.videoPath).toBeUndefined();
     }, 30000);
 
-    it.skip('should support bundle option', async () => {
+    it.skip("should support bundle option", async () => {
       // Skipped: Requires reveal.js package to be installed
       // Integration test would verify asset bundling works correctly
       const inputPath = await createTestMarkdown(tempDir);
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
         bundle: true,
@@ -300,7 +300,12 @@ describe('RevealBuildCommand', () => {
       expect(result.success).toBe(true);
 
       // Should have bundled assets
-      const assetsDir = path.join(tempDir, 'output', 'presentation', 'reveal.js');
+      const assetsDir = path.join(
+        tempDir,
+        "output",
+        "presentation",
+        "reveal.js",
+      );
       const exists = await fs
         .access(assetsDir)
         .then(() => true)
@@ -314,27 +319,27 @@ describe('RevealBuildCommand', () => {
   // ERROR HANDLING TESTS
   // ==========================================================================
 
-  describe('Error Handling', () => {
-    it('should return error result on failure', async () => {
+  describe("Error Handling", () => {
+    it("should return error result on failure", async () => {
       const result = await command.execute({
-        input: '/nonexistent/file.md',
+        input: "/nonexistent/file.md",
         output: tempDir,
       });
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
-      expect(typeof result.error).toBe('string');
+      expect(typeof result.error).toBe("string");
     });
 
-    it.skip('should handle invalid markdown gracefully', async () => {
+    it.skip("should handle invalid markdown gracefully", async () => {
       // Skipped: Parser validation is strict and requires proper format
       // This is expected behavior - invalid markdown should fail
-      const inputPath = path.join(tempDir, 'invalid.md');
-      await fs.writeFile(inputPath, '# Just a title, no valid presentation');
+      const inputPath = path.join(tempDir, "invalid.md");
+      await fs.writeFile(inputPath, "# Just a title, no valid presentation");
 
       const result = await command.execute({
         input: inputPath,
-        output: path.join(tempDir, 'output'),
+        output: path.join(tempDir, "output"),
         video: false,
         skipAudio: true,
       });
@@ -348,13 +353,13 @@ describe('RevealBuildCommand', () => {
   // VIDEO BUILD TESTS (SKIPPED)
   // ==========================================================================
 
-  describe('Video Build', () => {
-    it.skip('should build complete presentation with video', async () => {
+  describe("Video Build", () => {
+    it.skip("should build complete presentation with video", async () => {
       // Skipped: Requires FFmpeg and takes significant time
       // This would test the full pipeline including video recording and assembly
     });
 
-    it.skip('should generate audio if not skipped', async () => {
+    it.skip("should generate audio if not skipped", async () => {
       // Skipped: Requires ElevenLabs API key
       // This would test audio generation integration
     });
@@ -364,8 +369,8 @@ describe('RevealBuildCommand', () => {
   // FACTORY FUNCTION TESTS
   // ==========================================================================
 
-  describe('Factory Function', () => {
-    it('should create command via factory function', () => {
+  describe("Factory Function", () => {
+    it("should create command via factory function", () => {
       const command = createBuildCommand();
 
       expect(command).toBeDefined();
@@ -404,7 +409,7 @@ This is the first slide.
 This is the second slide.
 `;
 
-  const filePath = path.join(dir, 'test-presentation.md');
+  const filePath = path.join(dir, "test-presentation.md");
   await fs.writeFile(filePath, markdown);
   return filePath;
 }

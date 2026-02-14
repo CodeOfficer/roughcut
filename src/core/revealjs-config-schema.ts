@@ -23,16 +23,16 @@ export interface RevealJSConfig {
    * - false: Hide controls on all screens
    * - "speaker-only": Only display controls in the speaker view
    */
-  controls?: boolean | 'speaker-only';
+  controls?: boolean | "speaker-only";
 
   /** Help the user learn the controls by providing hints */
   controlsTutorial?: boolean;
 
   /** Determines where controls appear */
-  controlsLayout?: 'bottom-right' | 'edges';
+  controlsLayout?: "bottom-right" | "edges";
 
   /** Visibility rule for backwards navigation arrows */
-  controlsBackArrows?: 'faded' | 'hidden' | 'visible';
+  controlsBackArrows?: "faded" | "hidden" | "visible";
 
   /** Display a presentation progress bar */
   progress?: boolean;
@@ -46,7 +46,7 @@ export interface RevealJSConfig {
    * - "c": Flattened slide number
    * - "c/t": Flattened slide number / total slides
    */
-  slideNumber?: boolean | 'h.v' | 'h/v' | 'c' | 'c/t';
+  slideNumber?: boolean | "h.v" | "h/v" | "c" | "c/t";
 
   /**
    * Can be used to limit the contexts in which the slide number appears
@@ -54,7 +54,7 @@ export interface RevealJSConfig {
    * - "print": Only when printing to PDF
    * - "speaker": Only in the speaker view
    */
-  showSlideNumber?: 'all' | 'print' | 'speaker';
+  showSlideNumber?: "all" | "print" | "speaker";
 
   // ============================================================================
   // NAVIGATION & KEYBOARD
@@ -83,7 +83,7 @@ export interface RevealJSConfig {
    * If you set this to 'focused', we will only capture keyboard events
    * for embedded decks when they are in focus
    */
-  keyboardCondition?: null | 'focused';
+  keyboardCondition?: null | "focused";
 
   /** Disables the default reveal.js slide layout (scaling and centering) */
   disableLayout?: boolean;
@@ -110,7 +110,7 @@ export interface RevealJSConfig {
    * - "grid": When stepping left/right from a vertical stack to adjacent
    *           vertical stack, land at same vertical index
    */
-  navigationMode?: 'default' | 'linear' | 'grid';
+  navigationMode?: "default" | "linear" | "grid";
 
   /** Randomizes the order of slides each time the presentation loads */
   shuffle?: boolean;
@@ -170,7 +170,9 @@ export interface RevealJSConfig {
   autoAnimate?: boolean;
 
   /** Optionally provide a custom element matcher for auto-animation */
-  autoAnimateMatcher?: null | ((fromElement: Element, toElement: Element) => boolean);
+  autoAnimateMatcher?:
+    | null
+    | ((fromElement: Element, toElement: Element) => boolean);
 
   /** Default settings for auto-animate transitions */
   autoAnimateEasing?: string;
@@ -232,13 +234,19 @@ export interface RevealJSConfig {
   // ============================================================================
 
   /** Transition style between slides */
-  transition?: 'none' | 'fade' | 'slide' | 'convex' | 'concave' | 'zoom';
+  transition?: "none" | "fade" | "slide" | "convex" | "concave" | "zoom";
 
   /** Transition speed */
-  transitionSpeed?: 'default' | 'fast' | 'slow';
+  transitionSpeed?: "default" | "fast" | "slow";
 
   /** Transition style for full page slide backgrounds */
-  backgroundTransition?: 'none' | 'fade' | 'slide' | 'convex' | 'concave' | 'zoom';
+  backgroundTransition?:
+    | "none"
+    | "fade"
+    | "slide"
+    | "convex"
+    | "concave"
+    | "zoom";
 
   // ============================================================================
   // PDF EXPORT
@@ -306,7 +314,7 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
    * - Maximizes viewport for pre-rendering
    * - Prevents user interaction from interrupting recording
    */
-  'video-recording': {
+  "video-recording": {
     controls: false,
     progress: false,
     slideNumber: false,
@@ -325,9 +333,9 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
     shuffle: false,
     viewDistance: 999, // Pre-render all slides for smooth recording
     mobileViewDistance: 999,
-    transition: 'slide',
-    transitionSpeed: 'default',
-    backgroundTransition: 'fade',
+    transition: "slide",
+    transitionSpeed: "default",
+    backgroundTransition: "fade",
     hash: false,
     history: false,
     embedded: true,
@@ -340,10 +348,10 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
    * - Shows progress indicators
    * - Allows keyboard/mouse navigation
    */
-  'manual-presentation': {
+  "manual-presentation": {
     controls: true,
     progress: true,
-    slideNumber: 'c/t',
+    slideNumber: "c/t",
     keyboard: true,
     overview: true,
     touch: true,
@@ -358,8 +366,8 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
     mouseWheel: true,
     hash: true,
     history: true,
-    transition: 'slide',
-    transitionSpeed: 'default',
+    transition: "slide",
+    transitionSpeed: "default",
   },
 
   /**
@@ -369,7 +377,7 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
    * - Shows progress for visibility
    * - Useful for debugging timing and sync
    */
-  'auto-demo': {
+  "auto-demo": {
     controls: false,
     progress: true,
     slideNumber: false,
@@ -384,8 +392,8 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
     autoSlide: 0,
     pause: false,
     mouseWheel: false,
-    transition: 'slide',
-    transitionSpeed: 'default',
+    transition: "slide",
+    transitionSpeed: "default",
   },
 
   /**
@@ -395,11 +403,11 @@ export const CONFIG_PRESETS: Record<string, Partial<RevealJSConfig>> = {
    * - Shows slide numbers in speaker view
    * - Full keyboard navigation
    */
-  'speaker-mode': {
+  "speaker-mode": {
     controls: true,
     progress: true,
-    slideNumber: 'c/t',
-    showSlideNumber: 'speaker',
+    slideNumber: "c/t",
+    showSlideNumber: "speaker",
     keyboard: true,
     overview: true,
     touch: true,
@@ -425,8 +433,8 @@ export const DEFAULT_REVEAL_CONFIG: Partial<RevealJSConfig> = {
   history: true,
   fragments: true,
   fragmentInURL: false,
-  transition: 'slide',
-  transitionSpeed: 'default',
+  transition: "slide",
+  transitionSpeed: "default",
   autoPlayMedia: false,
   controls: true,
   progress: true,
@@ -448,7 +456,7 @@ export const DEFAULT_REVEAL_CONFIG: Partial<RevealJSConfig> = {
  */
 export function resolveConfig(
   userConfig?: Partial<RevealJSConfig>,
-  preset?: string
+  preset?: string,
 ): RevealJSConfig {
   // Start with default config
   let config = { ...DEFAULT_REVEAL_CONFIG };

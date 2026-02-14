@@ -2,27 +2,34 @@
  * Dev command - interactive presentation testing
  */
 
-import { Command } from 'commander';
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import { createDevServer } from '../../dev-server.js';
-import { createRevealParser } from '../../core/parser.js';
-import { createRevealTimelineBuilder } from '../../video/timeline.js';
+import { Command } from "commander";
+import * as path from "path";
+import * as fs from "fs/promises";
+import { createDevServer } from "../../dev-server.js";
+import { createRevealParser } from "../../core/parser.js";
+import { createRevealTimelineBuilder } from "../../video/timeline.js";
 
 export function createDevCommand(): Command {
-  const cmd = new Command('dev');
+  const cmd = new Command("dev");
 
   cmd
-    .description('Open presentation in browser for interactive testing')
-    .requiredOption('-i, --input <file>', 'Input markdown file')
-    .option('-o, --output <dir>', 'Output directory (default: same directory as input)')
-    .option('--auto', 'Auto-advance slides (like video recording but visible)', false)
-    .option('--slow-mo <ms>', 'Slow down automation (milliseconds)', '100')
+    .description("Open presentation in browser for interactive testing")
+    .requiredOption("-i, --input <file>", "Input markdown file")
+    .option(
+      "-o, --output <dir>",
+      "Output directory (default: same directory as input)",
+    )
+    .option(
+      "--auto",
+      "Auto-advance slides (like video recording but visible)",
+      false,
+    )
+    .option("--slow-mo <ms>", "Slow down automation (milliseconds)", "100")
     .action(async (options) => {
       try {
         await runDev(options);
       } catch (error) {
-        console.error('❌ Dev server failed:', error);
+        console.error("❌ Dev server failed:", error);
         process.exit(1);
       }
     });
@@ -38,22 +45,22 @@ async function runDev(options: any): Promise<void> {
   const inputDir = path.dirname(inputPath);
   const outputDir = options.output
     ? path.resolve(options.output)
-    : path.join(inputDir, '.build');
+    : path.join(inputDir, ".build");
 
-  const htmlPath = path.join(outputDir, 'presentation', 'index.html');
+  const htmlPath = path.join(outputDir, "presentation", "index.html");
 
   // Check if HTML exists
   try {
     await fs.access(htmlPath);
   } catch {
     console.error(`❌ HTML not found: ${htmlPath}`);
-    console.error('   Run build first: npm run build:html');
+    console.error("   Run build first: npm run build:html");
     process.exit(1);
   }
 
   // For both manual and auto mode, we need to parse presentation for overlay data
-  console.log('📖 Parsing presentation...');
-  const markdown = await fs.readFile(inputPath, 'utf-8');
+  console.log("📖 Parsing presentation...");
+  const markdown = await fs.readFile(inputPath, "utf-8");
   const parser = createRevealParser();
   const presentation = parser.parse(markdown);
 
@@ -63,12 +70,14 @@ async function runDev(options: any): Promise<void> {
 
   if (auto) {
     // Check if audio files exist
-    audioBaseDir = path.join(outputDir, 'audio');
+    audioBaseDir = path.join(outputDir, "audio");
     try {
       await fs.access(audioBaseDir);
     } catch {
       console.error(`❌ Audio directory not found: ${audioBaseDir}`);
-      console.error('   Run build with audio first: TUTORIAL=<name> npm run build:full');
+      console.error(
+        "   Run build with audio first: TUTORIAL=<name> npm run build:full",
+      );
       process.exit(1);
     }
 
@@ -76,18 +85,24 @@ async function runDev(options: any): Promise<void> {
     const timelineBuilder = createRevealTimelineBuilder();
 
     // Load audio manifest if available
-    const manifestPath = path.join(audioBaseDir, 'manifest.json');
+    const manifestPath = path.join(audioBaseDir, "manifest.json");
     const audioResults = new Map();
 
     try {
-      const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+      const manifestContent = await fs.readFile(manifestPath, "utf-8");
       const manifest = JSON.parse(manifestContent);
 
       // Manifest structure: { "slide-001": [{ hash, text, file, duration, ... }] }
-      for (const [slideId, lines] of Object.entries(manifest) as [string, any[]][]) {
+      for (const [slideId, lines] of Object.entries(manifest) as [
+        string,
+        any[],
+      ][]) {
         if (Array.isArray(lines) && lines.length > 0) {
           // Sum durations of all audio lines for this slide
-          const totalDuration = lines.reduce((sum, line) => sum + (line.duration || 0), 0);
+          const totalDuration = lines.reduce(
+            (sum, line) => sum + (line.duration || 0),
+            0,
+          );
 
           // Use the first line's file path (HTTP server-relative)
           // The file is already relative in the manifest
@@ -100,17 +115,22 @@ async function runDev(options: any): Promise<void> {
         }
       }
     } catch (error) {
-      console.warn('⚠️  Audio manifest not found, using metadata durations');
+      console.warn("⚠️  Audio manifest not found, using metadata durations");
     }
 
     timeline = timelineBuilder.build(presentation, audioResults);
 
-    console.log(`📊 Timeline: ${timeline.slides.length} slides, ${timeline.totalDuration.toFixed(1)}s total`);
-    console.log('');
+    console.log(
+      `📊 Timeline: ${timeline.slides.length} slides, ${timeline.totalDuration.toFixed(1)}s total`,
+    );
+    console.log("");
   }
 
   // Prepare debug overlay data (available in both manual and auto modes)
-  const debugOverlayData = await prepareDebugOverlayData(presentation, path.join(outputDir, 'audio'));
+  const debugOverlayData = await prepareDebugOverlayData(
+    presentation,
+    path.join(outputDir, "audio"),
+  );
 
   // Start dev server
   const devServer = createDevServer();
@@ -129,20 +149,22 @@ async function runDev(options: any): Promise<void> {
  */
 async function prepareDebugOverlayData(
   presentation: any,
-  audioDir: string
+  audioDir: string,
 ): Promise<Map<string, { narration: string; fragmentCount: number }>> {
   const overlayData = new Map();
 
   // Load audio manifest to get narration text
-  const manifestPath = path.join(audioDir, 'manifest.json');
+  const manifestPath = path.join(audioDir, "manifest.json");
   let manifest: any = {};
 
   try {
-    const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+    const manifestContent = await fs.readFile(manifestPath, "utf-8");
     manifest = JSON.parse(manifestContent);
   } catch (error) {
     // No manifest available, overlay will show slides without narration text
-    console.log('ℹ️  No audio manifest found - debug overlay will show limited info');
+    console.log(
+      "ℹ️  No audio manifest found - debug overlay will show limited info",
+    );
   }
 
   // Build overlay data for each slide
@@ -150,15 +172,17 @@ async function prepareDebugOverlayData(
     const slideId = slide.id;
 
     // Extract narration text from manifest
-    let narration = '';
+    let narration = "";
     if (manifest[slideId]) {
       const lines = manifest[slideId];
       // Deduplicate text entries (manifest may have duplicates)
-      const uniqueTexts = Array.from(new Set(lines.map((line: any) => line.text || '')));
+      const uniqueTexts = Array.from(
+        new Set(lines.map((line: any) => line.text || "")),
+      );
       // Concatenate all unique text lines, removing [pause] markers
       narration = uniqueTexts
-        .join(' ')
-        .replace(/\[pause[^\]]*\]/g, '') // Remove [pause] markers
+        .join(" ")
+        .replace(/\[pause[^\]]*\]/g, "") // Remove [pause] markers
         .trim();
     }
 

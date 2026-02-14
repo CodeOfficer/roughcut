@@ -3,16 +3,16 @@
  * Tests action execution, waits, screenshots, and error handling
  */
 
-import { PlaywrightInstructionExecutor } from '../playwright-executor.js';
-import type { PlaywrightInstruction } from '../../core/types.js';
-import type { ExecutionContext } from '../playwright-executor.js';
-import { chromium } from '@playwright/test';
-import type { Browser, Page } from '@playwright/test';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+import { PlaywrightInstructionExecutor } from "../playwright-executor.js";
+import type { PlaywrightInstruction } from "../../core/types.js";
+import type { ExecutionContext } from "../playwright-executor.js";
+import { chromium } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 
-describe('PlaywrightInstructionExecutor', () => {
+describe("PlaywrightInstructionExecutor", () => {
   let executor: PlaywrightInstructionExecutor;
   let browser: Browser;
   let page: Page;
@@ -23,7 +23,7 @@ describe('PlaywrightInstructionExecutor', () => {
     executor = new PlaywrightInstructionExecutor();
 
     // Create temp directory
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'executor-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "executor-test-"));
 
     // Generate test HTML
     testHtmlPath = await generateTestHTML(tempDir);
@@ -53,11 +53,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // CLICK ACTION TESTS
   // ==========================================================================
 
-  describe('Click Actions', () => {
-    it('should execute click action with ID selector', async () => {
+  describe("Click Actions", () => {
+    it("should execute click action with ID selector", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Click #test-button',
+        type: "action",
+        content: "Click #test-button",
       };
 
       const context: ExecutionContext = { page };
@@ -66,14 +66,16 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.success).toBe(true);
 
       // Verify click happened
-      const clicked = await page.locator('#test-button').getAttribute('data-clicked');
-      expect(clicked).toBe('true');
+      const clicked = await page
+        .locator("#test-button")
+        .getAttribute("data-clicked");
+      expect(clicked).toBe("true");
     });
 
-    it('should execute click action with class selector', async () => {
+    it("should execute click action with class selector", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Click .submit-btn',
+        type: "action",
+        content: "Click .submit-btn",
       };
 
       const context: ExecutionContext = { page };
@@ -82,10 +84,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should execute click action with text selector', async () => {
+    it("should execute click action with text selector", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Click Submit',
+        type: "action",
+        content: "Click Submit",
       };
 
       const context: ExecutionContext = { page };
@@ -99,15 +101,15 @@ describe('PlaywrightInstructionExecutor', () => {
   // TYPE ACTION TESTS
   // ==========================================================================
 
-  describe('Type Actions', () => {
-    it('should execute type action', async () => {
+  describe("Type Actions", () => {
+    it("should execute type action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
+        type: "action",
         content: 'Type: "hello world"',
       };
 
       // Focus input first
-      await page.focus('#text-input');
+      await page.focus("#text-input");
 
       const context: ExecutionContext = { page };
       const result = await executor.execute(instruction, context);
@@ -115,25 +117,25 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.success).toBe(true);
 
       // Verify text was typed
-      const value = await page.inputValue('#text-input');
-      expect(value).toBe('hello world');
+      const value = await page.inputValue("#text-input");
+      expect(value).toBe("hello world");
     });
 
-    it('should execute type action with key press', async () => {
+    it("should execute type action with key press", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
+        type: "action",
         content: 'Type: "test" + Enter',
       };
 
-      await page.focus('#text-input');
+      await page.focus("#text-input");
 
       const context: ExecutionContext = { page };
       const result = await executor.execute(instruction, context);
 
       expect(result.success).toBe(true);
 
-      const value = await page.inputValue('#text-input');
-      expect(value).toBe('test');
+      const value = await page.inputValue("#text-input");
+      expect(value).toBe("test");
     });
   });
 
@@ -141,10 +143,10 @@ describe('PlaywrightInstructionExecutor', () => {
   // FILL ACTION TESTS
   // ==========================================================================
 
-  describe('Fill Actions', () => {
-    it('should execute fill action', async () => {
+  describe("Fill Actions", () => {
+    it("should execute fill action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
+        type: "action",
         content: 'Fill #text-input with "filled text"',
       };
 
@@ -153,13 +155,13 @@ describe('PlaywrightInstructionExecutor', () => {
 
       expect(result.success).toBe(true);
 
-      const value = await page.inputValue('#text-input');
-      expect(value).toBe('filled text');
+      const value = await page.inputValue("#text-input");
+      expect(value).toBe("filled text");
     });
 
-    it('should execute fill action with email', async () => {
+    it("should execute fill action with email", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
+        type: "action",
         content: 'Fill #email-input with "test@example.com"',
       };
 
@@ -168,8 +170,8 @@ describe('PlaywrightInstructionExecutor', () => {
 
       expect(result.success).toBe(true);
 
-      const value = await page.inputValue('#email-input');
-      expect(value).toBe('test@example.com');
+      const value = await page.inputValue("#email-input");
+      expect(value).toBe("test@example.com");
     });
   });
 
@@ -177,11 +179,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // CHECK/UNCHECK ACTION TESTS
   // ==========================================================================
 
-  describe('Check/Uncheck Actions', () => {
-    it('should execute check action', async () => {
+  describe("Check/Uncheck Actions", () => {
+    it("should execute check action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Check #checkbox',
+        type: "action",
+        content: "Check #checkbox",
       };
 
       const context: ExecutionContext = { page };
@@ -189,17 +191,17 @@ describe('PlaywrightInstructionExecutor', () => {
 
       expect(result.success).toBe(true);
 
-      const checked = await page.isChecked('#checkbox');
+      const checked = await page.isChecked("#checkbox");
       expect(checked).toBe(true);
     });
 
-    it('should execute uncheck action', async () => {
+    it("should execute uncheck action", async () => {
       // Check it first
-      await page.check('#checkbox');
+      await page.check("#checkbox");
 
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Uncheck #checkbox',
+        type: "action",
+        content: "Uncheck #checkbox",
       };
 
       const context: ExecutionContext = { page };
@@ -207,7 +209,7 @@ describe('PlaywrightInstructionExecutor', () => {
 
       expect(result.success).toBe(true);
 
-      const checked = await page.isChecked('#checkbox');
+      const checked = await page.isChecked("#checkbox");
       expect(checked).toBe(false);
     });
   });
@@ -216,11 +218,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // HOVER ACTION TESTS
   // ==========================================================================
 
-  describe('Hover Actions', () => {
-    it('should execute hover action', async () => {
+  describe("Hover Actions", () => {
+    it("should execute hover action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Hover #hover-target',
+        type: "action",
+        content: "Hover #hover-target",
       };
 
       const context: ExecutionContext = { page };
@@ -234,11 +236,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // FOCUS ACTION TESTS
   // ==========================================================================
 
-  describe('Focus Actions', () => {
-    it('should execute focus action', async () => {
+  describe("Focus Actions", () => {
+    it("should execute focus action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Focus #text-input',
+        type: "action",
+        content: "Focus #text-input",
       };
 
       const context: ExecutionContext = { page };
@@ -248,7 +250,7 @@ describe('PlaywrightInstructionExecutor', () => {
 
       // Verify focus
       const isFocused = await page.evaluate(() => {
-        return document.activeElement?.id === 'text-input';
+        return document.activeElement?.id === "text-input";
       });
       expect(isFocused).toBe(true);
     });
@@ -258,13 +260,13 @@ describe('PlaywrightInstructionExecutor', () => {
   // PRESS KEY ACTION TESTS
   // ==========================================================================
 
-  describe('Press Key Actions', () => {
-    it('should execute press key action', async () => {
-      await page.focus('#text-input');
+  describe("Press Key Actions", () => {
+    it("should execute press key action", async () => {
+      await page.focus("#text-input");
 
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Press Enter',
+        type: "action",
+        content: "Press Enter",
       };
 
       const context: ExecutionContext = { page };
@@ -273,10 +275,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should execute press escape', async () => {
+    it("should execute press escape", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Press Escape',
+        type: "action",
+        content: "Press Escape",
       };
 
       const context: ExecutionContext = { page };
@@ -290,10 +292,10 @@ describe('PlaywrightInstructionExecutor', () => {
   // SELECT ACTION TESTS
   // ==========================================================================
 
-  describe('Select Actions', () => {
-    it('should execute select action', async () => {
+  describe("Select Actions", () => {
+    it("should execute select action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
+        type: "action",
         content: 'Select "Option 2" in #dropdown',
       };
 
@@ -302,8 +304,8 @@ describe('PlaywrightInstructionExecutor', () => {
 
       expect(result.success).toBe(true);
 
-      const value = await page.inputValue('#dropdown');
-      expect(value).toBe('option2');
+      const value = await page.inputValue("#dropdown");
+      expect(value).toBe("option2");
     });
   });
 
@@ -311,11 +313,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // SCROLL ACTION TESTS
   // ==========================================================================
 
-  describe('Scroll Actions', () => {
-    it('should execute scroll action', async () => {
+  describe("Scroll Actions", () => {
+    it("should execute scroll action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Scroll to #bottom-element',
+        type: "action",
+        content: "Scroll to #bottom-element",
       };
 
       const context: ExecutionContext = { page };
@@ -329,11 +331,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // WAIT INSTRUCTION TESTS
   // ==========================================================================
 
-  describe('Wait Instructions', () => {
-    it('should execute wait with seconds', async () => {
+  describe("Wait Instructions", () => {
+    it("should execute wait with seconds", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'wait',
-        content: '1s',
+        type: "wait",
+        content: "1s",
       };
 
       const start = Date.now();
@@ -345,10 +347,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(elapsed).toBeGreaterThanOrEqual(1000);
     });
 
-    it('should execute wait with milliseconds', async () => {
+    it("should execute wait with milliseconds", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'wait',
-        content: '100ms',
+        type: "wait",
+        content: "100ms",
       };
 
       const start = Date.now();
@@ -360,10 +362,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(elapsed).toBeGreaterThanOrEqual(100);
     });
 
-    it('should execute wait with decimal seconds', async () => {
+    it("should execute wait with decimal seconds", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'wait',
-        content: '0.5s',
+        type: "wait",
+        content: "0.5s",
       };
 
       const start = Date.now();
@@ -380,20 +382,20 @@ describe('PlaywrightInstructionExecutor', () => {
   // SCREENSHOT INSTRUCTION TESTS
   // ==========================================================================
 
-  describe('Screenshot Instructions', () => {
-    it('should execute screenshot instruction', async () => {
-      const screenshotDir = path.join(tempDir, 'screenshots');
+  describe("Screenshot Instructions", () => {
+    it("should execute screenshot instruction", async () => {
+      const screenshotDir = path.join(tempDir, "screenshots");
       await fs.mkdir(screenshotDir, { recursive: true });
 
       const instruction: PlaywrightInstruction = {
-        type: 'screenshot',
-        content: 'test-screenshot',
+        type: "screenshot",
+        content: "test-screenshot",
       };
 
       const context: ExecutionContext = {
         page,
         screenshotDir,
-        slideId: 'slide-001',
+        slideId: "slide-001",
       };
 
       const result = await executor.execute(instruction, context);
@@ -402,7 +404,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.screenshotPath).toBeDefined();
 
       // Verify screenshot file exists
-      const exists = await fs.access(result.screenshotPath!).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(result.screenshotPath!)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
 
       // Verify file has content
@@ -410,25 +415,25 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(stats.size).toBeGreaterThan(0);
     });
 
-    it('should sanitize screenshot names', async () => {
-      const screenshotDir = path.join(tempDir, 'screenshots');
+    it("should sanitize screenshot names", async () => {
+      const screenshotDir = path.join(tempDir, "screenshots");
       await fs.mkdir(screenshotDir, { recursive: true });
 
       const instruction: PlaywrightInstruction = {
-        type: 'screenshot',
-        content: 'Test Screenshot #1!',
+        type: "screenshot",
+        content: "Test Screenshot #1!",
       };
 
       const context: ExecutionContext = {
         page,
         screenshotDir,
-        slideId: 'slide-002',
+        slideId: "slide-002",
       };
 
       const result = await executor.execute(instruction, context);
 
       expect(result.success).toBe(true);
-      expect(result.screenshotPath).toContain('test-screenshot--1-');
+      expect(result.screenshotPath).toContain("test-screenshot--1-");
     });
   });
 
@@ -436,12 +441,12 @@ describe('PlaywrightInstructionExecutor', () => {
   // EXECUTE ALL TESTS
   // ==========================================================================
 
-  describe('Execute All', () => {
-    it('should execute multiple instructions sequentially', async () => {
+  describe("Execute All", () => {
+    it("should execute multiple instructions sequentially", async () => {
       const instructions: PlaywrightInstruction[] = [
-        { type: 'action', content: 'Fill #text-input with "test"' },
-        { type: 'wait', content: '100ms' },
-        { type: 'action', content: 'Click #test-button' },
+        { type: "action", content: 'Fill #text-input with "test"' },
+        { type: "wait", content: "100ms" },
+        { type: "action", content: "Click #test-button" },
       ];
 
       const context: ExecutionContext = { page };
@@ -453,11 +458,11 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(results[2].success).toBe(true);
     });
 
-    it('should stop on first failure', async () => {
+    it("should stop on first failure", async () => {
       const instructions: PlaywrightInstruction[] = [
-        { type: 'action', content: 'Click #test-button' },
-        { type: 'action', content: 'Click #nonexistent' }, // Will fail
-        { type: 'action', content: 'Click #another-button' }, // Should not execute
+        { type: "action", content: "Click #test-button" },
+        { type: "action", content: "Click #nonexistent" }, // Will fail
+        { type: "action", content: "Click #another-button" }, // Should not execute
       ];
 
       const context: ExecutionContext = { page, timeout: 1000 };
@@ -474,11 +479,11 @@ describe('PlaywrightInstructionExecutor', () => {
   // ERROR HANDLING TESTS
   // ==========================================================================
 
-  describe('Error Handling', () => {
-    it('should return error for invalid action', async () => {
+  describe("Error Handling", () => {
+    it("should return error for invalid action", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'InvalidAction something',
+        type: "action",
+        content: "InvalidAction something",
       };
 
       const context: ExecutionContext = { page };
@@ -488,10 +493,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.error).toBeDefined();
     });
 
-    it('should return error for nonexistent element', async () => {
+    it("should return error for nonexistent element", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'action',
-        content: 'Click #nonexistent-element',
+        type: "action",
+        content: "Click #nonexistent-element",
       };
 
       const context: ExecutionContext = { page, timeout: 1000 };
@@ -501,10 +506,10 @@ describe('PlaywrightInstructionExecutor', () => {
       expect(result.error).toBeDefined();
     });
 
-    it('should include duration in result', async () => {
+    it("should include duration in result", async () => {
       const instruction: PlaywrightInstruction = {
-        type: 'wait',
-        content: '100ms',
+        type: "wait",
+        content: "100ms",
       };
 
       const context: ExecutionContext = { page };
@@ -557,8 +562,8 @@ async function generateTestHTML(dir: string): Promise<string> {
 </body>
 </html>`;
 
-  const filepath = path.join(dir, 'test.html');
-  await fs.writeFile(filepath, html, 'utf-8');
+  const filepath = path.join(dir, "test.html");
+  await fs.writeFile(filepath, html, "utf-8");
 
   return filepath;
 }

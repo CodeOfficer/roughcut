@@ -5,9 +5,9 @@
  * to the build output, making them available for the presentation.
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { logger } from '../core/logger.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { logger } from "../core/logger.js";
 
 /**
  * Asset copier options
@@ -34,27 +34,40 @@ export interface AssetCopierResult {
 /**
  * Common image extensions
  */
-const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp'];
+const IMAGE_EXTENSIONS = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".svg",
+  ".webp",
+  ".bmp",
+];
 
 /**
  * Common video extensions
  */
-const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.avi', '.mkv'];
+const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
 
 /**
  * Common audio extensions
  */
-const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a'];
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a"];
 
 /**
  * Style extensions
  */
-const STYLE_EXTENSIONS = ['.css'];
+const STYLE_EXTENSIONS = [".css"];
 
 /**
  * All supported asset extensions
  */
-const ASSET_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS, ...STYLE_EXTENSIONS];
+const ASSET_EXTENSIONS = [
+  ...IMAGE_EXTENSIONS,
+  ...VIDEO_EXTENSIONS,
+  ...AUDIO_EXTENSIONS,
+  ...STYLE_EXTENSIONS,
+];
 
 /**
  * Copies user-provided assets from tutorial directory to build output
@@ -67,19 +80,19 @@ export class AssetCopier {
     const { sourceDir, outputDir } = options;
 
     // Ensure output assets directory exists
-    const assetsOutputDir = path.join(outputDir, 'presentation', 'assets');
+    const assetsOutputDir = path.join(outputDir, "presentation", "assets");
     await fs.mkdir(assetsOutputDir, { recursive: true });
 
     // Recursively find and copy asset files, preserving directory structure
     const copiedFiles: string[] = [];
-    const presentationDir = path.join(outputDir, 'presentation');
+    const presentationDir = path.join(outputDir, "presentation");
 
-    const copyDir = async (dir: string, relPath: string = '') => {
+    const copyDir = async (dir: string, relPath: string = "") => {
       const entries = await fs.readdir(dir);
 
       for (const entry of entries) {
         // Skip presentation.md and hidden files/directories
-        if (entry === 'presentation.md' || entry.startsWith('.')) {
+        if (entry === "presentation.md" || entry.startsWith(".")) {
           continue;
         }
 
@@ -118,7 +131,9 @@ export class AssetCopier {
     await copyDir(sourceDir);
 
     if (copiedFiles.length > 0) {
-      logger.info(`Copied ${copiedFiles.length} user asset(s) to presentation/assets/`);
+      logger.info(
+        `Copied ${copiedFiles.length} user asset(s) to presentation/assets/`,
+      );
     }
 
     return {
