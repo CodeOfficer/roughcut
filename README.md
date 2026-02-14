@@ -39,7 +39,7 @@ npm install -g roughcut
 npx roughcut build -i deck.md
 
 # Or with Homebrew (macOS)
-brew tap soxhub/roughcut
+brew tap codeofficer/roughcut
 brew install roughcut
 ```
 

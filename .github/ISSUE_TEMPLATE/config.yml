@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Documentation
-    url: https://github.com/soxhub/roughcut/tree/main/docs
+    url: https://github.com/codeofficer/roughcut/tree/main/docs
     about: Check the docs before opening an issue

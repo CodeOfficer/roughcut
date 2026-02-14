@@ -5,7 +5,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 ## Development Setup
 
 ```bash
-git clone https://github.com/soxhub/roughcut.git
+git clone https://github.com/codeofficer/roughcut.git
 cd roughcut
 npm install
 npm run build
@@ -95,7 +95,7 @@ Key design decisions:
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/soxhub/roughcut/issues)
+- Use [GitHub Issues](https://github.com/codeofficer/roughcut/issues)
 - Include: roughcut version, Node version, OS, steps to reproduce
 - For crashes: include the full error output
 

@@ -161,7 +161,7 @@ Run \`roughcut build -i presentation.md\` to build.
 
 function getDefaultConfig(): string {
   return `# roughcut project configuration
-# See: https://github.com/soxhub/roughcut
+# See: https://github.com/codeofficer/roughcut
 
 # Uncomment and set your API keys for audio/image generation:
 # elevenlabs_api_key: "your-key-here"

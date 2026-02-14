@@ -39,13 +39,13 @@
   ],
   "author": "",
   "license": "MIT",
-  "homepage": "https://github.com/soxhub/roughcut",
+  "homepage": "https://github.com/codeofficer/roughcut",
   "repository": {
     "type": "git",
-    "url": "https://github.com/soxhub/roughcut.git"
+    "url": "https://github.com/codeofficer/roughcut.git"
   },
   "bugs": {
-    "url": "https://github.com/soxhub/roughcut/issues"
+    "url": "https://github.com/codeofficer/roughcut/issues"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

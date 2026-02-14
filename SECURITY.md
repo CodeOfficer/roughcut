@@ -12,7 +12,7 @@
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email the maintainers or use [GitHub Security Advisories](https://github.com/soxhub/roughcut/security/advisories/new)
+2. Email the maintainers or use [GitHub Security Advisories](https://github.com/codeofficer/roughcut/security/advisories/new)
 3. Include: description, steps to reproduce, potential impact
 4. You should receive a response within 48 hours
 

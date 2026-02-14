@@ -10,7 +10,7 @@ This guide covers first-time setup, releasing new versions to npm, setting up Ho
 2. GitHub auto-redirects the old URL — existing links keep working
 3. Update your local remote:
    ```bash
-   git remote set-url origin https://github.com/soxhub/roughcut.git
+   git remote set-url origin https://github.com/codeofficer/roughcut.git
    ```
 
 ### npm First Publish
@@ -104,13 +104,13 @@ npx roughcut --version
 
 ### Setting up the tap
 
-1. **Create a new GitHub repo:** `soxhub/homebrew-roughcut`
+1. **Create a new GitHub repo:** `codeofficer/homebrew-roughcut`
 
 2. **Add the formula** at `Formula/roughcut.rb`:
    ```ruby
    class Roughcut < Formula
      desc "Generate RevealJS presentations and videos from markdown"
-     homepage "https://github.com/soxhub/roughcut"
+     homepage "https://github.com/codeofficer/roughcut"
      url "https://registry.npmjs.org/roughcut/-/roughcut-3.0.0.tgz"
      sha256 "REPLACE_WITH_ACTUAL_SHA256"
      license "MIT"
@@ -151,7 +151,7 @@ Consider automating this with a GitHub Action in the main repo that triggers aft
 ### Users install via
 
 ```bash
-brew tap soxhub/roughcut
+brew tap codeofficer/roughcut
 brew install roughcut
 ```
 
