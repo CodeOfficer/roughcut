@@ -80,12 +80,10 @@ async function runCreate(name: string): Promise<void> {
 
   console.log("");
   console.log(`  cd ${name}`);
-  console.log("  roughcut build -i presentation.md          # Build HTML");
+  console.log("  roughcut build                    # Build HTML (fast, free)");
+  console.log("  roughcut dev                      # Preview in browser");
   console.log(
-    "  roughcut dev -i presentation.md             # Preview in browser",
-  );
-  console.log(
-    "  roughcut build -i presentation.md --full    # Full build with audio + video",
+    "  roughcut build --full             # Full build with audio + video",
   );
   console.log("");
 }
@@ -141,7 +139,7 @@ Bullet points can appear one at a time:
 @audio: Each line becomes a sentence in the voiceover.
 
 To generate audio, run:
-\`roughcut build -i presentation.md --audio\`
+\`roughcut build --full\`
 
 ---
 
@@ -149,6 +147,6 @@ To generate audio, run:
 
 **Your presentation is ready.**
 
-Run \`roughcut build -i presentation.md\` to build.
+Run \`roughcut build\` to build.
 `;
 }

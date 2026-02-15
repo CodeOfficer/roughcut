@@ -2,9 +2,7 @@
 
 ## Overview
 
-This guide provides best practices and guidelines for writing presentations using roughcut. Follow these recommendations to create professional, compatible presentations that render correctly across all screen sizes.
-
----
+This guide provides best practices and guidelines for writing presentations using Roughcut. Follow these recommendations to create professional, compatible presentations that render correctly across all screen sizes.
 
 ## Table of Contents
 
@@ -18,13 +16,14 @@ This guide provides best practices and guidelines for writing presentations usin
 8. [Common Pitfalls](#common-pitfalls)
 9. [Example Template](#example-template)
 
----
-
 ## File Structure
+
+<details>
+<summary>Directory layout and key points for organizing presentations</summary>
 
 ### Directory Layout
 ```
-tutorials/my-tutorial/
+my-tutorial/
 ├── presentation.md     # Main tutorial content (required)
 ├── screenshot.png      # User-provided images (optional)
 ├── diagram.svg         # User-provided diagrams (optional)
@@ -40,9 +39,12 @@ tutorials/my-tutorial/
 - ❌ Don't create nested subdirectories for assets
 - ❌ Don't put files in the `.build/` directory manually
 
----
+</details>
 
 ## Frontmatter Configuration
+
+<details>
+<summary>YAML frontmatter options: title, theme, voice, resolution, sizing</summary>
 
 Every presentation must start with YAML frontmatter containing metadata:
 
@@ -87,9 +89,12 @@ The system uses **automatic scaling** to fit your slides on any screen size:
 
 **For most tutorials:** The defaults (1200×900, 10% margin) work well. Only adjust if you have specific needs.
 
----
+</details>
 
 ## Content Guidelines
+
+<details>
+<summary>Slide separators, heading hierarchy, text limits, content fitting</summary>
 
 ### Slide Separators
 
@@ -166,9 +171,12 @@ If your content doesn't fit on one slide:
 3. **Reduce font size** with custom CSS (last resort)
 4. **Adjust sizing** in frontmatter (`width`, `margin`)
 
----
+</details>
 
 ## Slide Directives
+
+<details>
+<summary>Core, visual, layout, fragment, and notes directives</summary>
 
 Directives are special `@directive:` commands that control slide behavior.
 
@@ -312,9 +320,12 @@ Speaker notes (visible in presenter mode, not in main presentation).
 @notes: Remember to emphasize this point. Mention the example from last week.
 ```
 
----
+</details>
 
 ## Responsive Design Tips
+
+<details>
+<summary>Dimensions, margins, scaling, and content strategies</summary>
 
 ### 1. Choose Appropriate Dimensions
 
@@ -385,9 +396,12 @@ maxScale: 2.0   # More zoom-in (content can grow larger)
 - Use syntax highlighting (automatic)
 - Consider splitting long examples
 
----
+</details>
 
 ## Audio Narration
+
+<details>
+<summary>Basic audio, multi-line format, voice selection, caching</summary>
 
 ### Basic Audio
 
@@ -414,7 +428,7 @@ maxScale: 2.0   # More zoom-in (content can grow larger)
 
 List available voices:
 ```bash
-npm run voices
+roughcut voices
 ```
 
 Set voice globally (in frontmatter):
@@ -429,15 +443,18 @@ voice: J0AK45UHW1Wo9rJ0p4y8
 - Changing voice regenerates speech
 - Reusing identical text reuses cached audio (saves TTS costs!)
 
----
+</details>
 
 ## Visual Elements
+
+<details>
+<summary>Images, videos, and AI-generated visuals</summary>
 
 ### Images
 
 Place images alongside `presentation.md`:
 ```
-tutorials/my-tutorial/
+my-tutorial/
 ├── presentation.md
 ├── screenshot.png
 └── diagram.svg
@@ -478,9 +495,12 @@ Same process as images:
 - Specify composition (close-up, wide shot, etc.)
 - Use descriptive adjectives
 
----
+</details>
 
 ## Common Pitfalls
+
+<details>
+<summary>Content overflow, unreadable text, inconsistent audio, missing assets, slow builds</summary>
 
 ### ❌ Content Overflow
 
@@ -522,7 +542,7 @@ Same process as images:
 
 **Solutions:**
 1. Update `@audio:` directive when changing content
-2. Build with `npm run tutorial:full` to regenerate all audio
+2. Build with `roughcut build --full` to regenerate all audio
 
 ### ❌ Missing Assets
 
@@ -548,14 +568,16 @@ Same process as images:
 - Recording long videos
 
 **Solutions:**
-1. Use `npm run tutorial:html` for quick HTML-only builds
-2. Use `npm run tutorial:fast` to skip AI generation
-3. Use `npm run tutorial:full` only for final builds
-4. Audio is cached - subsequent builds are faster
+1. Use `roughcut build` for quick HTML-only builds
+2. Use `roughcut build --full` only for final builds
+3. Audio is cached - subsequent builds are faster
 
----
+</details>
 
 ## Example Template
+
+<details>
+<summary>Complete Docker tutorial example demonstrating best practices</summary>
 
 Here's a complete example demonstrating best practices:
 
@@ -642,50 +664,48 @@ docker run -p 80:80 nginx
 @image-prompt: A celebratory completion screen with "Docker Mastered!" text and container icons. Modern, tech-focused design with blue and green accents.
 ```
 
----
+</details>
 
 ## Build Commands Reference
 
-```bash
-# HTML only (fast, no video, no AI)
-TUTORIAL=my-tutorial npm run tutorial:html
+<details>
+<summary>roughcut build, roughcut build --full, roughcut dev, roughcut dev --auto</summary>
 
-# Fast build (skip AI generation, include video)
-TUTORIAL=my-tutorial npm run tutorial:fast
+```bash
+# HTML only (fast, no API keys needed)
+roughcut build
 
 # Full build (TTS + AI images + video) - costs API credits!
-TUTORIAL=my-tutorial npm run tutorial:full
+roughcut build --full
 
-# Development mode (manual navigation)
-TUTORIAL=my-tutorial npm run dev
+# Development mode (preview in browser)
+roughcut dev
 
-# Auto-advance mode (watch automation)
-TUTORIAL=my-tutorial npm run dev:auto
+# Auto-advance mode (like video recording but visible)
+roughcut dev --auto
 ```
 
----
+</details>
 
 ## Additional Resources
 
 - [README.md](../README.md) - Setup and installation
 - [CLAUDE.md](../CLAUDE.md) - System architecture and workflow
 - [RevealJS Documentation](https://revealjs.com/) - RevealJS features
-- [.template/](../tutorials/.template/) - Starter template
-
----
+- [examples/](../examples/) - Example presentations
 
 ## Summary Checklist
 
 Before building your tutorial, verify:
 
-- ✅ File is `tutorials/<name>/presentation.md`
+- ✅ File is `<name>/presentation.md`
 - ✅ Frontmatter includes `title` and `description`
 - ✅ Each slide has a clear, concise title
 - ✅ Text is minimal (5 bullets max, 10 words each)
 - ✅ Audio narration matches slide content
 - ✅ Assets are in same directory as presentation.md
 - ✅ Asset paths use relative format (`./filename.ext`)
-- ✅ Content fits viewport (test with `npm run dev`)
+- ✅ Content fits viewport (test with `roughcut dev`)
 - ✅ Tested HTML output before generating video
 
 **Questions?** Check the [README](../README.md) or examine the `comprehensive` tutorial for examples of all features.

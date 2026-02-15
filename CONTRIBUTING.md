@@ -1,4 +1,4 @@
-# Contributing to roughcut
+# Contributing to Roughcut
 
 Thanks for your interest in contributing! This guide will help you get started.
 
@@ -83,7 +83,7 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 
 Key design decisions:
 - **Lazy API validation** — API keys are only required when the stage that needs them runs
-- **ConfigManager** — 5-layer config resolution: CLI flags > env vars > project config > user config > defaults
+- **ConfigManager** — 7-layer config resolution: CLI > shell env > workspace .env > .roughcutrc.yml > .roughcut/config.yml > user config > defaults
 - **Fingerprint caching** — Audio is cached by content hash, so unchanged slides reuse existing audio
 
 ## Code Style
@@ -96,7 +96,7 @@ Key design decisions:
 ## Reporting Issues
 
 - Use [GitHub Issues](https://github.com/codeofficer/roughcut/issues)
-- Include: roughcut version, Node version, OS, steps to reproduce
+- Include: Roughcut version, Node version, OS, steps to reproduce
 - For crashes: include the full error output
 
 ## License

@@ -45,11 +45,11 @@ export interface BuildOptions {
   /** Output directory for generated files (defaults to .build/ next to input) */
   output: string; // Set by CLI before execute() is called
 
-  /** Whether to generate video (default: true) */
+  /** Whether to generate video (default: false, enabled by --full) */
   video?: boolean;
 
-  /** Whether to bundle reveal.js assets (default: true) */
-  bundle?: boolean;
+  /** Full build: generate audio, images, and video */
+  full?: boolean;
 
   /** Whether to skip audio generation (use existing audio files) */
   skipAudio?: boolean;
@@ -688,7 +688,7 @@ export class RevealBuildCommand {
 
     const generator = new RevealHTMLGenerator();
     await generator.generate(presentation, htmlPath, {
-      bundleAssets: options.bundle !== false,
+      bundleAssets: true,
     });
 
     return htmlPath;

@@ -4,6 +4,7 @@
 
 import { Command } from "commander";
 import * as fs from "fs/promises";
+import * as path from "path";
 import { lintMarkdown } from "../../core/linter.js";
 import { logger } from "../../core/logger.js";
 
@@ -12,9 +13,22 @@ export function createLintCommand(): Command {
 
   cmd
     .description("Validate presentation markdown format")
-    .argument("<path>", "Path to markdown file")
-    .action(async (filePath: string) => {
+    .argument("[path]", "Path to markdown file")
+    .action(async (filePath?: string) => {
       try {
+        // Auto-detect presentation.md if no path specified
+        if (!filePath) {
+          const defaultPath = path.join(process.cwd(), "presentation.md");
+          try {
+            await fs.access(defaultPath);
+            filePath = defaultPath;
+          } catch {
+            logger.error(
+              "No input file specified and no presentation.md found in current directory.",
+            );
+            process.exit(1);
+          }
+        }
         await runLint(filePath);
       } catch (error) {
         logger.error("Lint failed", error);

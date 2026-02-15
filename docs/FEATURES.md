@@ -1,6 +1,6 @@
 # Features & Directives Reference
 
-Complete reference for all 21 supported directives in roughcut.
+Complete reference for all 21 supported directives in Roughcut.
 
 ## Table of Contents
 
@@ -10,9 +10,10 @@ Complete reference for all 21 supported directives in roughcut.
 - [Common Patterns](#common-patterns)
 - [Advanced Features](#advanced-features)
 
----
-
 ## Frontmatter Directives
+
+<details>
+<summary>8 directives: title, theme, voice, resolution, preset, config, customCSS, customStyles</summary>
 
 Frontmatter appears at the top of your markdown file and configures the entire presentation.
 
@@ -68,7 +69,7 @@ voice: adam
 
 **Finding voices:**
 ```bash
-npm run voices
+roughcut voices
 ```
 
 **Common voices:**
@@ -78,7 +79,7 @@ npm run voices
 - `Bella` - Soft female voice
 - `Elli` - Emotional female voice
 
-**Default:** Uses `ELEVENLABS_VOICE_ID` from `.envrc`
+**Default:** Uses `ELEVENLABS_VOICE_ID` from `.env`
 
 ### resolution
 
@@ -180,9 +181,12 @@ customStyles: |
 - Presentation-specific styles
 - No external file needed
 
----
+</details>
 
 ## Slide-Level Directives
+
+<details>
+<summary>11 directives: @audio, @duration, @pause-after, @transition, @background, @image-prompt, @notes, @playwright, @vertical-slide, @background-video</summary>
 
 These directives apply to individual slides.
 
@@ -434,9 +438,12 @@ More details...
 
 **File formats:** MP4, WebM
 
----
+</details>
 
 ## Inline Directives
+
+<details>
+<summary>@fragment — progressive reveal for bullet list items</summary>
 
 These directives are used inline within slide content.
 
@@ -477,9 +484,12 @@ Important concepts:
 - Mastering the technique @fragment +2s
 ```
 
----
+</details>
 
 ## Common Patterns
+
+<details>
+<summary>Slide templates combining audio, fragments, transitions, and vertical slides</summary>
 
 ### Slide with Audio and Fragments
 
@@ -553,9 +563,12 @@ Context information...
 Next topic...
 ```
 
----
+</details>
 
 ## Advanced Features
+
+<details>
+<summary>Config presets, combined styling, dynamic backgrounds, timed fragments</summary>
 
 ### Config Presets with Custom Overrides
 
@@ -623,9 +636,12 @@ Image background...
 
 Fragments sync with audio narration!
 
----
+</details>
 
 ## Feature Compatibility
+
+<details>
+<summary>What works in dev mode, HTML build, and full build</summary>
 
 | Feature | Dev Mode | HTML Build | Full Build |
 |---------|----------|------------|------------|
@@ -640,9 +656,12 @@ Fragments sync with audio narration!
 | Vertical Slides | ✅ | ✅ | ✅ |
 | Custom CSS | ✅ | ✅ | ✅ |
 
----
+</details>
 
 ## Quick Reference
+
+<details>
+<summary>Essential directives, all frontmatter options, all slide directives</summary>
 
 ### Essential Directives
 
@@ -709,15 +728,14 @@ customStyles: |
 Content with @fragment markers
 ```
 
----
+</details>
 
 ## Next Steps
 
-- **Try [WORKFLOW.md](./WORKFLOW.md)** - Complete workflow guide
 - **Read [LINTING_SPEC.md](./LINTING_SPEC.md)** - Validation rules
 - **Check [CONFIGURATION.md](./architecture/revealjs/CONFIGURATION.md)** - Full config reference
 - **Browse examples:**
-  - `tutorials/minimal.md` - Basic usage
-  - `tutorials/comprehensive.md` - All features
+  - `examples/hello-world/` - Basic usage
+  - `examples/kitchen-sink/` - All features
 
 **Questions?** File an issue or check the [README.md](../README.md)

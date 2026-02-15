@@ -1,14 +1,14 @@
 ---
-title: "roughcut — Slides from Markdown"
+title: "Roughcut — Slides from Markdown"
 theme: dracula
 ---
 
-# roughcut
+# Roughcut
 
 @transition: zoom
 @background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
 
-@audio: Welcome to roughcut.
+@audio: Welcome to Roughcut.
 @audio: This presentation demonstrates the key features [0.3s] and shows you the markdown directive for each one.
 
 **Slides from markdown. Narration from AI. Video from your terminal.**
@@ -131,8 +131,8 @@ Press **S** to see this slide's speaker note.
 ```bash
 npm install -g roughcut
 
-roughcut build -i presentation.md        # HTML only
-roughcut build -i presentation.md --full  # + audio + video
+roughcut build                    # HTML only
+roughcut build --full             # + audio + video
 ```
 
 ---
@@ -148,7 +148,7 @@ roughcut build -i presentation.md --full  # + audio + video
 ```bash
 roughcut init my-talk
 cd my-talk
-roughcut build -i presentation.md
+roughcut build
 ```
 
 **Three commands. One presentation. Zero hassle.**

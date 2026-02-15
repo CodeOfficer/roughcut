@@ -43,7 +43,7 @@ Check out the other examples:
 Build this with:
 
 ```bash
-roughcut build -i presentation.md
+roughcut build
 ```
 
 ---

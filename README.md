@@ -1,8 +1,8 @@
-# roughcut
+# Roughcut
 
 Generate narrated RevealJS presentations and videos from markdown.
 
-Write slides in a simple markdown format with 21 specialized directives. roughcut turns them into interactive HTML presentations and MP4 videos with AI voiceover — no video editor needed.
+Write slides in a simple markdown format with 21 specialized directives. Roughcut turns them into interactive HTML presentations and MP4 videos with AI voiceover — no video editor needed.
 
 ## Quick Start
 
@@ -14,16 +14,16 @@ cd my-project
 # Edit .env to add your API keys (optional)
 roughcut create my-talk           # Create a presentation
 cd my-talk
-roughcut build -i presentation.md          # HTML only (free, fast)
-roughcut dev -i presentation.md            # Preview in browser
-roughcut build -i presentation.md --full   # Full build with audio + video
+roughcut build                    # HTML only (free, fast)
+roughcut dev                      # Preview in browser
+roughcut build --full             # Full build with audio + video
 ```
 
 ## Prerequisites
 
 - **Node.js >= 20** — [nodejs.org](https://nodejs.org)
 - **ffmpeg** — for video assembly (`brew install ffmpeg` / `apt install ffmpeg`)
-- **ElevenLabs API key** — for audio narration (optional, only needed with `--audio` or `--full`)
+- **ElevenLabs API key** — for audio narration (optional, only needed with `--full`)
 - **Gemini API key** — for AI image generation (optional, only needed with `--full`)
 
 Check your setup:
@@ -48,9 +48,9 @@ brew install roughcut
 
 ## Configuration
 
-roughcut uses layered config (highest priority first):
+Roughcut uses layered config (highest priority first):
 
-1. **CLI flags** — `--voice brian`, `--log-level debug`
+1. **CLI flags** — `--full`, `--log-level debug`
 2. **Shell environment variables** — `ELEVENLABS_API_KEY`, `LOG_LEVEL`
 3. **Workspace `.env`** — API keys (gitignored, found by walking up to `.roughcut/`)
 4. **Legacy `.roughcutrc.yml`** — backward compat project config
@@ -76,11 +76,11 @@ log_level: info
 
 | Command | Description |
 |---------|-------------|
-| `roughcut build -i <file>` | Build presentation (HTML by default) |
-| `roughcut dev -i <file>` | Preview in browser with hot reload |
+| `roughcut build` | Build presentation (HTML by default) |
+| `roughcut dev` | Preview in browser with hot reload |
 | `roughcut init [dir]` | Create a new workspace |
 | `roughcut create <name>` | Create a presentation in the workspace |
-| `roughcut lint <file>` | Validate markdown format |
+| `roughcut lint` | Validate markdown format |
 | `roughcut doctor` | Check system prerequisites |
 | `roughcut voices` | List available ElevenLabs voices |
 
@@ -88,13 +88,11 @@ log_level: info
 
 | Flag | Description |
 |------|-------------|
-| `-i, --input <path>` | Input markdown file (required) |
+| `-i, --input <path>` | Input markdown file (auto-detects `presentation.md` in current dir) |
 | `-o, --output <path>` | Output directory (default: `.build/` next to input) |
-| `--no-video` | Skip video generation |
+| `--full` | Full build: audio narration + video recording |
 | `--skip-audio` | Skip audio generation |
 | `--skip-images` | Skip image generation |
-| `--voice <id>` | ElevenLabs voice ID |
-| `--bundle` | Bundle reveal.js assets for offline use |
 
 ## Markdown Format
 
@@ -131,7 +129,7 @@ See [docs/FEATURES.md](docs/FEATURES.md) for all 21 directives and [docs/TUTORIA
 ## Examples
 
 - [`examples/hello-world/`](examples/hello-world/) — simplest possible presentation
-- [`examples/narrated-deck/`](examples/narrated-deck/) — roughcut explains itself, with narration and fragments
+- [`examples/narrated-deck/`](examples/narrated-deck/) — Roughcut explains itself, with narration and fragments
 - [`examples/kitchen-sink/`](examples/kitchen-sink/) — every directive and feature demonstrated
 
 ## Contributing

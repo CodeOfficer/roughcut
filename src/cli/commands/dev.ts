@@ -14,7 +14,7 @@ export function createDevCommand(): Command {
 
   cmd
     .description("Open presentation in browser for interactive testing")
-    .requiredOption("-i, --input <file>", "Input markdown file")
+    .option("-i, --input <file>", "Input markdown file")
     .option(
       "-o, --output <dir>",
       "Output directory (default: same directory as input)",
@@ -38,7 +38,22 @@ export function createDevCommand(): Command {
 }
 
 async function runDev(options: any): Promise<void> {
-  const { input, auto, slowMo } = options;
+  // Auto-detect presentation.md if no input specified
+  let input = options.input;
+  if (!input) {
+    const defaultPath = path.join(process.cwd(), "presentation.md");
+    try {
+      await fs.access(defaultPath);
+      input = defaultPath;
+    } catch {
+      console.error(
+        "No input file specified and no presentation.md found in current directory.",
+      );
+      process.exit(1);
+    }
+  }
+
+  const { auto, slowMo } = options;
 
   // Resolve paths
   const inputPath = path.resolve(input);
@@ -54,7 +69,7 @@ async function runDev(options: any): Promise<void> {
     await fs.access(htmlPath);
   } catch {
     console.error(`❌ HTML not found: ${htmlPath}`);
-    console.error("   Run build first: npm run build:html");
+    console.error('   Run "roughcut build" first, then "roughcut dev".');
     process.exit(1);
   }
 
@@ -76,7 +91,7 @@ async function runDev(options: any): Promise<void> {
     } catch {
       console.error(`❌ Audio directory not found: ${audioBaseDir}`);
       console.error(
-        "   Run build with audio first: TUTORIAL=<name> npm run build:full",
+        '   Run "roughcut build --full" first to generate audio.',
       );
       process.exit(1);
     }

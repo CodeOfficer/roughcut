@@ -20,20 +20,21 @@ A [roughcut](https://github.com/codeofficer/roughcut) workspace.
 3. **Build and preview:**
 
    ```bash
-   roughcut build -i presentation.md          # HTML only (fast, free)
-   roughcut dev -i presentation.md             # Preview in browser
-   roughcut build -i presentation.md --full    # Full build with audio + video
+   roughcut build                    # HTML only (fast, free)
+   roughcut dev                      # Preview in browser
+   roughcut build --full             # Full build with audio + video
    ```
 
 ## Useful Commands
 
 ```bash
-roughcut lint presentation.md    # Validate your markdown
-roughcut doctor                  # Check prerequisites
-roughcut voices                  # List available voices
+roughcut lint                       # Validate your markdown
+roughcut doctor                     # Check prerequisites
+roughcut voices                     # List available voices
 ```
 
 ## Learn More
 
-- [Writing Guide](https://github.com/codeofficer/roughcut/blob/main/docs/TUTORIAL-WRITING-GUIDE.md)
-- [Feature Reference](https://github.com/codeofficer/roughcut/blob/main/docs/FEATURES.md)
+- [Authoring Guide](./AUTHORING.md) — how to write presentations (start here)
+- [Feature Reference](https://github.com/codeofficer/roughcut/blob/main/docs/FEATURES.md) — all 21 directives
+- [Writing Best Practices](https://github.com/codeofficer/roughcut/blob/main/docs/TUTORIAL-WRITING-GUIDE.md) — content guidelines

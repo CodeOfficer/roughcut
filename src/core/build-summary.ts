@@ -242,7 +242,7 @@ export class BuildSummaryGenerator {
     for (const stage of slowStages) {
       if (stage.name === "record_video") {
         tips.push(
-          "Video recording took most of the time. Use --no-video for faster iteration.",
+          "Video recording took most of the time. Omit --full for HTML-only builds (faster iteration).",
         );
       } else if (stage.name === "generate_audio") {
         tips.push(

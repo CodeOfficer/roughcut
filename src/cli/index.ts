@@ -42,19 +42,38 @@ program.hook("preAction", (thisCommand) => {
 program
   .command("build")
   .description("Build reveal.js presentation from markdown")
-  .requiredOption("-i, --input <path>", "Input markdown file")
+  .option("-i, --input <path>", "Input markdown file")
   .option(
     "-o, --output <path>",
     "Output directory (default: .build/ next to input)",
   )
-  .option("--no-video", "Skip video generation")
-  .option("--skip-audio", "Skip audio generation (reuse existing audio files)")
-  .option("--skip-images", "Skip image generation (reuse existing images)")
-  .option("--bundle", "Bundle reveal.js assets")
-  .option("--voice <id>", "ElevenLabs voice ID")
+  .option("--full", "Full build: generate audio, images, and video")
+  .option("--skip-audio", "Reuse cached audio files (with --full)")
+  .option("--skip-images", "Reuse cached images (with --full)")
   .option("--log-level <level>", "Log level (debug, info, warn, error)")
   .action(async (options: BuildOptions) => {
     try {
+      // Auto-detect presentation.md if no input specified
+      if (!options.input) {
+        const defaultPath = path.join(process.cwd(), "presentation.md");
+        try {
+          await import("fs/promises").then((fs) => fs.access(defaultPath));
+          options.input = defaultPath;
+        } catch {
+          logger.error(
+            "No input file specified and no presentation.md found in current directory.",
+          );
+          process.exit(1);
+        }
+      }
+
+      // When --full is NOT set, default to HTML-only build
+      if (!options.full) {
+        options.video = false;
+        options.skipAudio = true;
+        options.skipImages = true;
+      }
+
       // Default output to .build/ next to input file
       if (!options.output) {
         options.output = path.join(

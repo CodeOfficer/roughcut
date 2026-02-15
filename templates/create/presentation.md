@@ -39,7 +39,7 @@ Bullet points can appear one at a time:
 @audio: Each line becomes a sentence in the voiceover.
 
 To generate audio, run:
-`roughcut build -i presentation.md --audio`
+`roughcut build --full`
 
 ---
 
@@ -47,4 +47,4 @@ To generate audio, run:
 
 **Your presentation is ready.**
 
-Run `roughcut build -i presentation.md` to build.
+Run `roughcut build` to build.

@@ -1,17 +1,17 @@
 ---
-title: "roughcut — Kitchen Sink"
+title: "Roughcut — Kitchen Sink"
 theme: dracula
 voice: J0AK45UHW1Wo9rJ0p4y8
 resolution: 1920x1080
 preset: video-recording
 ---
 
-# roughcut Kitchen Sink
+# Roughcut Kitchen Sink
 
 @transition: zoom
 @background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
 
-@audio: Welcome to the roughcut kitchen sink demo.
+@audio: Welcome to the Roughcut kitchen sink demo.
 @audio: This showcase demonstrates every available feature and directive.
 @audio: Let's explore everything you can build.
 
@@ -21,7 +21,7 @@ preset: video-recording
 
 # Core Features
 
-@audio: roughcut combines multiple technologies.
+@audio: Roughcut combines multiple technologies.
 @audio: Markdown for content [1s] AI for narration [1s] and browser automation for recording.
 
 - 📝 **Markdown-based** - Write in simple, readable format
@@ -36,7 +36,7 @@ preset: video-recording
 @transition: fade
 @duration: 10s
 
-@audio: roughcut supports twenty-one different directives.
+@audio: Roughcut supports twenty-one different directives.
 @audio: Each directive controls a specific aspect of your presentation.
 
 **Frontmatter (8):**
@@ -56,7 +56,7 @@ preset: video-recording
 
 # Audio Narration
 
-@audio: Audio narration is the heart of roughcut.
+@audio: Audio narration is the heart of Roughcut.
 @audio: Use the @audio directive to add narration to any slide.
 @audio: Split across multiple lines for better readability and caching.
 
@@ -286,31 +286,25 @@ Full control over presentation appearance!
 @transition: fade
 @duration: 8s
 
-@audio: roughcut supports multiple build modes for different workflows.
+@audio: Roughcut supports multiple build modes for different workflows.
 
 **HTML Only (default):**
 ```bash
-roughcut build -i presentation.md
+roughcut build
 ```
 No API keys needed — instant output!
 
-**With Audio:**
-```bash
-roughcut build -i presentation.md --audio
-```
-Adds ElevenLabs narration.
-
 **Full Build:**
 ```bash
-roughcut build -i presentation.md --full
+roughcut build --full
 ```
-Generates everything — production-ready video.
+Generates everything — audio narration + production-ready video.
 
 ---
 
 # Intelligent Caching
 
-@audio: roughcut uses SHA-256 fingerprinting for TTS caching.
+@audio: Roughcut uses SHA-256 fingerprinting for TTS caching.
 @audio: Only changed audio lines are regenerated.
 @audio: This saves API costs and speeds up iteration.
 
@@ -365,7 +359,7 @@ Tail logs in real-time: `tail -f output/debug.txt`
 @transition: zoom
 @background: #2a2a4e
 
-@audio: roughcut validates your markdown before building.
+@audio: Roughcut validates your markdown before building.
 @audio: This catches errors early and provides helpful suggestions.
 
 **Linting validates:**
@@ -434,15 +428,15 @@ All tests passing on every commit!
 
 **Manual mode:**
 ```bash
-roughcut dev -i presentation.md
+roughcut dev
 ```
 Open browser, control with keyboard/mouse.
 
-**With hot reload:**
+**Auto-advance mode:**
 ```bash
-roughcut dev -i presentation.md --watch
+roughcut dev --auto
 ```
-Auto-refreshes when you save changes.
+Plays through slides like a video recording.
 
 Perfect for debugging timing and fragment issues!
 
@@ -453,7 +447,7 @@ Perfect for debugging timing and fragment issues!
 @transition: convex
 @background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)
 
-@audio: roughcut uses a clean, modular architecture.
+@audio: Roughcut uses a clean, modular architecture.
 
 **Pipeline stages:**
 
@@ -510,9 +504,9 @@ Contributions welcome on GitHub!
 
 1. Run `roughcut init my-talk`
 2. Edit `presentation.md` with your content
-3. Run `roughcut build -i presentation.md`
-4. Preview with `roughcut dev -i presentation.md`
-5. Full build with `roughcut build -i presentation.md --full`
+3. Run `roughcut build`
+4. Preview with `roughcut dev`
+5. Full build with `roughcut build --full`
 
 Check `docs/LINTING_SPEC.md` for complete reference!
 
@@ -523,7 +517,7 @@ Check `docs/LINTING_SPEC.md` for complete reference!
 @background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
 @transition: zoom
 
-@audio: Thank you for exploring the roughcut kitchen sink.
+@audio: Thank you for exploring the Roughcut kitchen sink.
 @audio: We can't wait to see what you create.
 @audio: Happy presenting!
 

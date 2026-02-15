@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Renamed** from `genai-tutorial-factory` to `roughcut`
 - **Global CLI** — install with `npm install -g roughcut`, run from anywhere
 - **Lazy API validation** — API keys only required when audio/image pipeline runs; HTML-only builds need zero keys
-- **ConfigManager** replaces `env.ts` — layered config resolution (CLI flags > env vars > `.roughcutrc.yml` > user config > defaults)
+- **ConfigManager** replaces `env.ts` — 7-layer config resolution (CLI > shell env > workspace .env > .roughcutrc.yml > .roughcut/config.yml > user config > defaults)
 - **Default output** — `-o` flag is now optional; defaults to `.build/` next to input file
 - **reveal.js path** — resolved via package installation, works correctly with global installs
 - **ffmpeg path** — defaults to `ffmpeg` (PATH lookup) instead of hardcoded `/usr/local/bin/ffmpeg`
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `roughcut init [dir]` — scaffold a new presentation project
-- `roughcut lint <path>` — validate markdown format standalone
+- `roughcut lint [path]` — validate markdown format standalone
 - `roughcut doctor` — check system prerequisites (Node, ffmpeg, Playwright, API keys)
 - `roughcut voices` — list available ElevenLabs voices
 - `bin` field in package.json — enables `npx roughcut` and global install

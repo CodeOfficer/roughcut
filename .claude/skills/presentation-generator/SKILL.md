@@ -1,6 +1,6 @@
 ---
 name: presentation-generator
-description: Interactively create RevealJS presentations from topics, notes, or outlines. Guides the user through topic research, design choices (theme, style, audience, length), outline preview, and section-by-section generation using roughcut's custom markdown format with 21 directives. Triggers on "create a presentation", "turn these notes into slides", "generate a tutorial on Y", or "make a slideshow about Z".
+description: Interactively create RevealJS presentations from topics, notes, or outlines. Guides the user through topic research, design choices (theme, style, audience, length), outline preview, and section-by-section generation using Roughcut's custom markdown format with 21 directives. Triggers on "create a presentation", "turn these notes into slides", "generate a tutorial on Y", or "make a slideshow about Z".
 ---
 
 # Presentation Generator
@@ -11,7 +11,7 @@ Complete `<name>/presentation.md` files that build successfully into:
 - Interactive RevealJS HTML presentations
 - MP4 videos with TTS narration (when using full build)
 
-roughcut uses a **custom markdown format** — not standard RevealJS syntax. This skill is the expert in that format.
+Roughcut uses a **custom markdown format** — not standard RevealJS syntax. This skill is the expert in that format.
 
 ## Interactive Workflow
 
@@ -94,10 +94,10 @@ For each section:
 
 ### Phase 4: Build & Deliver
 
-After writing the complete `tutorials/<name>/presentation.md` file:
+After writing the complete `<name>/presentation.md` file, `cd` into the presentation directory and build:
 
 ```bash
-TUTORIAL=<name> npm run tutorial:html
+roughcut build
 ```
 
 **This is mandatory.** The user cannot view the presentation until you build it. If linting fails, read the errors, fix the markdown, and rebuild. The linter catches all syntax issues with helpful suggestions.
@@ -105,13 +105,13 @@ TUTORIAL=<name> npm run tutorial:html
 Once built, tell the user:
 ```bash
 # Preview in browser
-TUTORIAL=<name> npm run dev
+roughcut dev
 
 # Test auto-advance timing
-TUTORIAL=<name> npm run dev:auto
+roughcut dev --auto
 
 # Full build with TTS audio + video (costs API credits!)
-TUTORIAL=<name> npm run tutorial:full
+roughcut build --full
 ```
 
 ---
@@ -321,5 +321,5 @@ Use these as starting points — copy structure and adapt to the user's topic:
 
 When creating presentations:
 - Derive the directory name from the title: lowercase, hyphenated
-- Example: "Docker Basics for Developers" → `tutorials/docker-basics/presentation.md`
-- Always write to `tutorials/<name>/presentation.md`
+- Example: "Docker Basics for Developers" → `docker-basics/presentation.md`
+- Use `roughcut create <name>` to scaffold, then write to `<name>/presentation.md`

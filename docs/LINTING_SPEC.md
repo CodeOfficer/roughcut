@@ -3,7 +3,7 @@
 **Version:** 2.0.0
 **Last Updated:** 2025-11-11
 
-This document is the **source of truth** for valid markdown presentation format in roughcut. All presentations must pass linting before the build can proceed.
+This document is the **source of truth** for valid markdown presentation format in Roughcut. All presentations must pass linting before the build can proceed.
 
 ---
 
@@ -18,9 +18,10 @@ This document is the **source of truth** for valid markdown presentation format 
 7. [Common Errors](#common-errors)
 8. [Examples](#examples)
 
----
-
 ## Overview
+
+<details>
+<summary>How the linter works and why it validates before building</summary>
 
 The linter validates your markdown **before** any expensive operations (TTS generation, image generation, video recording). This:
 
@@ -38,9 +39,12 @@ markdown file → Linter → Parser → Build Pipeline
                 PASS: Continue to parser
 ```
 
----
+</details>
 
 ## Validation Philosophy
+
+<details>
+<summary>Strict by default, fail fast, helpful errors, no plugins</summary>
 
 The linter follows these principles:
 
@@ -67,9 +71,12 @@ Every error includes:
 - Keeps spec strict and predictable
 - Request new features via GitHub issues
 
----
+</details>
 
 ## Frontmatter Directives
+
+<details>
+<summary>Required: title, theme. Optional: voice, resolution</summary>
 
 ### Required Structure
 
@@ -94,8 +101,6 @@ title: "My Awesome Presentation"
 **Validation:**
 - Must be present
 - Cannot be empty
-
----
 
 #### `theme` (REQUIRED)
 RevealJS theme for visual styling.
@@ -124,8 +129,6 @@ Valid options: black, white, league, beige, sky, night, serif,
                 simple, solarized, blood, moon, dracula
 ```
 
----
-
 ### Optional Fields
 
 #### `voice`
@@ -142,8 +145,6 @@ voice: EXAVITQu4vr4xnSDxMaL
 **Validation:**
 - Must be alphanumeric (can include `-` and `_`)
 - Cannot be empty if provided
-
----
 
 #### `resolution`
 Video output resolution.
@@ -166,9 +167,12 @@ resolution: 1280x720
 Expected: 1920x1080
 ```
 
----
+</details>
 
 ## Slide-Level Directives
+
+<details>
+<summary>Single-line (@duration, @pause-after, @transition, @background, @image-prompt, @notes) and multi-line (@audio, @playwright)</summary>
 
 ### Single-Line Directives
 
@@ -194,8 +198,6 @@ Expected slide duration in seconds or milliseconds.
 Expected: Use "5s" or "500ms" (supports decimals like "2.5s")
 ```
 
----
-
 #### `@pause-after:`
 Pause duration after audio ends before advancing to next slide.
 
@@ -209,8 +211,6 @@ Pause duration after audio ends before advancing to next slide.
 
 **Validation:**
 - Same as `@duration:` - must end with `s` or `ms`
-
----
 
 #### `@transition:`
 RevealJS transition effect for this slide.
@@ -230,8 +230,6 @@ none, fade, slide, convex, concave, zoom
 **Validation:**
 - Must be one of the valid values above
 - Case-sensitive
-
----
 
 #### `@background:`
 Background color, gradient, or image URL.
@@ -253,8 +251,6 @@ Background color, gradient, or image URL.
 - URLs: `http://...`, `https://...`, `url(...)`
 - CSS named colors: `black`, `white`, `red`, etc.
 
----
-
 #### `@image-prompt:`
 AI image generation prompt (uses Gemini).
 
@@ -275,8 +271,6 @@ AI image generation prompt (uses Gemini).
         (be descriptive for better AI results)
 ```
 
----
-
 #### `@notes:`
 Speaker notes for this slide.
 
@@ -288,8 +282,6 @@ Speaker notes for this slide.
 
 **Validation:**
 - Cannot be empty if provided
-
----
 
 ### Multi-Line Directives
 
@@ -332,8 +324,6 @@ Example: @audio: Your narration text here
 Current: Regular text [2s] outside audio
 ```
 
----
-
 #### `@playwright:` (Advanced)
 Browser automation instructions.
 
@@ -354,9 +344,12 @@ Browser automation instructions.
 - Cannot be empty
 - Must have at least one instruction
 
----
+</details>
 
 ## Inline Directives
+
+<details>
+<summary>@fragment — progressive disclosure on bullet list items only</summary>
 
 ### `@fragment`
 Progressive disclosure marker for list items.
@@ -402,9 +395,12 @@ Example: - Item one @fragment
 2. Develop features @fragment    ❌ Numbered list
 ```
 
----
+</details>
 
 ## Pause Markers
+
+<details>
+<summary>Syntax, rules, and common errors for [Xs] pause format</summary>
 
 ### Syntax
 
@@ -444,9 +440,12 @@ Expected: Use [1s], [2s], [2.5s], etc.
         Consider splitting into separate slides.
 ```
 
----
+</details>
 
 ## Common Errors
+
+<details>
+<summary>6 most common validation failures with fixes</summary>
 
 ### 1. Unknown Directive
 
@@ -459,8 +458,6 @@ Suggestions:
 
 **Fix:** Check spelling, refer to this spec
 
----
-
 ### 2. Invalid Enum Value
 
 ```
@@ -469,8 +466,6 @@ Expected: Valid options: none, fade, slide, convex, concave, zoom
 ```
 
 **Fix:** Use one of the listed values
-
----
 
 ### 3. Empty Single-Line Directive
 
@@ -482,8 +477,6 @@ Example: @duration: 8s
 
 **Fix:** Provide a value after the colon
 
----
-
 ### 4. Fragment on Numbered List
 
 ```
@@ -494,8 +487,6 @@ Example: - Item one @fragment
 
 **Fix:** Change numbered list (1., 2., 3.) to bullet list (-, *, +)
 
----
-
 ### 5. Missing Required Frontmatter
 
 ```
@@ -505,8 +496,6 @@ Example: title: "My Presentation"
 ```
 
 **Fix:** Add required field to frontmatter
-
----
 
 ### 6. Empty Slide
 
@@ -519,9 +508,12 @@ Suggestions:
 
 **Fix:** Add actual markdown content (headings, paragraphs, lists, etc.)
 
----
+</details>
 
 ## Examples
+
+<details>
+<summary>Valid and invalid presentation examples</summary>
 
 ### ✅ Valid Minimal Presentation
 
@@ -543,8 +535,6 @@ This is my first slide.
 
 Content here.
 ```
-
----
 
 ### ✅ Valid Full-Featured Slide
 
@@ -571,8 +561,6 @@ Content here.
 - AI-generated images @fragment +3s
 ```
 
----
-
 ### ❌ Invalid Examples
 
 **Wrong: Numbered list with @fragment**
@@ -587,8 +575,6 @@ Content here.
 - Second item @fragment  ✅
 ```
 
----
-
 **Wrong: Pause marker outside @audio**
 ```markdown
 Regular content with pause [2s] here.  ❌
@@ -598,8 +584,6 @@ Regular content with pause [2s] here.  ❌
 ```markdown
 @audio: Narration with pause [2s] here.  ✅
 ```
-
----
 
 **Wrong: Invalid duration format**
 ```markdown
@@ -611,9 +595,12 @@ Regular content with pause [2s] here.  ❌
 @duration: 5s  ✅
 ```
 
----
+</details>
 
 ## How Linting Works
+
+<details>
+<summary>Pre-build validation flow and what gets checked</summary>
 
 ### 1. **Pre-Build Validation**
 ```
@@ -636,24 +623,27 @@ Read markdown → Lint → Pass? → Continue building
 - ✅ Empty slides detection
 - ✅ Unknown directives with typo suggestions
 
----
+</details>
 
 ## Getting Help
+
+<details>
+<summary>Troubleshooting steps and resources</summary>
 
 ### Linting Failed?
 
 1. **Read the error message carefully** - includes line number and suggestion
 2. **Check this spec** - search for the directive or error type
-3. **Look at examples** - `tutorials/simple-demo` and `tutorials/full-demo`
-4. **Test incrementally** - use `npm run build:fast` for quick iteration
+3. **Look at examples** - `examples/hello-world` and `examples/kitchen-sink`
+4. **Test incrementally** - use `roughcut build` for quick iteration
 
 ### Still Stuck?
 
-- Check existing presentations: `tutorials/simple-demo/presentation.md`
+- Check existing presentations: `examples/hello-world/presentation.md`
 - Review test suite: `src/core/__tests__/linter.test.ts`
 - Open an issue: https://github.com/anthropics/genai-tutorial-factory/issues
 
----
+</details>
 
 ## Version History
 

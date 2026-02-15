@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**roughcut** — Generate narrated RevealJS presentations and MP4 videos from markdown using a custom format with 21 specialized directives, ElevenLabs TTS narration, and Playwright-based video recording.
+**Roughcut** — Generate narrated RevealJS presentations and MP4 videos from markdown using a custom format with 21 specialized directives, ElevenLabs TTS narration, and Playwright-based video recording.
 
 - **Version**: 3.0.0
 - **Status**: Production-ready, open-source CLI tool
@@ -15,9 +15,9 @@
 
 **Manual:** Create a directory with `presentation.md` following the custom markdown format, then build:
 ```bash
-roughcut build -i path/to/presentation.md          # HTML only (fast, no API costs)
-roughcut dev -i path/to/presentation.md             # Preview in browser
-roughcut build -i path/to/presentation.md --full    # Full build with AI (costs $$$)
+roughcut build                                      # HTML only (fast, no API costs)
+roughcut dev                                        # Preview in browser
+roughcut build --full                               # Full build with AI (costs $$$)
 ```
 
 **Scaffolding:**
@@ -76,7 +76,7 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 ### Code Organization
 - Tests: `src/**/__tests__/` (co-located with modules)
 - Strict TypeScript: `npm run build` must pass
-- Test before commit: `npm test` (366+ tests)
+- Test before commit: `npm test` (399 tests)
 - Format before commit: `npm run format`
 
 ### Configuration
@@ -98,11 +98,11 @@ markdown → Lint → Parse → Images → Audio → HTML → Timeline → Recor
 
 ```bash
 # User-facing commands
-roughcut build -i <file>         # Build presentation (HTML by default)
-roughcut dev -i <file>           # Preview in browser
+roughcut build                   # Build presentation (HTML by default)
+roughcut dev                     # Preview in browser
 roughcut init [dir]              # Create workspace (.roughcut/, .env, .gitignore)
 roughcut create <name>           # Create presentation subfolder in workspace
-roughcut lint <file>             # Validate markdown
+roughcut lint                    # Validate markdown
 roughcut doctor                  # Check prerequisites
 roughcut voices                  # List ElevenLabs voices
 
