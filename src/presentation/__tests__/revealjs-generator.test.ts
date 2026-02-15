@@ -155,6 +155,24 @@ describe("RevealHTMLGenerator", () => {
       expect(html).not.toContain("font-size: 2.5em");
     });
 
+    it("should include favicon in generated HTML", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain('<link rel="icon"');
+      expect(html).toContain("data:image/svg+xml");
+    });
+
     it("should initialize reveal.js with config", () => {
       const presentation: RevealPresentation = {
         title: "Test",

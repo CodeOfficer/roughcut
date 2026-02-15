@@ -5,6 +5,7 @@
 
 import { chromium, type Browser, type Page } from "playwright";
 import { AudioSyncOrchestrator } from "./presentation/audio-sync-orchestrator.js";
+import { FAVICON_SVG } from "./presentation/revealjs-generator.js";
 import * as path from "path";
 import * as http from "http";
 import * as fs from "fs/promises";
@@ -52,6 +53,23 @@ export class DevServer {
         try {
           // Strip query parameters from URL
           const urlPath = req.url?.split("?")[0] || "/";
+
+          // Serve inline favicon
+          if (urlPath === "/favicon.ico") {
+            res.writeHead(200, { "Content-Type": "image/svg+xml" });
+            res.end(FAVICON_SVG);
+            return;
+          }
+
+          // Silently ignore known browser/DevTools probing requests
+          if (
+            urlPath.startsWith("/.well-known/") ||
+            urlPath.endsWith(".map")
+          ) {
+            res.writeHead(204);
+            res.end();
+            return;
+          }
 
           // Map URL to file path
           let filePath: string;

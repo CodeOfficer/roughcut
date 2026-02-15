@@ -25,6 +25,23 @@ import {
 } from "./revealjs-assets.js";
 
 // ============================================================================
+// FAVICON
+// ============================================================================
+
+/** Inline SVG favicon — movie reel icon for Roughcut branding */
+export const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="30" fill="#1a1a2e" stroke="#667eea" stroke-width="2"/>
+  <circle cx="32" cy="32" r="12" fill="none" stroke="#667eea" stroke-width="2"/>
+  <circle cx="32" cy="32" r="4" fill="#667eea"/>
+  <circle cx="32" cy="10" r="5" fill="none" stroke="#667eea" stroke-width="2"/>
+  <circle cx="32" cy="54" r="5" fill="none" stroke="#667eea" stroke-width="2"/>
+  <circle cx="10" cy="32" r="5" fill="none" stroke="#667eea" stroke-width="2"/>
+  <circle cx="54" cy="32" r="5" fill="none" stroke="#667eea" stroke-width="2"/>
+</svg>`;
+
+const FAVICON_DATA_URI = `data:image/svg+xml,${encodeURIComponent(FAVICON_SVG)}`;
+
+// ============================================================================
 // GENERATOR CLASS
 // ============================================================================
 
@@ -92,6 +109,7 @@ export class RevealHTMLGenerator {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${this.escapeHtml(presentation.title)}</title>
+  <link rel="icon" href="${FAVICON_DATA_URI}">
 
   <!-- Reveal.js CSS -->
   <link rel="stylesheet" href="${revealJsPath}/dist/reveal.css">
@@ -152,6 +170,7 @@ ${this.generateAudioControllerScript()}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${this.escapeHtml(presentation.title)}</title>
+  <link rel="icon" href="${FAVICON_DATA_URI}">
 
   <!-- Reveal.js CSS -->
   <link rel="stylesheet" href="${assets.revealCss}">
