@@ -479,6 +479,12 @@ ${this.indentContent(slide.notes, 10)}
     if (config.overview !== undefined) {
       options.push(`overview: ${config.overview}`);
     }
+    if ("help" in config && config.help !== undefined) {
+      options.push(`help: ${config.help}`);
+    }
+    if ("keyboard" in config && config.keyboard !== undefined) {
+      options.push(`keyboard: ${config.keyboard}`);
+    }
 
     return `{\n      ${options.join(",\n      ")}\n    }`;
   }
@@ -759,24 +765,6 @@ ${this.indentContent(slide.notes, 10)}
         logWithTime(\`⌨️  User pressed: \${e.key}\`);
       });
 
-      // Spacebar pause/resume handler
-      document.addEventListener('keydown', (e) => {
-        // Only handle spacebar (code 32 or key ' ')
-        if (e.code === 'Space' || e.key === ' ') {
-          // Prevent default spacebar behavior (scrolling, etc.)
-          e.preventDefault();
-
-          // Enable audio if not yet enabled (first interaction)
-          if (!audioEnabled) {
-            enableAudio();
-            return;
-          }
-
-          // Toggle pause state
-          togglePause();
-        }
-      });
-
       // Enable audio on any user interaction (except spacebar which has its own handler)
       document.addEventListener('click', enableAudio, { once: true });
 
@@ -806,6 +794,19 @@ ${this.indentContent(slide.notes, 10)}
         logWithTime('✅ Presentation ready - click anywhere to enable audio, Space to pause/resume');
         playSlideAudio(event.currentSlide);
       });
+
+      // Register Space as a custom hotkey so it appears in the ? help overlay
+      Reveal.addKeyBinding(
+        { keyCode: 32, key: 'SPACE', description: 'Pause / Resume narration' },
+        function(e) {
+          e.preventDefault();
+          if (!audioEnabled) {
+            enableAudio();
+            return;
+          }
+          togglePause();
+        }
+      );
 
       // Expose audio controller globally for dev mode
       window.revealAudioController = {

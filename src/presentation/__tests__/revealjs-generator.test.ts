@@ -745,4 +745,150 @@ describe("RevealHTMLGenerator", () => {
       expect(html).toContain("Notes for slide 1");
     });
   });
+
+  // ==========================================================================
+  // CUSTOM HOTKEY REGISTRATION TESTS
+  // ==========================================================================
+
+  describe("Custom Hotkey Registration", () => {
+    it("should register Space key via Reveal.addKeyBinding with correct keyCode and description", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain("Reveal.addKeyBinding");
+      expect(html).toContain("keyCode: 32");
+      expect(html).toContain("Pause / Resume narration");
+    });
+
+    it("should not use raw document.addEventListener for spacebar handling", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      // The audio controller should NOT have a raw keydown listener for Space
+      // (there may still be a generic keydown logger, but not a Space-specific handler)
+      expect(html).not.toContain("e.code === 'Space'");
+      expect(html).not.toContain("e.key === ' '");
+    });
+  });
+
+  // ==========================================================================
+  // CONFIG PASSTHROUGH TESTS
+  // ==========================================================================
+
+  describe("Config Passthrough", () => {
+    it("should pass help: true through to generated config", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+        config: { help: true } as any,
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain("help: true");
+    });
+
+    it("should pass help: false through to generated config", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+        config: { help: false } as any,
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain("help: false");
+    });
+
+    it("should pass keyboard: true through to generated config", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+        config: { keyboard: true } as any,
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain("keyboard: true");
+    });
+
+    it("should pass keyboard: false through to generated config", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+        config: { keyboard: false } as any,
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      expect(html).toContain("keyboard: false");
+    });
+
+    it("should not include help or keyboard when not set in config", () => {
+      const presentation: RevealPresentation = {
+        title: "Test",
+        theme: "dracula",
+        voice: "adam",
+        resolution: "1920x1080",
+        slides: [],
+      };
+
+      const html = generator.generateHTML(
+        presentation,
+        "./node_modules/reveal.js",
+      );
+
+      // Extract the Reveal.initialize config block
+      const configMatch = html.match(/Reveal\.initialize\((\{[\s\S]*?\})\);/);
+      expect(configMatch).toBeTruthy();
+      const configBlock = configMatch![1];
+
+      expect(configBlock).not.toContain("help:");
+      expect(configBlock).not.toContain("keyboard:");
+    });
+  });
 });

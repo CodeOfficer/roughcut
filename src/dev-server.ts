@@ -62,10 +62,7 @@ export class DevServer {
           }
 
           // Silently ignore known browser/DevTools probing requests
-          if (
-            urlPath.startsWith("/.well-known/") ||
-            urlPath.endsWith(".map")
-          ) {
+          if (urlPath.startsWith("/.well-known/") || urlPath.endsWith(".map")) {
             res.writeHead(204);
             res.end();
             return;
@@ -443,13 +440,6 @@ export class DevServer {
       let fragmentsShown = 0;
       let totalSlides = 0;
 
-      // Toggle overlay with 'D' key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'd' || e.key === 'D') {
-          overlay.classList.toggle('hidden');
-        }
-      });
-
       // Update overlay with current slide info
       function updateOverlay(slide) {
         const slideId = slide.id;
@@ -518,6 +508,12 @@ export class DevServer {
       // Initial update when ready
       Reveal.on('ready', event => {
         updateOverlay(event.currentSlide);
+
+        // Register D as a custom hotkey so it appears in the ? help overlay
+        Reveal.addKeyBinding(
+          { keyCode: 68, key: 'D', description: 'Toggle debug overlay' },
+          function() { overlay.classList.toggle('hidden'); }
+        );
       });
 
       console.log('🐛 Debug overlay loaded - Press "D" to toggle');

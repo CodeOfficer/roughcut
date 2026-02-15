@@ -90,9 +90,7 @@ async function runDev(options: any): Promise<void> {
       await fs.access(audioBaseDir);
     } catch {
       console.error(`❌ Audio directory not found: ${audioBaseDir}`);
-      console.error(
-        '   Run "roughcut build --full" first to generate audio.',
-      );
+      console.error('   Run "roughcut build --full" first to generate audio.');
       process.exit(1);
     }
 

@@ -172,9 +172,7 @@ async function auditEnvFile(filePath: string): Promise<void> {
   const content = await fs.readFile(filePath, "utf-8");
   for (const field of EXPECTED_ENV_FIELDS) {
     if (!content.includes(field.key)) {
-      logger.warn(
-        `.env is missing ${field.key} (needed for ${field.purpose})`,
-      );
+      logger.warn(`.env is missing ${field.key} (needed for ${field.purpose})`);
       console.log(`         Add to .env: ${field.key}=your-key-here`);
       console.log(`         Get a key at ${field.url}`);
     }
