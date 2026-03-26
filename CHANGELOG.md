@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-03-26
+
+### Added
+- `roughcut create-example <name>` — scaffold a bundled example presentation (`hello-world`, `narrated-deck`, `kitchen-sink`) without needing a workspace
+- `templates/examples/` — example presentations now ship with the npm package
+
+### Changed
+- README rewritten for clarity — "Try an example" quick start, clearer command table
+
 ## [3.0.0] - 2026-02-14
 
 ### Changed

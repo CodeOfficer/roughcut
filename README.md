@@ -6,15 +6,31 @@ Write slides in a simple markdown format with 21 specialized directives. Roughcu
 
 ## Quick Start
 
+### Try an example (fastest way to see it work)
+
 ```bash
 npm install -g roughcut
+roughcut create-example hello-world
+cd hello-world
+roughcut dev
+```
 
-roughcut init my-project          # Create workspace
+Three bundled examples are available:
+
+| Example | What it shows |
+|---------|---------------|
+| `hello-world` | Simplest possible presentation — pure markdown, zero directives |
+| `narrated-deck` | Audio narration, fragments, transitions, and pause markers |
+| `kitchen-sink` | Every directive and feature demonstrated |
+
+### Start your own project
+
+```bash
+roughcut init my-project          # Create a workspace
 cd my-project
-# Edit .env to add your API keys (optional)
-roughcut create my-talk           # Create a presentation
+roughcut create my-talk           # Add a presentation
 cd my-talk
-roughcut build                    # HTML only (free, fast)
+roughcut build                    # Build HTML (free, fast)
 roughcut dev                      # Preview in browser
 roughcut build --full             # Full build with audio + video
 ```
@@ -39,47 +55,22 @@ roughcut doctor
 npm install -g roughcut
 
 # Or run without installing
-npx roughcut build -i deck.md
+npx roughcut build
 
 # Or with Homebrew (macOS)
 brew tap codeofficer/roughcut
 brew install roughcut
 ```
 
-## Configuration
-
-Roughcut uses layered config (highest priority first):
-
-1. **CLI flags** — `--full`, `--log-level debug`
-2. **Shell environment variables** — `ELEVENLABS_API_KEY`, `LOG_LEVEL`
-3. **Workspace `.env`** — API keys (gitignored, found by walking up to `.roughcut/`)
-4. **Legacy `.roughcutrc.yml`** — backward compat project config
-5. **Workspace `.roughcut/config.yml`** — non-secret preferences
-6. **User config** — `~/.config/roughcut/config.yml`
-7. **Built-in defaults**
-
-Example `.env` (API keys — gitignored):
-
-```bash
-ELEVENLABS_API_KEY=your-key-here
-GEMINI_API_KEY=your-key-here
-```
-
-Example `.roughcut/config.yml` (preferences — safe to commit):
-
-```yaml
-elevenlabs_voice_id: brian
-log_level: info
-```
-
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `roughcut build` | Build presentation (HTML by default) |
+| `roughcut build` | Build presentation (HTML by default, add `--full` for audio + video) |
 | `roughcut dev` | Preview in browser with hot reload |
 | `roughcut init [dir]` | Create a new workspace |
-| `roughcut create <name>` | Create a presentation in the workspace |
+| `roughcut create <name>` | Add a presentation to the workspace |
+| `roughcut create-example <name>` | Scaffold a bundled example (`hello-world`, `narrated-deck`, `kitchen-sink`) |
 | `roughcut lint` | Validate markdown format |
 | `roughcut doctor` | Check system prerequisites |
 | `roughcut voices` | List available ElevenLabs voices |
@@ -126,11 +117,31 @@ Content with **formatting** and `code`.
 
 See [docs/FEATURES.md](docs/FEATURES.md) for all 21 directives and [docs/TUTORIAL-WRITING-GUIDE.md](docs/TUTORIAL-WRITING-GUIDE.md) for authoring guidance.
 
-## Examples
+## Configuration
 
-- [`examples/hello-world/`](examples/hello-world/) — simplest possible presentation
-- [`examples/narrated-deck/`](examples/narrated-deck/) — Roughcut explains itself, with narration and fragments
-- [`examples/kitchen-sink/`](examples/kitchen-sink/) — every directive and feature demonstrated
+Roughcut uses layered config (highest priority first):
+
+1. **CLI flags** — `--full`, `--log-level debug`
+2. **Shell environment variables** — `ELEVENLABS_API_KEY`, `LOG_LEVEL`
+3. **Workspace `.env`** — API keys (gitignored, found by walking up to `.roughcut/`)
+4. **Legacy `.roughcutrc.yml`** — backward compat project config
+5. **Workspace `.roughcut/config.yml`** — non-secret preferences
+6. **User config** — `~/.config/roughcut/config.yml`
+7. **Built-in defaults**
+
+Example `.env` (API keys — gitignored):
+
+```bash
+ELEVENLABS_API_KEY=your-key-here
+GEMINI_API_KEY=your-key-here
+```
+
+Example `.roughcut/config.yml` (preferences — safe to commit):
+
+```yaml
+elevenlabs_voice_id: brian
+log_level: info
+```
 
 ## Contributing
 

@@ -8,6 +8,7 @@ import { createBuildCommand, type BuildOptions } from "./commands/index.js";
 import { createDevCommand } from "./commands/dev.js";
 import { createInitCommand } from "./commands/init.js";
 import { createCreateCommand } from "./commands/create.js";
+import { createCreateExampleCommand } from "./commands/create-example.js";
 import { createLintCommand } from "./commands/lint.js";
 import { createDoctorCommand } from "./commands/doctor.js";
 import { createVoicesCommand } from "./commands/voices.js";
@@ -20,7 +21,7 @@ const program = new Command();
 program
   .name("roughcut")
   .description("Generate RevealJS presentations and videos from markdown")
-  .version("3.0.0");
+  .version("3.1.0");
 
 /**
  * Load config before any command runs.
@@ -125,6 +126,7 @@ program.addCommand(createDevCommand());
  */
 program.addCommand(createInitCommand());
 program.addCommand(createCreateCommand());
+program.addCommand(createCreateExampleCommand());
 program.addCommand(createLintCommand());
 program.addCommand(createDoctorCommand());
 program.addCommand(createVoicesCommand());

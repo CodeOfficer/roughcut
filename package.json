@@ -1,6 +1,6 @@
 {
   "name": "roughcut",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Generate RevealJS presentations and videos from markdown with AI narration",
   "main": "dist/index.js",
   "type": "module",
