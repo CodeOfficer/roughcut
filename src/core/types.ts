@@ -199,7 +199,7 @@ export interface PlaywrightInstruction {
   content: string;
 
   /** Parsed parameters (populated by executor) */
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 // ============================================================================

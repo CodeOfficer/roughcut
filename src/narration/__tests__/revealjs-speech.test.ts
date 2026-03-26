@@ -34,13 +34,15 @@ vi.mock("../../config/config-manager.js", () => ({
 }));
 
 // Import mocked modules
-import { ElevenLabsClient } from "../elevenlabs.js";
+
 import { getAudioDuration } from "../../utils/timing.js";
 import { mkdir, stat } from "fs/promises";
 
 describe("RevealSpeechGenerator", () => {
   let generator: RevealSpeechGenerator;
-  let mockElevenLabsClient: any;
+  let mockElevenLabsClient: {
+    generateSpeech: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     // Reset mocks
@@ -64,7 +66,7 @@ describe("RevealSpeechGenerator", () => {
     vi.mocked(getAudioDuration).mockResolvedValue(5.5);
 
     // Mock stat to return file size
-    vi.mocked(stat).mockResolvedValue({ size: 102400 } as any);
+    vi.mocked(stat).mockResolvedValue({ size: 102400 } as never);
 
     // Mock mkdir
     vi.mocked(mkdir).mockResolvedValue(undefined);
@@ -380,8 +382,8 @@ describe("RevealSpeechGenerator", () => {
         existsSync: vi.fn(),
       }));
 
-      vi.mocked(existsSync as any).mockReturnValue(true);
-      vi.mocked(readFile as any).mockResolvedValue(
+      vi.mocked(existsSync as unknown as () => boolean).mockReturnValue(true);
+      vi.mocked(readFile as unknown as () => Promise<string>).mockResolvedValue(
         JSON.stringify({
           "slide-001": [
             {
@@ -397,7 +399,9 @@ describe("RevealSpeechGenerator", () => {
           ],
         }),
       );
-      vi.mocked(writeFile as any).mockResolvedValue(undefined);
+      vi.mocked(writeFile as unknown as () => Promise<void>).mockResolvedValue(
+        undefined,
+      );
 
       const presentation: RevealPresentation = {
         title: "Test",

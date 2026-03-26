@@ -61,10 +61,7 @@ async function runCreateExample(name: string): Promise<void> {
   // Load example template
   let content: string;
   try {
-    content = await fs.readFile(
-      path.join(templatesDir, `${name}.md`),
-      "utf-8",
-    );
+    content = await fs.readFile(path.join(templatesDir, `${name}.md`), "utf-8");
   } catch {
     content = getDefaultHelloWorld();
   }

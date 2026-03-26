@@ -55,7 +55,9 @@ export class BrowserAudioPlayer {
   async initialize(): Promise<void> {
     await this.page.evaluate(() => {
       // Create audio element if it doesn't exist
-      const w = window as any;
+      const w = window as unknown as {
+        __revealAudioPlayer: HTMLAudioElement | undefined;
+      };
       if (!w.__revealAudioPlayer) {
         const audio = new Audio();
         audio.id = "reveal-audio-player";
@@ -69,7 +71,11 @@ export class BrowserAudioPlayer {
    */
   async load(audioPath: string): Promise<void> {
     await this.page.evaluate((path) => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       audio.src = path;
       audio.load();
     }, audioPath);
@@ -86,7 +92,11 @@ export class BrowserAudioPlayer {
 
     await this.page.evaluate(
       ({ volume, playbackRate }) => {
-        const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+        const audio = (
+          window as unknown as {
+            __revealAudioPlayer: HTMLAudioElement | undefined;
+          }
+        ).__revealAudioPlayer as HTMLAudioElement;
         audio.volume = volume;
         audio.playbackRate = playbackRate;
         audio.play();
@@ -100,7 +110,11 @@ export class BrowserAudioPlayer {
    */
   async pause(): Promise<void> {
     await this.page.evaluate(() => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       audio.pause();
     });
   }
@@ -110,7 +124,11 @@ export class BrowserAudioPlayer {
    */
   async stop(): Promise<void> {
     await this.page.evaluate(() => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       audio.pause();
       audio.currentTime = 0;
     });
@@ -123,7 +141,11 @@ export class BrowserAudioPlayer {
     try {
       await this.page.waitForFunction(
         () => {
-          const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+          const audio = (
+            window as unknown as {
+              __revealAudioPlayer: HTMLAudioElement | undefined;
+            }
+          ).__revealAudioPlayer as HTMLAudioElement;
           return audio.ended || audio.paused || audio.error !== null;
         },
         { timeout },
@@ -141,7 +163,11 @@ export class BrowserAudioPlayer {
   private async waitForLoad(): Promise<void> {
     await this.page.waitForFunction(
       () => {
-        const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+        const audio = (
+          window as unknown as {
+            __revealAudioPlayer: HTMLAudioElement | undefined;
+          }
+        ).__revealAudioPlayer as HTMLAudioElement;
         return audio.readyState >= 2; // HAVE_CURRENT_DATA
       },
       { timeout: 10000 },
@@ -153,7 +179,11 @@ export class BrowserAudioPlayer {
    */
   async getState(): Promise<AudioPlaybackState> {
     return await this.page.evaluate(() => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       return {
         playing: !audio.paused,
         currentTime: audio.currentTime,
@@ -168,7 +198,11 @@ export class BrowserAudioPlayer {
    */
   async getDuration(): Promise<number> {
     return await this.page.evaluate(() => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       return audio.duration;
     });
   }
@@ -178,7 +212,11 @@ export class BrowserAudioPlayer {
    */
   async setVolume(volume: number): Promise<void> {
     await this.page.evaluate((vol) => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       audio.volume = Math.max(0, Math.min(1, vol));
     }, volume);
   }
@@ -188,7 +226,11 @@ export class BrowserAudioPlayer {
    */
   async setPlaybackRate(rate: number): Promise<void> {
     await this.page.evaluate((r) => {
-      const audio = (window as any).__revealAudioPlayer as HTMLAudioElement;
+      const audio = (
+        window as unknown as {
+          __revealAudioPlayer: HTMLAudioElement | undefined;
+        }
+      ).__revealAudioPlayer as HTMLAudioElement;
       audio.playbackRate = Math.max(0.5, Math.min(2, r));
     }, rate);
   }

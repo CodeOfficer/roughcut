@@ -8,6 +8,16 @@ import type {
 } from "./types.js";
 
 /**
+ * Voice metadata from ElevenLabs API
+ */
+export interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+
+/**
  * ElevenLabs API client for text-to-speech generation
  */
 export class ElevenLabsClient {
@@ -118,7 +128,7 @@ export class ElevenLabsClient {
   /**
    * Get available voices from ElevenLabs
    */
-  async getVoices(): Promise<any[]> {
+  async getVoices(): Promise<ElevenLabsVoice[]> {
     try {
       const response = await fetch(`${this.baseUrl}/voices`, {
         headers: {
@@ -130,7 +140,7 @@ export class ElevenLabsClient {
         throw new Error(`Failed to fetch voices: ${response.status}`);
       }
 
-      const data = (await response.json()) as { voices?: any[] };
+      const data = (await response.json()) as { voices?: ElevenLabsVoice[] };
       return data.voices || [];
     } catch (error) {
       logger.error("Failed to fetch voices", error);

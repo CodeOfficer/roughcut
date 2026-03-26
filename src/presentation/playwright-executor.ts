@@ -75,7 +75,7 @@ export class PlaywrightInstructionExecutor {
           await this.executeWait(instruction.content, context);
           break;
 
-        case "screenshot":
+        case "screenshot": {
           const screenshotPath = await this.executeScreenshot(
             instruction.content,
             context,
@@ -85,6 +85,7 @@ export class PlaywrightInstructionExecutor {
             screenshotPath,
             duration: Date.now() - startTime,
           };
+        }
 
         default:
           throw new Error(`Unknown instruction type: ${instruction.type}`);

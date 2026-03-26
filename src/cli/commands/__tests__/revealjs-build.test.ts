@@ -6,7 +6,6 @@
 import {
   RevealBuildCommand,
   createBuildCommand,
-  type BuildOptions,
   type BuildProgress,
 } from "../build.js";
 import * as fs from "fs/promises";

@@ -6,7 +6,6 @@
 import { RevealHTMLGenerator } from "../revealjs-generator.js";
 import {
   RevealPresentation,
-  RevealSlide,
   DEFAULT_SLIDE_METADATA,
 } from "../../core/types.js";
 import * as fs from "fs/promises";
@@ -803,7 +802,7 @@ describe("RevealHTMLGenerator", () => {
         voice: "adam",
         resolution: "1920x1080",
         slides: [],
-        config: { help: true } as any,
+        config: { help: true } as never,
       };
 
       const html = generator.generateHTML(
@@ -821,7 +820,7 @@ describe("RevealHTMLGenerator", () => {
         voice: "adam",
         resolution: "1920x1080",
         slides: [],
-        config: { help: false } as any,
+        config: { help: false } as never,
       };
 
       const html = generator.generateHTML(
@@ -839,7 +838,7 @@ describe("RevealHTMLGenerator", () => {
         voice: "adam",
         resolution: "1920x1080",
         slides: [],
-        config: { keyboard: true } as any,
+        config: { keyboard: true } as never,
       };
 
       const html = generator.generateHTML(
@@ -857,7 +856,7 @@ describe("RevealHTMLGenerator", () => {
         voice: "adam",
         resolution: "1920x1080",
         slides: [],
-        config: { keyboard: false } as any,
+        config: { keyboard: false } as never,
       };
 
       const html = generator.generateHTML(

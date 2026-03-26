@@ -25,10 +25,15 @@ describe("roughcut dev CLI", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         threw = true;
-        expect(error.status).not.toBe(0);
-        const output = error.stdout || error.stderr || "";
+        const execError = error as {
+          status: number | null;
+          stdout?: string;
+          stderr?: string;
+        };
+        expect(execError.status).not.toBe(0);
+        const output = execError.stdout || execError.stderr || "";
         expect(output).toContain("No input file specified");
       }
 
@@ -52,8 +57,9 @@ describe("roughcut dev CLI", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
-        output = error.stdout || error.stderr || "";
+      } catch (error: unknown) {
+        const execError = error as { stdout?: string; stderr?: string };
+        output = execError.stdout || execError.stderr || "";
       }
 
       // Should not contain "unknown option"
@@ -76,8 +82,9 @@ describe("roughcut dev CLI", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
-        output = error.stdout || error.stderr || "";
+      } catch (error: unknown) {
+        const execError = error as { stdout?: string; stderr?: string };
+        output = execError.stdout || execError.stderr || "";
       }
 
       // Should not contain "unknown option"
@@ -106,8 +113,9 @@ describe("roughcut dev CLI", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
-        output = error.stdout || error.stderr || "";
+      } catch (error: unknown) {
+        const execError = error as { stdout?: string; stderr?: string };
+        output = execError.stdout || execError.stderr || "";
       }
 
       // Should show the updated error message

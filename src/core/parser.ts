@@ -181,7 +181,9 @@ export class RevealMarkdownParser {
           // Parse numbers
           else if (!isNaN(Number(value)) && value !== "") value = Number(value);
 
-          (frontMatter.config as any)[key.trim()] = value;
+          (frontMatter.config as Record<string, string | boolean | number>)[
+            key.trim()
+          ] = value;
         }
         continue;
       }
@@ -200,7 +202,7 @@ export class RevealMarkdownParser {
           .replace(/^["']|["']$/g, "");
         if (key.trim() !== "config" && key.trim() !== "customStyles") {
           frontMatter[key.trim() as keyof PresentationFrontMatter] =
-            value as any;
+            value as string;
         }
       }
     }

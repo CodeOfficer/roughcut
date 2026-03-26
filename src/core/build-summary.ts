@@ -12,7 +12,7 @@ import { join } from "path";
 export interface StageTiming {
   name: string;
   durationMs: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -202,7 +202,7 @@ export class BuildSummaryGenerator {
   /**
    * Format stage metadata for display
    */
-  private formatMetadata(metadata: Record<string, any>): string | null {
+  private formatMetadata(metadata: Record<string, unknown>): string | null {
     const parts: string[] = [];
 
     if (metadata["slides_with_audio"] !== undefined) {

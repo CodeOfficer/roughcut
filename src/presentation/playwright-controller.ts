@@ -18,6 +18,30 @@ import * as path from "path";
 // ============================================================================
 
 /**
+ * Window augmented with Reveal.js API (used in browser evaluate contexts)
+ */
+interface WindowWithReveal {
+  Reveal: {
+    isReady: () => boolean;
+    next: () => void;
+    prev: () => void;
+    slide: (h: number, v: number, f?: number) => void;
+    nextFragment: () => boolean;
+    prevFragment: () => boolean;
+    getIndices: () => RevealIndices;
+    getSlides: () => Array<{ id: string }>;
+    getCurrentSlide: () => { id: string; dataset: Record<string, string> };
+    isPaused: () => boolean;
+    isOverview: () => boolean;
+    on: (event: string, handler: (event: unknown) => void) => void;
+  };
+  handleSlideChanged: (event: unknown) => void;
+  handleFragmentShown: (event: unknown) => void;
+  handleFragmentHidden: (event: unknown) => void;
+  handleReady: () => void;
+}
+
+/**
  * Reveal.js slide indices (horizontal and vertical)
  */
 export interface RevealIndices {
@@ -99,7 +123,7 @@ export class PlaywrightRevealController {
     options: ControllerOptions = {},
   ): Promise<void> {
     const {
-      browserType: _browserType = "chromium",
+      browserType: _ = "chromium",
       headless = true,
       recordVideo,
       videoSize = { width: 1920, height: 1080 },
@@ -114,7 +138,14 @@ export class PlaywrightRevealController {
     });
 
     // Create context with video recording if specified
-    const contextOptions: any = {
+    const contextOptions: {
+      viewport: { width: number; height: number };
+      deviceScaleFactor: number;
+      recordVideo?: {
+        dir: string;
+        size: { width: number; height: number };
+      };
+    } = {
       viewport: viewportSize,
       deviceScaleFactor,
     };
@@ -184,7 +215,7 @@ export class PlaywrightRevealController {
 
     // Check what's in the page before waiting
     const initialCheck = await this.page.evaluate(() => {
-      const win = window as any;
+      const win = window as unknown as WindowWithReveal;
       return {
         hasReveal: typeof win.Reveal !== "undefined",
         revealKeys:
@@ -208,15 +239,16 @@ export class PlaywrightRevealController {
       // Wait for Reveal object to be available
       await this.page.waitForFunction(
         () =>
-          typeof (window as any).Reveal !== "undefined" &&
-          (window as any).Reveal.isReady(),
+          typeof (window as unknown as WindowWithReveal).Reveal !==
+            "undefined" &&
+          (window as unknown as WindowWithReveal).Reveal.isReady(),
         { timeout: 60000 }, // Increase timeout to 60s for debugging
       );
       console.log("✅ Reveal.js ready");
     } catch (error) {
       // Get final state on failure
       const finalCheck = await this.page.evaluate(() => {
-        const win = window as any;
+        const win = window as unknown as WindowWithReveal;
         return {
           hasReveal: typeof win.Reveal !== "undefined",
           revealKeys:
@@ -257,7 +289,9 @@ export class PlaywrightRevealController {
    */
   async next(): Promise<void> {
     this.ensureReady();
-    await this.page!.evaluate(() => (window as any).Reveal.next());
+    await this.page!.evaluate(() =>
+      (window as unknown as WindowWithReveal).Reveal.next(),
+    );
   }
 
   /**
@@ -265,7 +299,9 @@ export class PlaywrightRevealController {
    */
   async prev(): Promise<void> {
     this.ensureReady();
-    await this.page!.evaluate(() => (window as any).Reveal.prev());
+    await this.page!.evaluate(() =>
+      (window as unknown as WindowWithReveal).Reveal.prev(),
+    );
   }
 
   /**
@@ -274,7 +310,8 @@ export class PlaywrightRevealController {
   async slide(h: number, v: number = 0, f?: number): Promise<void> {
     this.ensureReady();
     await this.page!.evaluate(
-      ({ h, v, f }) => (window as any).Reveal.slide(h, v, f),
+      ({ h, v, f }) =>
+        (window as unknown as WindowWithReveal).Reveal.slide(h, v, f),
       { h, v, f },
     );
   }
@@ -285,7 +322,7 @@ export class PlaywrightRevealController {
   async nextFragment(): Promise<boolean> {
     this.ensureReady();
     return await this.page!.evaluate(() =>
-      (window as any).Reveal.nextFragment(),
+      (window as unknown as WindowWithReveal).Reveal.nextFragment(),
     );
   }
 
@@ -295,7 +332,7 @@ export class PlaywrightRevealController {
   async prevFragment(): Promise<boolean> {
     this.ensureReady();
     return await this.page!.evaluate(() =>
-      (window as any).Reveal.prevFragment(),
+      (window as unknown as WindowWithReveal).Reveal.prevFragment(),
     );
   }
 
@@ -308,7 +345,9 @@ export class PlaywrightRevealController {
    */
   async getIndices(): Promise<RevealIndices> {
     this.ensureReady();
-    return await this.page!.evaluate(() => (window as any).Reveal.getIndices());
+    return await this.page!.evaluate(() =>
+      (window as unknown as WindowWithReveal).Reveal.getIndices(),
+    );
   }
 
   /**
@@ -317,7 +356,7 @@ export class PlaywrightRevealController {
   async getTotalSlides(): Promise<number> {
     this.ensureReady();
     return await this.page!.evaluate(() => {
-      const reveal = (window as any).Reveal;
+      const reveal = (window as unknown as WindowWithReveal).Reveal;
       const slides = reveal.getSlides();
       return slides.length;
     });
@@ -326,10 +365,15 @@ export class PlaywrightRevealController {
   /**
    * Get current slide element
    */
-  async getCurrentSlide(): Promise<any> {
+  async getCurrentSlide(): Promise<{
+    id: string;
+    dataset: Record<string, string>;
+  }> {
     this.ensureReady();
     return await this.page!.evaluate(() => {
-      const slide = (window as any).Reveal.getCurrentSlide();
+      const slide = (
+        window as unknown as WindowWithReveal
+      ).Reveal.getCurrentSlide();
       return {
         id: slide.id,
         dataset: slide.dataset,
@@ -342,7 +386,9 @@ export class PlaywrightRevealController {
    */
   async isPaused(): Promise<boolean> {
     this.ensureReady();
-    return await this.page!.evaluate(() => (window as any).Reveal.isPaused());
+    return await this.page!.evaluate(() =>
+      (window as unknown as WindowWithReveal).Reveal.isPaused(),
+    );
   }
 
   /**
@@ -350,7 +396,9 @@ export class PlaywrightRevealController {
    */
   async isOverview(): Promise<boolean> {
     this.ensureReady();
-    return await this.page!.evaluate(() => (window as any).Reveal.isOverview());
+    return await this.page!.evaluate(() =>
+      (window as unknown as WindowWithReveal).Reveal.isOverview(),
+    );
   }
 
   // ============================================================================
@@ -365,27 +413,32 @@ export class PlaywrightRevealController {
 
     await this.page!.exposeFunction(
       "handleSlideChanged",
-      async (event: any) => {
-        await handler({
-          indexh: event.indexh,
-          indexv: event.indexv,
-          currentSlide: event.currentSlide,
-          previousSlide: event.previousSlide,
-        });
+      async (event: unknown) => {
+        const e = event as SlideChangedEvent;
+        await handler(e);
       },
     );
 
     await this.page!.evaluate(() => {
-      (window as any).Reveal.on("slidechanged", (event: any) => {
-        (window as any).handleSlideChanged({
-          indexh: event.indexh,
-          indexv: event.indexv,
-          currentSlide: { id: event.currentSlide?.id },
-          previousSlide: event.previousSlide
-            ? { id: event.previousSlide.id }
-            : undefined,
-        });
-      });
+      (window as unknown as WindowWithReveal).Reveal.on(
+        "slidechanged",
+        (event: unknown) => {
+          const e = event as {
+            indexh: number;
+            indexv: number;
+            currentSlide?: { id: string };
+            previousSlide?: { id: string };
+          };
+          (window as unknown as WindowWithReveal).handleSlideChanged({
+            indexh: e.indexh,
+            indexv: e.indexv,
+            currentSlide: { id: e.currentSlide?.id },
+            previousSlide: e.previousSlide
+              ? { id: e.previousSlide.id }
+              : undefined,
+          });
+        },
+      );
     });
   }
 
@@ -397,21 +450,26 @@ export class PlaywrightRevealController {
 
     await this.page!.exposeFunction(
       "handleFragmentShown",
-      async (event: any) => {
-        await handler({
-          fragment: event.fragment,
-          index: event.index,
-        });
+      async (event: unknown) => {
+        const e = event as FragmentEvent;
+        await handler(e);
       },
     );
 
     await this.page!.evaluate(() => {
-      (window as any).Reveal.on("fragmentshown", (event: any) => {
-        (window as any).handleFragmentShown({
-          fragment: { id: event.fragment?.id },
-          index: event.index,
-        });
-      });
+      (window as unknown as WindowWithReveal).Reveal.on(
+        "fragmentshown",
+        (event: unknown) => {
+          const e = event as {
+            fragment?: { id: string };
+            index: number;
+          };
+          (window as unknown as WindowWithReveal).handleFragmentShown({
+            fragment: { id: e.fragment?.id },
+            index: e.index,
+          });
+        },
+      );
     });
   }
 
@@ -423,21 +481,26 @@ export class PlaywrightRevealController {
 
     await this.page!.exposeFunction(
       "handleFragmentHidden",
-      async (event: any) => {
-        await handler({
-          fragment: event.fragment,
-          index: event.index,
-        });
+      async (event: unknown) => {
+        const e = event as FragmentEvent;
+        await handler(e);
       },
     );
 
     await this.page!.evaluate(() => {
-      (window as any).Reveal.on("fragmenthidden", (event: any) => {
-        (window as any).handleFragmentHidden({
-          fragment: { id: event.fragment?.id },
-          index: event.index,
-        });
-      });
+      (window as unknown as WindowWithReveal).Reveal.on(
+        "fragmenthidden",
+        (event: unknown) => {
+          const e = event as {
+            fragment?: { id: string };
+            index: number;
+          };
+          (window as unknown as WindowWithReveal).handleFragmentHidden({
+            fragment: { id: e.fragment?.id },
+            index: e.index,
+          });
+        },
+      );
     });
   }
 
@@ -452,8 +515,8 @@ export class PlaywrightRevealController {
     });
 
     await this.page!.evaluate(() => {
-      (window as any).Reveal.on("ready", () => {
-        (window as any).handleReady();
+      (window as unknown as WindowWithReveal).Reveal.on("ready", () => {
+        (window as unknown as WindowWithReveal).handleReady();
       });
     });
   }
