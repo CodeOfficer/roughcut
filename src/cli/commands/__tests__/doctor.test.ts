@@ -3,7 +3,7 @@
  * Tests the individual check functions that doctor uses
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { execSync } from "child_process";
 import * as path from "path";
 import { config } from "../../../config/config-manager.js";
@@ -35,10 +35,11 @@ describe("roughcut doctor", () => {
       });
       // Should contain Node.js check
       expect(output).toContain("Node.js");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Doctor may exit with code 1 if prerequisites missing,
       // but should still produce output
-      expect(error.stdout || error.stderr).toBeTruthy();
+      const execError = error as { stdout?: string; stderr?: string };
+      expect(execError.stdout || execError.stderr).toBeTruthy();
     }
   });
 
@@ -50,8 +51,9 @@ describe("roughcut doctor", () => {
         encoding: "utf-8",
         timeout: 15000,
       });
-    } catch (error: any) {
-      output = error.stdout || "";
+    } catch (error: unknown) {
+      const execError = error as { stdout?: string };
+      output = execError.stdout || "";
     }
 
     // Should show Node version (we're running on Node 20+)
@@ -67,8 +69,9 @@ describe("roughcut doctor", () => {
         encoding: "utf-8",
         timeout: 15000,
       });
-    } catch (error: any) {
-      output = error.stdout || "";
+    } catch (error: unknown) {
+      const execError = error as { stdout?: string };
+      output = execError.stdout || "";
     }
 
     // Should mention ffmpeg (either OK or FAIL)
@@ -83,8 +86,9 @@ describe("roughcut doctor", () => {
         encoding: "utf-8",
         timeout: 15000,
       });
-    } catch (error: any) {
-      output = error.stdout || "";
+    } catch (error: unknown) {
+      const execError = error as { stdout?: string };
+      output = execError.stdout || "";
     }
 
     // Should mention both API keys
@@ -105,8 +109,9 @@ describe("roughcut doctor", () => {
           GEMINI_API_KEY: "",
         },
       });
-    } catch (error: any) {
-      output = error.stdout || "";
+    } catch (error: unknown) {
+      const execError = error as { stdout?: string };
+      output = execError.stdout || "";
     }
 
     // API keys should be WARN, not FAIL (they're optional)

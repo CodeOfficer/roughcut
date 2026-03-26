@@ -44,10 +44,11 @@ describe("roughcut lint", () => {
             timeout: 10000,
           },
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         threw = true;
+        const execError = error as { status: number | null };
         // Should exit with non-zero code
-        expect(error.status).not.toBe(0);
+        expect(execError.status).not.toBe(0);
       }
 
       expect(threw).toBe(true);
@@ -111,10 +112,15 @@ describe("roughcut lint", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         threw = true;
-        expect(error.status).not.toBe(0);
-        expect(error.stdout || error.stderr || "").toContain(
+        const execError = error as {
+          status: number | null;
+          stdout?: string;
+          stderr?: string;
+        };
+        expect(execError.status).not.toBe(0);
+        expect(execError.stdout || execError.stderr || "").toContain(
           "No input file specified",
         );
       }

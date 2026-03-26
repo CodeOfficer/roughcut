@@ -62,7 +62,7 @@ export interface DirectiveDefinition {
   required: boolean;
 
   /** Default value if not provided */
-  defaultValue?: any;
+  defaultValue?: string;
 
   /** Description for documentation */
   description: string;

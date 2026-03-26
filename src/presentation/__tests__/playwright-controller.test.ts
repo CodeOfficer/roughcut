@@ -171,7 +171,11 @@ describe("PlaywrightRevealController", () => {
     });
 
     it("should listen to slide changed events", async () => {
-      const events: any[] = [];
+      const events: Array<{
+        indexh: number;
+        indexv: number;
+        currentSlide?: { id?: string };
+      }> = [];
 
       await controller.onSlideChanged(async (event) => {
         events.push(event);
@@ -238,7 +242,9 @@ describe("PlaywrightRevealController", () => {
 
     it("should evaluate JavaScript in page context", async () => {
       const result = await controller.evaluate(() => {
-        return (window as any).Reveal.isReady();
+        return (
+          window as unknown as { Reveal: { isReady: () => boolean } }
+        ).Reveal.isReady();
       });
 
       expect(result).toBe(true);

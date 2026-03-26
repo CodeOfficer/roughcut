@@ -11,7 +11,8 @@
  * 7. Repeat
  */
 
-import type { RevealTimeline } from "../core/types.js";
+import type { RevealTimeline, PlaywrightInstruction } from "../core/types.js";
+import type { Page } from "playwright";
 import { PlaywrightRevealController } from "./playwright-controller.js";
 import { PlaywrightInstructionExecutor } from "./playwright-executor.js";
 import {
@@ -418,7 +419,11 @@ export class AudioSyncOrchestrator {
   private async hasPageAudioController(): Promise<boolean> {
     const page = this.controller.getPage();
     return await page.evaluate(() => {
-      return typeof (window as any).revealAudioController !== "undefined";
+      return (
+        typeof (window as unknown as Record<string, unknown>)[
+          "revealAudioController"
+        ] !== "undefined"
+      );
     });
   }
 
@@ -431,7 +436,11 @@ export class AudioSyncOrchestrator {
     try {
       await page.waitForFunction(
         () => {
-          const controller = (window as any).revealAudioController;
+          const controller = (window as unknown as Record<string, unknown>)[
+            "revealAudioController"
+          ] as {
+            getCurrentAudio: () => { ended: boolean; paused: boolean } | null;
+          } | null;
           if (!controller) return true;
 
           const audio = controller.getCurrentAudio();
@@ -475,7 +484,7 @@ export class AudioSyncOrchestrator {
    * Execute playwright instructions
    */
   private async executeInstructions(
-    instructions: any[],
+    instructions: PlaywrightInstruction[],
     slideId: string,
     screenshotDir: string | undefined,
     slideIndex: number,
@@ -494,7 +503,7 @@ export class AudioSyncOrchestrator {
     const page = this.controller.getPage();
 
     const context: {
-      page: any;
+      page: Page;
       screenshotDir?: string;
       slideId: string;
     } = {

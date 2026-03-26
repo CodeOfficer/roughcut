@@ -565,13 +565,23 @@ export class RevealVideoAssembler {
       ffprobe.on("close", (code) => {
         if (code === 0) {
           try {
-            const data = JSON.parse(stdout);
+            const data = JSON.parse(stdout) as {
+              streams: Array<{
+                codec_type: string;
+                width?: number;
+                height?: number;
+              }>;
+              format: {
+                duration?: string;
+                format_name?: string;
+              };
+            };
             const videoStream = data.streams.find(
-              (s: any) => s.codec_type === "video",
+              (s) => s.codec_type === "video",
             );
 
             resolve({
-              duration: parseFloat(data.format.duration) || 0,
+              duration: parseFloat(data.format.duration || "0") || 0,
               width: videoStream?.width || 0,
               height: videoStream?.height || 0,
               format: data.format.format_name || "unknown",

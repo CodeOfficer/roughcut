@@ -44,7 +44,7 @@ class Logger {
   /**
    * Log a debug message (gray)
    */
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog("debug")) {
       console.log(chalk.gray(this.formatMessage("debug", message)), ...args);
     }
@@ -53,7 +53,7 @@ class Logger {
   /**
    * Log an info message (blue)
    */
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.shouldLog("info")) {
       console.log(chalk.blue(this.formatMessage("info", message)), ...args);
     }
@@ -62,7 +62,7 @@ class Logger {
   /**
    * Log a success message (green)
    */
-  success(message: string, ...args: any[]): void {
+  success(message: string, ...args: unknown[]): void {
     if (this.shouldLog("info")) {
       console.log(chalk.green(`✓ ${message}`), ...args);
     }
@@ -71,7 +71,7 @@ class Logger {
   /**
    * Log a warning message (yellow)
    */
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog("warn")) {
       console.warn(chalk.yellow(this.formatMessage("warn", message)), ...args);
     }
@@ -80,7 +80,7 @@ class Logger {
   /**
    * Log an error message (red)
    */
-  error(message: string, error?: Error | unknown, ...args: any[]): void {
+  error(message: string, error?: Error | unknown, ...args: unknown[]): void {
     if (this.shouldLog("error")) {
       console.error(chalk.red(this.formatMessage("error", message)), ...args);
       if (error instanceof Error) {
@@ -94,7 +94,7 @@ class Logger {
   /**
    * Log a step in a process (cyan)
    */
-  step(message: string, ...args: any[]): void {
+  step(message: string, ...args: unknown[]): void {
     if (this.shouldLog("info")) {
       console.log(chalk.cyan(`→ ${message}`), ...args);
     }

@@ -10,7 +10,6 @@ import {
   PlaywrightBlock,
   SlideMetadata,
   RevealTimeline,
-  SlideTimelineEntry,
   hasAudio,
   hasPlaywright,
   hasSpeakerNotes,

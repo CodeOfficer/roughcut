@@ -4,7 +4,7 @@
 
 **Roughcut** — Generate narrated RevealJS presentations and MP4 videos from markdown using a custom format with 21 specialized directives, ElevenLabs TTS narration, and Playwright-based video recording.
 
-- **Version**: 3.0.0
+- **Version**: 3.1.0
 - **Status**: Production-ready, open-source CLI tool
 
 ---
@@ -102,6 +102,7 @@ roughcut build                   # Build presentation (HTML by default)
 roughcut dev                     # Preview in browser
 roughcut init [dir]              # Create workspace (.roughcut/, .env, .gitignore)
 roughcut create <name>           # Create presentation subfolder in workspace
+roughcut create-example <name>  # Scaffold bundled example (hello-world, narrated-deck, kitchen-sink)
 roughcut lint                    # Validate markdown
 roughcut doctor                  # Check prerequisites
 roughcut voices                  # List ElevenLabs voices

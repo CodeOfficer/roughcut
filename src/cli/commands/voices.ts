@@ -3,7 +3,10 @@
  */
 
 import { Command } from "commander";
-import { ElevenLabsClient } from "../../narration/elevenlabs.js";
+import {
+  ElevenLabsClient,
+  type ElevenLabsVoice,
+} from "../../narration/elevenlabs.js";
 import { logger } from "../../core/logger.js";
 
 export function createVoicesCommand(): Command {
@@ -36,7 +39,7 @@ async function runVoices(): Promise<void> {
   const voices = await client.getVoices();
 
   // Group voices by category
-  const categories = new Map<string, any[]>();
+  const categories = new Map<string, ElevenLabsVoice[]>();
   for (const voice of voices) {
     const cat = voice.category || "other";
     if (!categories.has(cat)) categories.set(cat, []);

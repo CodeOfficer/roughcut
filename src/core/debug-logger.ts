@@ -13,7 +13,7 @@ interface Operation {
   name: string;
   startTime: number;
   endTime?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -51,7 +51,7 @@ export class DebugLogger {
   async log(
     level: string,
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     await this.initialize();
 
@@ -72,7 +72,7 @@ export class DebugLogger {
    */
   async startOperation(
     name: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     const operation: Operation = {
       name,
@@ -93,7 +93,7 @@ export class DebugLogger {
    */
   async endOperation(
     name: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<number> {
     const operation = this.operations.get(name);
     if (!operation) {
@@ -119,21 +119,30 @@ export class DebugLogger {
   /**
    * Log debug message
    */
-  async debug(message: string, metadata?: Record<string, any>): Promise<void> {
+  async debug(
+    message: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log("DEBUG", message, metadata);
   }
 
   /**
    * Log info message
    */
-  async info(message: string, metadata?: Record<string, any>): Promise<void> {
+  async info(
+    message: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log("INFO", message, metadata);
   }
 
   /**
    * Log warning message
    */
-  async warn(message: string, metadata?: Record<string, any>): Promise<void> {
+  async warn(
+    message: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log("WARN", message, metadata);
   }
 
@@ -143,9 +152,9 @@ export class DebugLogger {
   async error(
     message: string,
     error?: Error | unknown,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
-    const errorMetadata: Record<string, any> = { ...metadata };
+    const errorMetadata: Record<string, unknown> = { ...metadata };
 
     if (error instanceof Error) {
       errorMetadata["error"] = error.message;

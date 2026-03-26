@@ -230,7 +230,7 @@ class ConfigManager {
   private findWorkspaceRoot(startDir: string): string | null {
     let dir = resolve(startDir);
 
-    while (true) {
+    for (;;) {
       const roughcutDir = join(dir, ".roughcut");
       if (existsSync(roughcutDir)) {
         return dir;
@@ -311,7 +311,7 @@ class ConfigManager {
     let dir = resolve(startDir);
     const root = dirname(dir) === dir ? dir : "/"; // filesystem root
 
-    while (true) {
+    for (;;) {
       const configPath = join(dir, ".roughcutrc.yml");
       const config = this.loadYamlFile(configPath);
       if (Object.keys(config).length > 0) {

@@ -4,7 +4,6 @@
  */
 
 import { RevealMarkdownParser } from "../parser.js";
-import { RevealPresentation, RevealSlide } from "../types.js";
 
 describe("RevealMarkdownParser", () => {
   let parser: RevealMarkdownParser;

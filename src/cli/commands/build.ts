@@ -18,7 +18,10 @@ import { RevealSpeechGenerator } from "../../narration/speech.js";
 import { ElevenLabsClient } from "../../narration/elevenlabs.js";
 import { createRevealTimelineBuilder } from "../../video/timeline.js";
 import { AudioSyncOrchestrator } from "../../presentation/audio-sync-orchestrator.js";
-import { createRevealVideoAssembler } from "../../video/assembler.js";
+import {
+  createRevealVideoAssembler,
+  type VideoAssemblyResult,
+} from "../../video/assembler.js";
 import { ImageGenerator } from "../../images/generator.js";
 import { createDebugLogger } from "../../core/debug-logger.js";
 import {
@@ -28,7 +31,11 @@ import {
 } from "../../core/build-summary.js";
 import { lintMarkdown } from "../../core/linter.js";
 import { logger } from "../../core/logger.js";
-import type { RevealPresentation } from "../../core/types.js";
+import type {
+  RevealPresentation,
+  AudioGenerationResult,
+  RevealTimeline,
+} from "../../core/types.js";
 import { createAssetCopier } from "../../presentation/asset-copier.js";
 
 // ============================================================================
@@ -119,7 +126,7 @@ export interface BuildProgress {
   message: string;
 
   /** Additional context */
-  context?: any;
+  context?: unknown;
 }
 
 // ============================================================================
@@ -299,7 +306,7 @@ export class RevealBuildCommand {
       }
 
       // Phase 2: Generate audio (if not skipped)
-      let audioResults: Map<string, any> | null = null;
+      let audioResults: Map<string, AudioGenerationResult> | null = null;
 
       if (!options.skipAudio) {
         await debugLogger.startOperation("generate_audio");
@@ -630,7 +637,7 @@ export class RevealBuildCommand {
     presentation: RevealPresentation,
     options: BuildOptions,
   ): Promise<{
-    results: Map<string, any>;
+    results: Map<string, AudioGenerationResult>;
     cacheHits: number;
     cacheMisses: number;
   }> {
@@ -650,7 +657,7 @@ export class RevealBuildCommand {
   private async loadExistingAudio(
     presentation: RevealPresentation,
     options: BuildOptions,
-  ): Promise<Map<string, any>> {
+  ): Promise<Map<string, AudioGenerationResult>> {
     const audioDir = path.join(options.output, "audio");
     const audioResults = new Map();
 
@@ -699,8 +706,8 @@ export class RevealBuildCommand {
    */
   private buildTimeline(
     presentation: RevealPresentation,
-    audioResults: Map<string, any> | null,
-  ): any {
+    audioResults: Map<string, AudioGenerationResult> | null,
+  ): RevealTimeline {
     const timelineBuilder = createRevealTimelineBuilder();
     return timelineBuilder.build(presentation, audioResults || new Map());
   }
@@ -710,7 +717,7 @@ export class RevealBuildCommand {
    */
   private async recordVideo(
     htmlPath: string,
-    timeline: any,
+    timeline: RevealTimeline,
     options: BuildOptions,
   ): Promise<string> {
     const videoDir = path.join(options.output, "video");
@@ -761,9 +768,9 @@ export class RevealBuildCommand {
    */
   private async assembleVideo(
     recordedVideoPath: string,
-    timeline: any,
+    timeline: RevealTimeline,
     options: BuildOptions,
-  ): Promise<any> {
+  ): Promise<VideoAssemblyResult> {
     const outputPath = path.join(options.output, "tutorial.mp4");
     const audioDir = path.join(options.output, "audio");
 

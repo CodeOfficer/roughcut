@@ -5,9 +5,8 @@
  * lazy API key validation, YAML parsing, reset behavior
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { config } from "../config-manager.js";
-import type { ResolvedConfig } from "../config-manager.js";
 
 describe("ConfigManager", () => {
   const originalEnv = { ...process.env };

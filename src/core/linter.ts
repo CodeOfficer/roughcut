@@ -285,9 +285,10 @@ export class MarkdownLinter {
         // Parse numbers
         else if (!isNaN(Number(value)) && value !== "") value = Number(value);
         // Parse null
-        else if (value === "null") value = null as any;
+        else if (value === "null") value = null as unknown as string;
 
-        (config as any)[key.trim()] = value;
+        (config as Record<string, string | boolean | number>)[key.trim()] =
+          value;
       }
     }
 

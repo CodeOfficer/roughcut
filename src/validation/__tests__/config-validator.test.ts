@@ -85,19 +85,19 @@ describe("Config Validator", () => {
     });
 
     it("should reject invalid type for boolean field", () => {
-      const result = validateConfig({ controls: "yes" as any });
+      const result = validateConfig({ controls: "yes" as never });
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.message).toContain("Invalid value");
     });
 
     it("should reject invalid type for number field", () => {
-      const result = validateConfig({ viewDistance: "five" as any });
+      const result = validateConfig({ viewDistance: "five" as never });
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.message).toContain("number");
     });
 
     it("should accept special value for controls (speaker-only)", () => {
-      const result = validateConfig({ controls: "speaker-only" as any });
+      const result = validateConfig({ controls: "speaker-only" as never });
       expect(result.valid).toBe(true);
     });
 
@@ -107,7 +107,7 @@ describe("Config Validator", () => {
     });
 
     it("should accept false for autoSlide", () => {
-      const result = validateConfig({ autoSlide: false as any });
+      const result = validateConfig({ autoSlide: false as never });
       expect(result.valid).toBe(true);
     });
   });
@@ -127,19 +127,19 @@ describe("Config Validator", () => {
         "zoom",
       ];
       for (const transition of transitions) {
-        const result = validateConfig({ transition: transition as any });
+        const result = validateConfig({ transition: transition as never });
         expect(result.valid).toBe(true);
       }
     });
 
     it("should reject invalid transition value", () => {
-      const result = validateConfig({ transition: "invalid" as any });
+      const result = validateConfig({ transition: "invalid" as never });
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.message).toContain("transition");
     });
 
     it("should suggest closest match for typo in enum", () => {
-      const result = validateConfig({ transition: "slied" as any });
+      const result = validateConfig({ transition: "slied" as never });
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.suggestion).toContain("slide");
     });
@@ -147,7 +147,7 @@ describe("Config Validator", () => {
     it("should accept valid transitionSpeed", () => {
       const speeds = ["default", "fast", "slow"];
       for (const speed of speeds) {
-        const result = validateConfig({ transitionSpeed: speed as any });
+        const result = validateConfig({ transitionSpeed: speed as never });
         expect(result.valid).toBe(true);
       }
     });
@@ -155,7 +155,7 @@ describe("Config Validator", () => {
     it("should accept valid navigationMode", () => {
       const modes = ["default", "linear", "grid"];
       for (const mode of modes) {
-        const result = validateConfig({ navigationMode: mode as any });
+        const result = validateConfig({ navigationMode: mode as never });
         expect(result.valid).toBe(true);
       }
     });
@@ -163,20 +163,20 @@ describe("Config Validator", () => {
     it("should accept valid slideNumber formats", () => {
       const formats = [false, true, "h.v", "h/v", "c", "c/t"];
       for (const format of formats) {
-        const result = validateConfig({ slideNumber: format as any });
+        const result = validateConfig({ slideNumber: format as never });
         expect(result.valid).toBe(true);
       }
     });
 
     it("should reject invalid slideNumber format", () => {
-      const result = validateConfig({ slideNumber: "invalid" as any });
+      const result = validateConfig({ slideNumber: "invalid" as never });
       expect(result.valid).toBe(false);
     });
 
     it("should accept valid controlsLayout", () => {
       const layouts = ["bottom-right", "edges"];
       for (const layout of layouts) {
-        const result = validateConfig({ controlsLayout: layout as any });
+        const result = validateConfig({ controlsLayout: layout as never });
         expect(result.valid).toBe(true);
       }
     });
@@ -184,7 +184,7 @@ describe("Config Validator", () => {
     it("should accept valid controlsBackArrows", () => {
       const options = ["faded", "hidden", "visible"];
       for (const option of options) {
-        const result = validateConfig({ controlsBackArrows: option as any });
+        const result = validateConfig({ controlsBackArrows: option as never });
         expect(result.valid).toBe(true);
       }
     });
@@ -196,19 +196,19 @@ describe("Config Validator", () => {
 
   describe("validateConfig - Unknown Fields", () => {
     it("should reject unknown config field", () => {
-      const result = validateConfig({ unknownOption: true } as any);
+      const result = validateConfig({ unknownOption: true } as never);
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.message).toContain("Unknown config option");
     });
 
     it("should suggest closest match for typo in field name", () => {
-      const result = validateConfig({ controles: true } as any);
+      const result = validateConfig({ controles: true } as never);
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.suggestion).toContain("controls");
     });
 
     it("should suggest closest match for similar field name", () => {
-      const result = validateConfig({ progressBar: true } as any);
+      const result = validateConfig({ progressBar: true } as never);
       expect(result.valid).toBe(false);
       expect(result.errors[0]?.suggestion).toContain("progress");
     });
@@ -221,9 +221,9 @@ describe("Config Validator", () => {
   describe("validateConfig - Multiple Errors", () => {
     it("should report multiple validation errors", () => {
       const result = validateConfig({
-        controls: "yes" as any,
-        transition: "invalid" as any,
-        viewDistance: "many" as any,
+        controls: "yes" as never,
+        transition: "invalid" as never,
+        viewDistance: "many" as never,
       });
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBe(3);
@@ -232,9 +232,9 @@ describe("Config Validator", () => {
     it("should validate all fields even if some are invalid", () => {
       const result = validateConfig({
         controls: true, // valid
-        transition: "invalid" as any, // invalid
+        transition: "invalid" as never, // invalid
         progress: true, // valid
-        viewDistance: "text" as any, // invalid
+        viewDistance: "text" as never, // invalid
       });
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBe(2);
@@ -305,7 +305,7 @@ describe("Config Validator", () => {
 
   describe("formatValidationErrors", () => {
     it("should format single error with all details", () => {
-      const result = validateConfig({ transition: "invalid" as any });
+      const result = validateConfig({ transition: "invalid" as never });
       const formatted = formatValidationErrors(result.errors);
 
       expect(formatted).toContain("CONFIGURATION VALIDATION ERRORS");
@@ -316,8 +316,8 @@ describe("Config Validator", () => {
 
     it("should format multiple errors", () => {
       const result = validateConfig({
-        transition: "bad" as any,
-        controls: "yes" as any,
+        transition: "bad" as never,
+        controls: "yes" as never,
       });
       const formatted = formatValidationErrors(result.errors);
 
@@ -327,7 +327,7 @@ describe("Config Validator", () => {
     });
 
     it("should include suggestions in formatted output", () => {
-      const result = validateConfig({ controles: true } as any);
+      const result = validateConfig({ controles: true } as never);
       const formatted = formatValidationErrors(result.errors);
 
       expect(formatted).toContain("controls");
@@ -335,7 +335,7 @@ describe("Config Validator", () => {
     });
 
     it("should include documentation reference", () => {
-      const result = validateConfig({ invalid: true } as any);
+      const result = validateConfig({ invalid: true } as never);
       const formatted = formatValidationErrors(result.errors);
 
       expect(formatted).toContain(

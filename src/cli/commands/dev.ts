@@ -5,9 +5,10 @@
 import { Command } from "commander";
 import * as path from "path";
 import * as fs from "fs/promises";
-import { createDevServer } from "../../dev-server.js";
+import { createDevServer, type DevServerOptions } from "../../dev-server.js";
 import { createRevealParser } from "../../core/parser.js";
 import { createRevealTimelineBuilder } from "../../video/timeline.js";
+import type { RevealPresentation } from "../../core/types.js";
 
 export function createDevCommand(): Command {
   const cmd = new Command("dev");
@@ -37,7 +38,12 @@ export function createDevCommand(): Command {
   return cmd;
 }
 
-async function runDev(options: any): Promise<void> {
+async function runDev(options: {
+  input?: string;
+  output?: string;
+  auto: boolean;
+  slowMo: string;
+}): Promise<void> {
   // Auto-detect presentation.md if no input specified
   let input = options.input;
   if (!input) {
@@ -108,7 +114,7 @@ async function runDev(options: any): Promise<void> {
       // Manifest structure: { "slide-001": [{ hash, text, file, duration, ... }] }
       for (const [slideId, lines] of Object.entries(manifest) as [
         string,
-        any[],
+        Array<{ duration?: number; file?: string }>,
       ][]) {
         if (Array.isArray(lines) && lines.length > 0) {
           // Sum durations of all audio lines for this slide
@@ -119,7 +125,7 @@ async function runDev(options: any): Promise<void> {
 
           // Use the first line's file path (HTTP server-relative)
           // The file is already relative in the manifest
-          const filePath = `/audio/${lines[0].file}`;
+          const filePath = `/audio/${lines[0]?.file ?? ""}`;
 
           audioResults.set(slideId, {
             filePath,
@@ -147,28 +153,31 @@ async function runDev(options: any): Promise<void> {
 
   // Start dev server
   const devServer = createDevServer();
-  await devServer.start({
+  const devOptions: DevServerOptions = {
     htmlPath,
     autoAdvance: auto,
-    timeline,
     audioBaseDir: audioBaseDir || null,
     slowMo: parseInt(slowMo, 10),
     debugOverlayData,
-  });
+  };
+  if (timeline) {
+    devOptions.timeline = timeline;
+  }
+  await devServer.start(devOptions);
 }
 
 /**
  * Prepare debug overlay data by extracting narration text and fragment info
  */
 async function prepareDebugOverlayData(
-  presentation: any,
+  presentation: RevealPresentation,
   audioDir: string,
 ): Promise<Map<string, { narration: string; fragmentCount: number }>> {
   const overlayData = new Map();
 
   // Load audio manifest to get narration text
   const manifestPath = path.join(audioDir, "manifest.json");
-  let manifest: any = {};
+  let manifest: Record<string, Array<{ text?: string }>> = {};
 
   try {
     const manifestContent = await fs.readFile(manifestPath, "utf-8");
@@ -190,7 +199,7 @@ async function prepareDebugOverlayData(
       const lines = manifest[slideId];
       // Deduplicate text entries (manifest may have duplicates)
       const uniqueTexts = Array.from(
-        new Set(lines.map((line: any) => line.text || "")),
+        new Set(lines.map((line: { text?: string }) => line.text || "")),
       );
       // Concatenate all unique text lines, removing [pause] markers
       narration = uniqueTexts

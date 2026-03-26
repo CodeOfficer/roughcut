@@ -73,9 +73,10 @@ describe("roughcut build CLI", () => {
           encoding: "utf-8",
           timeout: 10000,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         threw = true;
-        expect(error.status).not.toBe(0);
+        const execError = error as { status: number | null };
+        expect(execError.status).not.toBe(0);
       }
 
       expect(threw).toBe(true);
@@ -125,8 +126,9 @@ describe("roughcut build CLI", () => {
           encoding: "utf-8",
           timeout: 30000,
         });
-      } catch (error: any) {
-        output = error.stdout || error.stderr || "";
+      } catch (error: unknown) {
+        const execError = error as { stdout?: string; stderr?: string };
+        output = execError.stdout || execError.stderr || "";
       }
 
       // Should not contain "unknown option"
@@ -151,8 +153,9 @@ describe("roughcut build CLI", () => {
           encoding: "utf-8",
           timeout: 30000,
         });
-      } catch (error: any) {
-        output = error.stdout || error.stderr || "";
+      } catch (error: unknown) {
+        const execError = error as { stdout?: string; stderr?: string };
+        output = execError.stdout || execError.stderr || "";
       }
 
       // Should not contain "unknown option"

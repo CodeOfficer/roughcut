@@ -17,6 +17,7 @@ import {
   hashAudioText,
   findCachedAudio,
   updateCacheEntry,
+  type CachedAudioLine,
 } from "./audio-cache.js";
 import type {
   RevealPresentation,
@@ -137,7 +138,7 @@ export class RevealSpeechGenerator {
         results.set(slide.id, result);
 
         // Update cache manifest with all data including alignment and voice parameters
-        const cacheEntry: any = {
+        const cacheEntry: CachedAudioLine = {
           hash: audioHash,
           text: slide.audio.cleanText,
           voiceId,

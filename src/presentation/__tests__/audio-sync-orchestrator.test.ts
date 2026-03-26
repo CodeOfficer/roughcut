@@ -8,9 +8,9 @@ import {
   type OrchestrationProgress,
 } from "../audio-sync-orchestrator.js";
 import { RevealHTMLGenerator } from "../revealjs-generator.js";
-import { RevealSpeechGenerator } from "../../narration/speech.js";
+
 import { createRevealTimelineBuilder } from "../../video/timeline.js";
-import type { RevealPresentation } from "../../core/types.js";
+import type { RevealPresentation, RevealTimeline } from "../../core/types.js";
 import { DEFAULT_SLIDE_METADATA } from "../../core/types.js";
 import * as fs from "fs/promises";
 import * as path from "path";
@@ -295,7 +295,7 @@ interface GenerateOptions {
 async function generateTestPresentation(
   outputDir: string,
   options: GenerateOptions = {},
-): Promise<{ htmlPath: string; timeline: any; audioDir: string }> {
+): Promise<{ htmlPath: string; timeline: RevealTimeline; audioDir: string }> {
   const { slideCount = 2, includeAudio = false } = options;
 
   // Create presentation

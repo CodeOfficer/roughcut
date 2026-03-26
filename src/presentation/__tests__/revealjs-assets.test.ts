@@ -339,7 +339,7 @@ describe("RevealAssetBundler", () => {
         "theme",
         "black.css",
       );
-      const firstStats = await fs.stat(themeFile);
+      await fs.stat(themeFile);
 
       // Bundle again with different theme
       await bundler.bundle({
